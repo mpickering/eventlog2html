@@ -28,8 +28,8 @@ pretty hpi =
 ticks :: Int -> Double -> Double -> [Double]
 ticks n mi ma =
   let k = nearestNice $ (ma - mi) / fromIntegral n
-      m0 = fromIntegral (ceiling (mi / k)) * k
-      m1 = fromIntegral (floor   (ma / k)) * k
+      m0 = fromIntegral (ceiling (mi / k) :: Integer) * k
+      m1 = fromIntegral (floor   (ma / k) :: Integer) * k
   in  [m0, m0 + k .. m1 ]
 
 nearestNice :: Double -> Double
