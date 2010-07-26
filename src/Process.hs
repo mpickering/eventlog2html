@@ -2,7 +2,7 @@ module Process where
 
 import Control.Arrow((&&&))
 import Data.List (sortBy)
-import Data.Map (Map, unionsWith, toList, fromList, difference, elems, findWithDefault)
+import Data.Map (unionsWith, toList, fromList, difference, elems, findWithDefault)
 import Data.Ord (comparing)
 
 import Types
