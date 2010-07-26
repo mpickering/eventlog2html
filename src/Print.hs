@@ -51,13 +51,13 @@ showF x = showFFloat Nothing x ""
 keyBox :: Double -> Double -> Double -> Int -> String -> String -> String
 keyBox x y0 dy i c l =
   let y = y0 + fromIntegral i * dy
-      box = "<rect fill='" ++ c ++ "' x='" ++ showF x ++ "' y='" ++ showF (y + 0.1 * dy) ++ "' width='" ++ show (dy * 0.8) ++ "' height='" ++ show (dy * 0.8) ++ "' />"
+      box = "<rect fill-opacity='0.7' fill='" ++ c ++ "' x='" ++ showF x ++ "' y='" ++ showF (y + 0.1 * dy) ++ "' width='" ++ show (dy * 0.8) ++ "' height='" ++ show (dy * 0.8) ++ "' />"
       txt = "<text font-size='15' text-anchor='start' x='" ++ showF (x + dy) ++ "' y='" ++ showF (y + dy * 0.6) ++ "'>" ++ l ++ "</text>"
   in  box ++ txt
 
 
 polygon :: String -> [(Double,Double)] -> String
-polygon c ps = "<path fill-opacity='0.5' fill='" ++ c ++ "' d='" ++ path ps ++ "' />"
+polygon c ps = "<path fill-opacity='0.7' fill='" ++ c ++ "' d='" ++ path ps ++ "' />"
 
 path :: [(Double,Double)] -> String
 path [] = error "Print.path: []"
@@ -88,20 +88,24 @@ svgEnd = "</svg>"
 phi :: Double
 phi = (sqrt 5 + 1) / 2
 
-phiRad :: Double
-phiRad = 2 * pi / (phi * phi)
-
 hues :: [Double]
-hues = [0, phiRad ..]
+hues = [0, 2 * pi / (phi * phi) ..]
+
+sats :: [Double]
+sats = repeat 1
+
+vals :: [Double]
+vals = repeat 1
+
+wrap :: Double -> Double
+wrap x = x - fromIntegral (floor x :: Int)
 
 colours :: [String]
-colours = map (toSVGColour . toRGB) hues
+colours = map toSVGColour $ zipWith3 toRGB hues sats vals
 
-toRGB :: Double -> (Double, Double, Double)
-toRGB h =
-  let s = 1
-      v = 1
-      hh = h * 3 / pi
+toRGB :: Double -> Double -> Double -> (Double, Double, Double)
+toRGB h s v =
+  let hh = h * 3 / pi
       i = floor hh `mod` 6 :: Int
       f = hh - fromIntegral (floor hh :: Int)
       p = v * (1 - s)
