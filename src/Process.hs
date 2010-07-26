@@ -26,11 +26,11 @@ process hpr =
   in  Info
       { hpiJob        = hprJob hpr
       , hpiDate       = hprDate hpr
-      , hpiSampleUnit = hprSampleUnit hpr
+      , hpiSampleUnit = "samples" -- hprSampleUnit hpr
       , hpiValueUnit  = hprValueUnit hpr
-      , hpiSampleRange= sr
+      , hpiSampleRange= (0, fromIntegral $ length frames - 1) -- sr
       , hpiValueRange = vr
-      , hpiSamples    = map hpfTime frames
+      , hpiSamples    = [0 .. fromIntegral $ length frames - 1] -- map hpfTime frames
       , hpiValues     = values
       , hpiTrace      = traces
       }
