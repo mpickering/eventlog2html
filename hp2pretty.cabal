@@ -18,7 +18,7 @@ Copyright:           (C) 2010  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
 Extra-source-files:  NEWS README
-Cabal-version:       >=1.2
+Cabal-version:       >=1.6
 
 Executable hp2pretty
   Build-depends:       base >= 4 && < 5, array, bytestring, containers, mtl
