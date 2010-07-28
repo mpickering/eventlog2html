@@ -1,6 +1,7 @@
 module Main where
 
-import Prelude hiding (print)
+import Prelude hiding (print, interact)
+import Data.ByteString.Lazy.Char8(interact)
 
 import Parse (parse)
 import Process (process)
