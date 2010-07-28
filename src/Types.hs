@@ -1,13 +1,14 @@
 module Types where
 
 import Data.Map (Map)
+import Data.ByteString.Lazy.Char8(ByteString)
 
 data Run =
   Run
-  { hprJob        :: String
-  , hprDate       :: String
-  , hprSampleUnit :: String
-  , hprValueUnit  :: String
+  { hprJob        :: ByteString
+  , hprDate       :: ByteString
+  , hprSampleUnit :: ByteString
+  , hprValueUnit  :: ByteString
   , hprFrames     :: [Frame]
   }
   deriving (Read, Show, Eq, Ord)
@@ -15,35 +16,35 @@ data Run =
 data Frame =
   Frame
   { hpfTime       :: Double
-  , hpfSamples    :: Map String Double
+  , hpfSamples    :: Map ByteString Double
   }
   deriving (Read, Show, Eq, Ord)
 
 data Info =
   Info
-  { hpiJob        :: String
-  , hpiDate       :: String
-  , hpiSampleUnit :: String
-  , hpiValueUnit  :: String
+  { hpiJob        :: ByteString
+  , hpiDate       :: ByteString
+  , hpiSampleUnit :: ByteString
+  , hpiValueUnit  :: ByteString
   , hpiSampleRange:: (Double, Double)
   , hpiValueRange :: (Double, Double)
   , hpiSamples    :: [Double]
-  , hpiValues     :: [(String, [Double])]
+  , hpiValues     :: [(ByteString, [Double])]
   , hpiTrace      :: [Double]
   }
   deriving (Read, Show, Eq, Ord)
 
 data Graph =
   Graph
-  { hpgJob        :: String
-  , hpgDate       :: String
-  , hpgSampleUnit :: String
-  , hpgValueUnit  :: String
+  { hpgJob        :: ByteString
+  , hpgDate       :: ByteString
+  , hpgSampleUnit :: ByteString
+  , hpgValueUnit  :: ByteString
   , hpgSampleRange:: (Double, Double)
   , hpgValueRange :: (Double, Double)
   , hpgSampleTicks:: [Double]
   , hpgValueTicks :: [Double]
-  , hpgLabels     :: [String]
+  , hpgLabels     :: [ByteString]
   , hpgBands      :: [[Double]]
   , hpgSamples    :: [Double]
   }
