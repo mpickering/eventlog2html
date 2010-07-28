@@ -1,7 +1,8 @@
 module Types where
 
-import Data.Map (Map)
+import Data.Array.Unboxed (UArray)
 import Data.ByteString.Lazy.Char8(ByteString)
+import Data.Map (Map)
 
 data Run =
   Run
@@ -45,7 +46,7 @@ data Graph =
   , hpgSampleTicks:: [Double]
   , hpgValueTicks :: [Double]
   , hpgLabels     :: [ByteString]
-  , hpgBands      :: [[Double]]
+  , hpgBands      :: UArray (Int, Int) Double
   , hpgSamples    :: [Double]
   }
-  deriving (Read, Show, Eq, Ord)
+  deriving (Show, Eq, Ord)
