@@ -1,15 +1,16 @@
 module Print where
 
 import Numeric (showHex, showFFloat)
+import Data.ByteString.Lazy.Char8 (ByteString, pack, unpack)
 
 import Types
 
-print :: Graph -> String
+print :: Graph -> ByteString
 print hpg =
   let paths = map (zip (hpgSamples hpg)) (hpgBands hpg)
       bands = zipWith (\s t -> s ++ reverse t) paths (tail paths)
       polygons = zipWith polygon colours . map (map p) . reverse $ bands
-      key = zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [0..] colours . reverse . hpgLabels $ hpg
+      key = zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [0..] colours . reverse . map unpack . hpgLabels $ hpg
       w = 1280
       h = 720
       gW = 960 - 2 * border
@@ -20,22 +21,22 @@ print hpg =
       (yMin, yMax) = hpgValueRange hpg
       gRange@((gx0,gy0),(gx1,gy1)) = ((border*1.5, gH + border*1.5), (gW + border*1.5, border*1.5))
       p = rescalePoint ((xMin, yMin), (xMax, yMax)) gRange
-      title = "<text font-size='25' text-anchor='middle' x='" ++ showF (fromIntegral w / 2) ++ "' y='" ++ showF (border * 0.75) ++ "'>" ++ hpgJob hpg ++ " (" ++ hpgDate hpg ++ ")</text>"
+      title = "<text font-size='25' text-anchor='middle' x='" ++ showF (fromIntegral w / 2) ++ "' y='" ++ showF (border * 0.75) ++ "'>" ++ unpack (hpgJob hpg) ++ " (" ++ unpack (hpgDate hpg) ++ ")</text>"
       background = "<rect fill='white' x='0' y='0' width='" ++ show w ++ "' height='" ++ show h ++ "' />"
       box = "<rect fill='white' x='" ++ showF gx0 ++ "' y='" ++ showF gy1 ++ "' width='" ++ showF gW ++ "' height='" ++ showF gH ++ "' />"
       gStart = "<g fill-opacity='0.5' fill='black' stroke='black' stroke-width='1'>"
-      leftLabel   = "<text font-size='20' text-anchor='middle' transform='translate(" ++ showF (border/2) ++ "," ++ showF ((gy0 + gy1)/2) ++ ") rotate(-90)'>" ++ hpgValueUnit hpg ++ "</text>"
+      leftLabel   = "<text font-size='20' text-anchor='middle' transform='translate(" ++ showF (border/2) ++ "," ++ showF ((gy0 + gy1)/2) ++ ") rotate(-90)'>" ++ unpack (hpgValueUnit hpg) ++ "</text>"
       leftTicks   = map (\(y,l) -> let { (x1, y1) = p (xMin, y) ; (x2, y2) = p (xMax, y) } in
           "<line x1='" ++ showF (x1 - border/2) ++ "' x2='" ++ showF x2 ++ "' y1='" ++ showF y1 ++ "' y2='" ++ showF y2 ++ "' />" ++
           if l then "" else "<text font-size='15' text-anchor='end'   x='" ++ showF (x1 - textOffset) ++ "' y='" ++ showF (y1 - textOffset) ++ "'>" ++ showSI y ++ "</text>"
         ) (zip (hpgValueTicks hpg) (replicate (length (hpgValueTicks hpg) - 1) False ++ [True]))
-      bottomLabel = "<text font-size='20' text-anchor='middle' x='" ++ showF ((gx0 + gx1)/2) ++ "' y='" ++ showF (gy0 + border) ++ "'>" ++ hpgSampleUnit hpg ++ "</text>"
+      bottomLabel = "<text font-size='20' text-anchor='middle' x='" ++ showF ((gx0 + gx1)/2) ++ "' y='" ++ showF (gy0 + border) ++ "'>" ++ unpack (hpgSampleUnit hpg) ++ "</text>"
       bottomTicks = map (\(x,l) -> let { (x1, y1) = p (x, yMin) ; (x2, y2) = p (x, yMax) } in
           "<line y1='" ++ showF (y1 + border/2) ++ "' y2='" ++ showF y2 ++ "' x1='" ++ showF x1 ++ "' x2='" ++ showF x2 ++ "' />" ++
           if l then "" else "<text font-size='15' text-anchor='start' x='" ++ showF (x1 + textOffset) ++ "' y='" ++ showF (y1+2*textOffset) ++ "'>" ++ showSI x ++ "</text>"
         ) (zip (hpgSampleTicks hpg) (replicate (length (hpgSampleTicks hpg) - 1) False ++ [True]))
       gEnd = "</g>"
-  in  unlines [ xmldecl, svgStart w h, background, gStart, title, leftLabel, unlines leftTicks, bottomLabel, unlines bottomTicks, box, unlines polygons, unlines key, gEnd, svgEnd ]
+  in  pack $ unlines [ xmldecl, svgStart w h, background, gStart, title, leftLabel, unlines leftTicks, bottomLabel, unlines bottomTicks, box, unlines polygons, unlines key, gEnd, svgEnd ]
 
 showSI :: Double -> String
 showSI x | x < 1e3   = showF x
