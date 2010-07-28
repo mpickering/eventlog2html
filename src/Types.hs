@@ -11,6 +11,7 @@ data Run =
   , hprSampleUnit :: ByteString
   , hprValueUnit  :: ByteString
   , hprFrames     :: [Frame]
+  , hprTotals     :: Map ByteString Double
   }
   deriving (Read, Show, Eq, Ord)
 
