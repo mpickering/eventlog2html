@@ -1,0 +1,39 @@
+hp2pretty
+=========
+
+hp2ps is a tool to generate PostScript graphs of Heap Profiles.
+hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
+the aims of being maintainable, with more flexible output, and
+more beautiful output.  Currently hp2pretty outputs Scalable
+Vector Graphics (SVG) only, though PostScript (PS) is planned.
+Also none (count'em) of hp2ps' options are implemented yet in
+hp2pretty.
+
+
+Benchmarks
+----------
+
+(updated 2010-07-28)
+
+$ wc in.hp
+ 1484749  2969502 37406420 in.hp
+
+$ time ./Main <in.hp >out.svg
+real 0m38.786s 0m39.423s 0m38.674s
+user 0m38.120s 0m38.800s 0m38.110s
+sys  0m00.360s 0m00.250s 0m00.400s
+
+$ time hp2ps <in.hp >out.ps
+real 0m38.474s 0m38.765s 0m38.017s
+user 0m38.350s 0m38.200s 0m37.860s
+sys  0m00.090s 0m00.140s 0m00.150s
+
+(hp2pretty compiled with "ghc -O2 --make")
+
+Essentially identical runtime!
+
+Memory usage from 'top':
+hp2pretty ~275M
+hp2ps      ~50M
+
+Tests were run on 64bit GNU/Linux with ghc-6.12.3.
