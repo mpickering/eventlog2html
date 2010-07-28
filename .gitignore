@@ -1,3 +1,2 @@
-*.o
-*.hi
-
+dist
+test
