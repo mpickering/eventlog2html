@@ -1,6 +1,7 @@
 module Pretty where
 
 import Data.List (transpose)
+import Data.ByteString.Lazy.Char8 (pack)
 
 import Types
 
@@ -8,7 +9,7 @@ pretty :: Info -> Graph
 pretty hpi =
   let sticks = uncurry (ticks 20) (hpiSampleRange hpi)
       vticks = uncurry (ticks 20) (hpiValueRange hpi)
-      labels = "(trace elements)" : (reverse . map fst . hpiValues) hpi
+      labels = pack "(trace elements)" : (reverse . map fst . hpiValues) hpi
       values = hpiTrace hpi : (reverse . map snd . hpiValues) hpi
       bands  = transpose . map (scanl (+) 0) . transpose $ values
   in  Graph
