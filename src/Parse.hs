@@ -1,19 +1,29 @@
+{-# LANGUAGE BangPatterns #-}
 module Parse where
 
 import Control.Monad.State.Strict(State(), evalState, get, put)
 import Control.Monad(foldM)
-import Data.List(isPrefixOf)
 import Data.Map(Map, empty, insertWith', alter, (!))
+import Numeric (readSigned, readFloat)
+import Prelude hiding (lines, words, drop, length)
+import Data.ByteString.Lazy.Char8(ByteString, pack, unpack, lines, words, isPrefixOf, drop, length)
 
 import Types
 
-parse :: String -> Run
+sJOB = pack "JOB"
+sDATE = pack "DATE"
+sSAMPLE_UNIT = pack "SAMPLE_UNIT"
+sVALUE_UNIT = pack "VALUE_UNIT"
+sBEGIN_SAMPLE = pack "BEGIN_SAMPLE"
+sEND_SAMPLE = pack "END_SAMPLE"
+
+parse :: ByteString -> Run
 parse s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls
       [job, date, smpU, valU] =
-        zipWith header ["JOB", "DATE", "SAMPLE_UNIT", "VALUE_UNIT"] hs
-      frames = flip evalState empty . mapM parseFrame . chunkSamples1 $ ss
+        zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
+      frames = flip evalState empty . mapM parseFrame . chunkSamples $ ss
   in  Run
       { hprJob        = job
       , hprDate       = date
@@ -22,56 +32,51 @@ parse s =
       , hprFrames     = frames
       }
 
-header :: String -> String -> String
+header :: ByteString -> ByteString -> ByteString
 header name h =
   if name `isPrefixOf` h
-  then read . drop (length name + 1) $ h
-  else error $ "Parse.header: expected " ++ name
+  then pack . read . unpack . drop (length name + 1) $ h
+  else error $ "Parse.header: expected " ++ unpack name
 
-chunkSamples1 :: [String] -> [[String]]
-chunkSamples1 [] = []
-chunkSamples1 (x:xs) =
-  if "BEGIN_SAMPLE" `isPrefixOf` x
-  then let (ys,zs) = chunkSamples2 xs in (x:ys) : chunkSamples1 zs
-  else [] -- expected BEGIN_SAMPLE or EOF...
+chunkSamples :: [ByteString] -> [[ByteString]]
+chunkSamples [] = []
+chunkSamples (x:xs)
+  | sBEGIN_SAMPLE `isPrefixOf` x =
+      let (ys, zs) = break (sEND_SAMPLE `isPrefixOf`) xs
+      in  case zs of
+            [] -> [] -- discard incomplete sample
+            (_:ws) -> (x:ys) : chunkSamples ws
+  | otherwise = [] -- expected BEGIN_SAMPLE or EOF...
 
-chunkSamples2 :: [String] -> ([String], [String])
-chunkSamples2 [] = ([], []) -- expected END_SAMPLE or EOF...
-chunkSamples2 (x:xs) =
-  if "END_SAMPLE" `isPrefixOf` x
-  then ([x],xs)
-  else let (ys,zs) = chunkSamples2 xs in (x:ys, zs)
-
-parseFrame :: [String] -> State (Map String String) Frame
+parseFrame :: [ByteString] -> State (Map ByteString ByteString) Frame
 parseFrame [] = error "Parse.parseFrame: empty"
 parseFrame (l:ls) = do
-  let begin = sampleTime "BEGIN_SAMPLE" l
-      end   = sampleTime "END_SAMPLE" $ last ls
-      smps  = init ls
-      time  =
-        if begin == end
-        then begin
-        else error "Parse.parseFrame: begin /= end"
-  samples <- foldM inserter empty smps
+  let time = sampleTime sBEGIN_SAMPLE l
+  samples <- foldM inserter empty ls
   return  Frame
           { hpfTime    = time
           , hpfSamples = samples
           }
 
-inserter :: Map String Double -> String -> State (Map String String) (Map String Double)
-inserter m s = do
+inserter :: Map ByteString Double -> ByteString -> State (Map ByteString ByteString) (Map ByteString Double)
+inserter !m s = do
   let [k,vs] = words s
-      v = read vs
-  get >>= put . alter (alterer k) k
+      !v = readDouble vs
+  get >>= \n -> put $! alter (alterer k) k n
   names <- get
-  return $ insertWith' (+) (names ! k) v m
+  return $! insertWith' (+) (names ! k) v m
 
-alterer :: String -> Maybe String -> Maybe String
+alterer :: ByteString -> Maybe ByteString -> Maybe ByteString
 alterer s Nothing = Just s
 alterer _ js      = js
 
-sampleTime :: String -> String -> Double
+sampleTime :: ByteString -> ByteString -> Double
 sampleTime name h =
   if name `isPrefixOf` h
-  then read . drop (length name + 1) $ h
-  else error $ "Parse.sampleTime: expected " ++ name
+  then readDouble .  drop (length name + 1) $ h
+  else error $ "Parse.sampleTime: expected " ++ unpack name ++ " but got " ++ unpack h
+
+readDouble :: ByteString -> Double
+readDouble s = case readSigned readFloat (unpack s) of
+  ((x,_):_) -> x
+  _ -> error $ "Parse.readDouble: no parse " ++ unpack s
