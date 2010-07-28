@@ -1,14 +1,22 @@
 module Print where
 
-import Numeric (showHex, showFFloat)
+import Data.Array.Unboxed (bounds, (!))
 import Data.ByteString.Lazy.Char8 (ByteString, pack, unpack)
+import Numeric (showHex, showFFloat)
 
 import Types
 
 print :: Graph -> ByteString
 print hpg =
-  let paths = map (zip (hpgSamples hpg)) (hpgBands hpg)
-      bands = zipWith (\s t -> s ++ reverse t) paths (tail paths)
+  let fwd = hpgSamples hpg
+      rwd = reverse fwd --)) (hpgBands hpg)
+      ((b0,s0),(b1,s1)) = bounds (hpgBands hpg)
+      bands =
+        [ (fwd ++ rwd) `zip` (bfwd ++ brwd)
+        | b <- [b0 + 1 .. b1]
+        , let bfwd = [ hpgBands hpg ! (b - 1, s) | s <- [s0 .. s1] ]
+        , let brwd = [ hpgBands hpg ! (b, s) | s <- [s1, s1 - 1 .. s0] ]
+        ] -- zipWith (\s t -> s ++ reverse t) paths (tail paths)
       polygons = zipWith polygon colours . map (map p) . reverse $ bands
       key = zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [0..] colours . reverse . map unpack . hpgLabels $ hpg
       w = 1280
