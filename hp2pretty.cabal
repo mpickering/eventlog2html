@@ -1,0 +1,33 @@
+Name:                hp2pretty
+Version:             0.1
+Synopsis:            generate pretty graphs from heap profiles
+Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
+                     the aims of being maintainable, with more flexible output, and
+                     more beautiful output.  Currently hp2pretty outputs Scalable
+                     Vector Graphics (SVG) only, though PostScript (PS) is planned.
+                     Also none (count'em) of hp2ps' options are implemented yet in
+                     hp2pretty.
+Homepage:            http://gitorious.org/hp2pretty
+License:             BSD3
+License-file:        LICENSE
+Author:              Claude Heiland-Allen
+Maintainer:          claudiusmaximus@goto10.org
+Copyright:           (C) 2010  Claude Heiland-Allen
+Category:            Development
+Build-type:          Simple
+Extra-source-files:  NEWS README
+Cabal-version:       >=1.2
+
+Executable hp2pretty
+  Main-is:             src/Main.hs
+  Build-depends:       base >= 4 && < 5
+  Other-modules:       Parse Process Pretty Print Types
+
+Source-repository head
+  type:                git
+  location:            git://gitorious.org/hp2pretty/hp2pretty.git
+
+Source-repository this
+  type:                git
+  location:            git://gitorious.org/hp2pretty/hp2pretty.git
+  tag:                 v0.1
