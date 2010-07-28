@@ -10,6 +10,7 @@ import Data.ByteString.Lazy.Char8(ByteString, pack, unpack, lines, words, isPref
 
 import Types
 
+sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT, sBEGIN_SAMPLE, sEND_SAMPLE :: ByteString
 sJOB = pack "JOB"
 sDATE = pack "DATE"
 sSAMPLE_UNIT = pack "SAMPLE_UNIT"
