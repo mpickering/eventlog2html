@@ -7,6 +7,8 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      Vector Graphics (SVG) only, though PostScript (PS) is planned.
                      Also none (count'em) of hp2ps' options are implemented yet in
                      hp2pretty.
+                     .
+                     Usage: "hp2pretty <in.hp >out.svg"
 Homepage:            http://gitorious.org/hp2pretty
 License:             BSD3
 License-file:        LICENSE
@@ -19,9 +21,14 @@ Extra-source-files:  NEWS README
 Cabal-version:       >=1.2
 
 Executable hp2pretty
-  Main-is:             src/Main.hs
-  Build-depends:       base >= 4 && < 5
-  Other-modules:       Parse Process Pretty Print Types
+  Build-depends:       base >= 4 && < 5, array, bytestring, containers, mtl
+  HS-source-dirs:      src
+  Main-is:             Main.hs
+  Other-modules:       Parse
+                       Process
+                       Pretty
+                       Print
+                       Types
 
 Source-repository head
   type:                git
