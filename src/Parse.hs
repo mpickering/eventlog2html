@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module Parse where
+module Parse (parse) where
 
 import Control.Monad.State.Strict (State(), runState, get, put)
 import Control.Monad (foldM)
@@ -28,12 +28,12 @@ parse s =
         zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
       (frames, parse1) = flip runState parse0 . mapM parseFrame . chunkSamples $ ss
   in  Run
-      { hprJob        = job
-      , hprDate       = date
-      , hprSampleUnit = smpU
-      , hprValueUnit  = valU
-      , hprFrames     = frames
-      , hprTotals     = totals parse1
+      { rJob        = job
+      , rDate       = date
+      , rSampleUnit = smpU
+      , rValueUnit  = valU
+      , rFrames     = frames
+      , rTotals     = totals parse1
       }
 
 header :: ByteString -> ByteString -> ByteString
@@ -58,8 +58,8 @@ parseFrame (l:ls) = do
   let time = sampleTime sBEGIN_SAMPLE l
   samples <- foldM inserter empty ls
   return  Frame
-          { hpfTime    = time
-          , hpfSamples = samples
+          { fTime    = time
+          , fSamples = samples
           }
 
 inserter :: Map ByteString Double -> ByteString -> State Parse (Map ByteString Double)

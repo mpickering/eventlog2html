@@ -1,53 +1,49 @@
 module Types where
 
 import Data.Array.Unboxed (UArray)
-import Data.ByteString.Lazy.Char8(ByteString)
+import Data.ByteString.Lazy.Char8 (ByteString)
 import Data.Map (Map)
 
 data Run =
   Run
-  { hprJob        :: ByteString
-  , hprDate       :: ByteString
-  , hprSampleUnit :: ByteString
-  , hprValueUnit  :: ByteString
-  , hprFrames     :: [Frame]
-  , hprTotals     :: Map ByteString Double
+  { rJob         :: ByteString
+  , rDate        :: ByteString
+  , rSampleUnit  :: ByteString
+  , rValueUnit   :: ByteString
+  , rFrames      :: [Frame]
+  , rTotals      :: Map ByteString Double
   }
-  deriving (Read, Show, Eq, Ord)
 
 data Frame =
   Frame
-  { hpfTime       :: Double
-  , hpfSamples    :: Map ByteString Double
+  { fTime        :: Double
+  , fSamples     :: Map ByteString Double
   }
-  deriving (Read, Show, Eq, Ord)
 
 data Info =
   Info
-  { hpiJob        :: ByteString
-  , hpiDate       :: ByteString
-  , hpiSampleUnit :: ByteString
-  , hpiValueUnit  :: ByteString
-  , hpiSampleRange:: (Double, Double)
-  , hpiValueRange :: (Double, Double)
-  , hpiSamples    :: [Double]
-  , hpiValues     :: [(ByteString, [Double])]
-  , hpiTrace      :: [Double]
+  { iJob         :: ByteString
+  , iDate        :: ByteString
+  , iSampleUnit  :: ByteString
+  , iValueUnit   :: ByteString
+  , iSampleRange :: (Double, Double)
+  , iValueRange  :: (Double, Double)
+  , iSamples     :: [Double]
+  , iValues      :: [(ByteString, [Double])]
+  , iTrace       :: [Double]
   }
-  deriving (Read, Show, Eq, Ord)
 
 data Graph =
   Graph
-  { hpgJob        :: ByteString
-  , hpgDate       :: ByteString
-  , hpgSampleUnit :: ByteString
-  , hpgValueUnit  :: ByteString
-  , hpgSampleRange:: (Double, Double)
-  , hpgValueRange :: (Double, Double)
-  , hpgSampleTicks:: [Double]
-  , hpgValueTicks :: [Double]
-  , hpgLabels     :: [ByteString]
-  , hpgBands      :: UArray (Int, Int) Double
-  , hpgSamples    :: [Double]
+  { gJob         :: ByteString
+  , gDate        :: ByteString
+  , gSampleUnit  :: ByteString
+  , gValueUnit   :: ByteString
+  , gSampleRange :: (Double, Double)
+  , gValueRange  :: (Double, Double)
+  , gSampleTicks :: [Double]
+  , gValueTicks  :: [Double]
+  , gLabels      :: [ByteString]
+  , gBands       :: UArray (Int, Int) Double
+  , gSamples     :: [Double]
   }
-  deriving (Show, Eq, Ord)

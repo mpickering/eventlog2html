@@ -1,4 +1,4 @@
-module Process where
+module Process (process) where
 
 import Control.Arrow ((&&&))
 import Data.List (foldl', sortBy)
@@ -8,10 +8,10 @@ import Data.Ord (comparing)
 import Types
 
 process :: Run -> Info
-process hpr =
-  let frames = hprFrames hpr
-      samples = map hpfSamples frames
-      ccTotals = sortBy (flip $ comparing snd) (toList $ hprTotals hpr)
+process r =
+  let frames = rFrames r
+      samples = map fSamples frames
+      ccTotals = sortBy (flip $ comparing snd) (toList $ rTotals r)
       sizes = map snd ccTotals
       total = sum' sizes
       limit = 0.99 * total
@@ -19,20 +19,20 @@ process hpr =
       bands = zipWith const ccTotals $ take 15 bigs
       ccs = map fst bands
       ccsMap = fromList . map (\c -> (c, ())) $ ccs
-      sr = (minimum &&& maximum) . map hpfTime $ frames
+      sr = (minimum &&& maximum) . map fTime $ frames
       vr = (0, maximum . map (sum . elems) $ samples)
       values = [ (c, [ findWithDefault 0 c m | m <- samples ]) | c <- ccs ]
       traces = map (sum' . elems . (`difference` ccsMap)) samples
   in  Info
-      { hpiJob        = hprJob hpr
-      , hpiDate       = hprDate hpr
-      , hpiSampleUnit = hprSampleUnit hpr
-      , hpiValueUnit  = hprValueUnit hpr
-      , hpiSampleRange= sr
-      , hpiValueRange = vr
-      , hpiSamples    = map hpfTime frames
-      , hpiValues     = values
-      , hpiTrace      = traces
+      { iJob         = rJob r
+      , iDate        = rDate r
+      , iSampleUnit  = rSampleUnit r
+      , iValueUnit   = rValueUnit r
+      , iSampleRange = sr
+      , iValueRange  = vr
+      , iSamples     = map fTime frames
+      , iValues      = values
+      , iTrace       = traces
       }
 
 sum' :: [Double] -> Double

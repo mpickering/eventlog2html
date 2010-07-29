@@ -1,31 +1,31 @@
-module Pretty where
+module Pretty (pretty) where
 
 import Control.Monad (forM_, liftM2)
-import Data.Array.ST
+import Data.Array.ST (runSTUArray, newListArray, writeArray, readArray)
 import Data.Array.Unboxed (UArray)
 import Data.ByteString.Lazy.Char8 (pack)
 
 import Types
 
 pretty :: Info -> Graph
-pretty hpi =
-  let sticks = uncurry (ticks 20) (hpiSampleRange hpi)
-      vticks = uncurry (ticks 20) (hpiValueRange hpi)
-      labels = pack "(trace elements)" : (reverse . map fst . hpiValues) hpi
-      values = hpiTrace hpi : (reverse . map snd . hpiValues) hpi
+pretty i =
+  let sticks = uncurry (ticks 20) (iSampleRange i)
+      vticks = uncurry (ticks 20) (iValueRange i)
+      labels = pack "(trace elements)" : (reverse . map fst . iValues) i
+      values = iTrace i : (reverse . map snd . iValues) i
       bands  = accumulate values
   in  Graph
-      { hpgJob        = hpiJob hpi
-      , hpgDate       = hpiDate hpi
-      , hpgSampleUnit = hpiSampleUnit hpi
-      , hpgValueUnit  = hpiValueUnit hpi
-      , hpgSampleRange= hpiSampleRange hpi
-      , hpgValueRange = hpiValueRange hpi
-      , hpgSampleTicks= sticks
-      , hpgValueTicks = vticks
-      , hpgLabels     = labels
-      , hpgBands      = bands
-      , hpgSamples    = hpiSamples hpi
+      { gJob         = iJob i
+      , gDate        = iDate i
+      , gSampleUnit  = iSampleUnit i
+      , gValueUnit   = iValueUnit i
+      , gSampleRange = iSampleRange i
+      , gValueRange  = iValueRange i
+      , gSampleTicks = sticks
+      , gValueTicks  = vticks
+      , gLabels      = labels
+      , gBands       = bands
+      , gSamples     = iSamples i
       }
 
 accumulate :: [[Double]] -> UArray (Int, Int) Double
