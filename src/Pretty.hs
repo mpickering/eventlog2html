@@ -1,40 +1,30 @@
 module Pretty (pretty) where
 
 import Control.Monad (forM_, liftM2)
-import Data.Array.ST (runSTUArray, newListArray, writeArray, readArray)
-import Data.Array.Unboxed (UArray, listArray)
-import Data.ByteString.Lazy.Char8 (pack)
+import Data.Array.MArray (thaw)
+import Data.Array.ST (runSTUArray, writeArray, readArray)
+import Data.Array.Unboxed (UArray, bounds)
+import Data.ByteString.Char8 (ByteString, pack)
+import Data.List (sortBy)
+import Data.Map (Map, toList)
+import Data.Ord (comparing)
 
 import Types
 
-pretty :: Info -> Graph
-pretty i =
-  let sticks = uncurry (ticks 20) (iSampleRange i)
-      vticks = uncurry (ticks 20) (iValueRange i)
-      labels = pack "(trace elements)" : (reverse . map fst . iValues) i
-      values = iTrace i : (reverse . map snd . iValues) i
-      bands  = accumulate (iCount i) values
-  in  Graph
-      { gJob         = iJob i
-      , gDate        = iDate i
-      , gSampleUnit  = iSampleUnit i
-      , gValueUnit   = iValueUnit i
-      , gSampleRange = iSampleRange i
-      , gValueRange  = iValueRange i
-      , gSampleTicks = sticks
-      , gValueTicks  = vticks
-      , gLabels      = labels
-      , gBands       = bands
-      , gSamples     = listArray (1, iCount i) (iSamples i)
-      }
+pretty :: Header -> UArray (Int, Int) Double -> Map ByteString Int -> (([Double], [Double]), ([ByteString], UArray (Int, Int) Double))
+pretty header vals bs =
+  let sticks = uncurry (ticks 20) (hSampleRange header)
+      vticks = uncurry (ticks 20) (hValueRange header)
+      labels = pack "(trace elements)" : (map fst . sortBy (comparing snd) . toList $ bs)
+      coords = accumulate vals
+  in  ((sticks, vticks), (labels, coords))
 
-accumulate :: Int -> [[Double]] -> UArray (Int, Int) Double
-accumulate _ [] = error $ "Pretty.accumulate': empty"
-accumulate samples xss = runSTUArray $ do
-  let bands = length xss
-  a <- newListArray ((0,1),(bands,samples)) $ replicate samples 0 ++ concat xss
-  forM_ [1 .. samples] $ \s ->
-    forM_ [1 .. bands] $ \b ->
+accumulate :: UArray (Int, Int) Double -> UArray (Int, Int) Double
+accumulate a0 = runSTUArray $ do
+  let ((b0,s0),(b1,s1)) = bounds a0
+  a <- thaw a0
+  forM_ [s0 .. s1] $ \s ->
+    forM_ [b0 + 1 .. b1] $ \b ->
       writeArray a (b, s) =<< liftM2 (+) (readArray a (b - 1, s)) (readArray a (b, s))
   return a
 
