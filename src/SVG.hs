@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module SVG (svg) where
 
-import Data.ByteString.Lazy.Char8 (ByteString, pack)
+import Data.ByteString.Char8 (ByteString, pack)
 import Numeric (showHex, showFFloat)
 
 import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..))

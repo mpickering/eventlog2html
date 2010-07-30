@@ -1,6 +1,6 @@
 module Graphics where
 
-import Data.ByteString.Lazy.Char8 (ByteString)
+import Data.ByteString.Char8 (ByteString)
 
 type Point = (Double, Double)
 type Size = (Double, Double)
