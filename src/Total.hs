@@ -65,15 +65,14 @@ parseFrame (l:ls) = do
   let !time = sampleTime sBEGIN_SAMPLE l
   samples <- mapM inserter ls
   p <- get
-  let v = foldl' (+) 0 {- . map snd $ -} samples
+  let v = foldl' (+) 0 samples
       sMin = if count p == 0 then time else time `min` sampleMin p
       sMax = if count p == 0 then time else time `max` sampleMax p
       vMin = v `min` valueMin p
       vMax = v `max` valueMax p
   put $! p{ count = count p + 1, sampleMin = sMin, sampleMax = sMax, valueMin = vMin, valueMax = vMax }
---  return (time, samples)
 
-inserter :: ByteString -> State Parse Double -- (ByteString, Double)
+inserter :: ByteString -> State Parse Double
 inserter s = do
   let [k,vs] = words s
       !v = readDouble vs
@@ -85,7 +84,7 @@ inserter s = do
     Just kk -> return kk
   p' <- get
   put $! p'{ totals = alter (accum  v) k' (totals p') }
-  return $! v -- (k', v)
+  return $! v
 
 accum :: Double -> Maybe Double -> Maybe Double
 accum x Nothing  = Just x
