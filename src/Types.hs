@@ -10,6 +10,7 @@ data Run =
   , rDate        :: ByteString
   , rSampleUnit  :: ByteString
   , rValueUnit   :: ByteString
+  , rCount       :: Int
   , rFrames      :: [Frame]
   , rTotals      :: Map ByteString Double
   }
@@ -28,6 +29,7 @@ data Info =
   , iValueUnit   :: ByteString
   , iSampleRange :: (Double, Double)
   , iValueRange  :: (Double, Double)
+  , iCount       :: Int
   , iSamples     :: [Double]
   , iValues      :: [(ByteString, [Double])]
   , iTrace       :: [Double]
@@ -35,15 +37,15 @@ data Info =
 
 data Graph =
   Graph
-  { gJob         :: ByteString
-  , gDate        :: ByteString
-  , gSampleUnit  :: ByteString
-  , gValueUnit   :: ByteString
-  , gSampleRange :: (Double, Double)
-  , gValueRange  :: (Double, Double)
-  , gSampleTicks :: [Double]
-  , gValueTicks  :: [Double]
-  , gLabels      :: [ByteString]
-  , gBands       :: UArray (Int, Int) Double
-  , gSamples     :: [Double]
+  { gJob         :: !ByteString
+  , gDate        :: !ByteString
+  , gSampleUnit  :: !ByteString
+  , gValueUnit   :: !ByteString
+  , gSampleRange :: !(Double, Double)
+  , gValueRange  :: !(Double, Double)
+  , gSampleTicks :: ![Double]
+  , gValueTicks  :: ![Double]
+  , gLabels      :: ![ByteString]
+  , gBands       :: !(UArray (Int, Int) Double)
+  , gSamples     :: !(UArray Int Double)
   }
