@@ -11,14 +11,15 @@ hp2pretty.
 
 
 Benchmarks
-----------
+==========
 
-(updated 2010-07-28)
+hp2pretty-0.1
+-------------
 
 $ wc in.hp
  1484749  2969502 37406420 in.hp
 
-$ time ./Main <in.hp >out.svg
+$ time hp2pretty <in.hp >out.svg
 real 0m38.786s 0m39.423s 0m38.674s
 user 0m38.120s 0m38.800s 0m38.110s
 sys  0m00.360s 0m00.250s 0m00.400s
@@ -35,5 +36,22 @@ Essentially identical runtime!
 Memory usage from 'top':
 hp2pretty ~275M
 hp2ps      ~50M
+
+Tests were run on 64bit GNU/Linux with ghc-6.12.3.
+
+
+hp2pretty-0.2
+-------------
+
+"in.hp"     time (seconds)       memory (bytes)
+(bytes)   hp2pretty    hp2ps   hp2pretty   hp2ps
+    37M      33.345   36.430         64M     25M
+   1.3M       1.015    0.074        2.2M    1.0M
+    47k       0.058    0.005        210k     60k
+
+Time is real time averaged over 3 runs as measured by 'bash'.
+Memory is peak usage as measured by 'valgrind --tool=massif'.
+
+hp2pretty compiled via cabal-install with 'ghc -O --make'.
 
 Tests were run on 64bit GNU/Linux with ghc-6.12.3.
