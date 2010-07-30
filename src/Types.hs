@@ -10,16 +10,14 @@ data Run =
   , rDate        :: ByteString
   , rSampleUnit  :: ByteString
   , rValueUnit   :: ByteString
+  , rSampleRange :: (Double, Double)
+  , rValueRange  :: (Double, Double)
   , rCount       :: Int
   , rFrames      :: [Frame]
   , rTotals      :: Map ByteString Double
   }
 
-data Frame =
-  Frame
-  { fTime        :: Double
-  , fSamples     :: Map ByteString Double
-  }
+type Frame = (Double, [(ByteString, Double)])
 
 data Info =
   Info
