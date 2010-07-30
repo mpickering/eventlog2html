@@ -14,11 +14,12 @@ data Parse =
   Parse
   { symbols :: !(Map ByteString ByteString) -- intern symbols to save RAM
   , totals  :: !(Map ByteString Double    ) -- compute running totals
+  , count   :: !Int                         -- number of frames
   }
   deriving (Read, Show, Eq, Ord)
 
 parse0 :: Parse
-parse0 = Parse{ symbols = empty, totals = empty }
+parse0 = Parse{ symbols = empty, totals = empty, count = 0 }
 
 parse :: ByteString -> Run
 parse s =
@@ -33,6 +34,7 @@ parse s =
       , rSampleUnit = smpU
       , rValueUnit  = valU
       , rFrames     = frames
+      , rCount      = count parse1
       , rTotals     = totals parse1
       }
 
@@ -56,6 +58,8 @@ parseFrame :: [ByteString] -> State Parse Frame
 parseFrame [] = error "Parse.parseFrame: empty"
 parseFrame (l:ls) = do
   let time = sampleTime sBEGIN_SAMPLE l
+  p <- get
+  put $! p{ count = count p + 1 }
   samples <- foldM inserter empty ls
   return  Frame
           { fTime    = time
