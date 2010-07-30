@@ -27,8 +27,9 @@ Executable hp2pretty
   HS-source-dirs:      src
   Main-is:             Main.hs
   Other-modules:       Types
-                       Parse
-                       Process
+                       Total
+                       Prune
+                       Bands
                        Pretty
                        Print
                        SVG
