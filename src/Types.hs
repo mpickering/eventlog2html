@@ -1,49 +1,14 @@
 module Types where
 
-import Data.Array.Unboxed (UArray)
-import Data.ByteString.Lazy.Char8 (ByteString)
-import Data.Map (Map)
+import Data.ByteString.Char8 (ByteString)
 
-data Run =
-  Run
-  { rJob         :: ByteString
-  , rDate        :: ByteString
-  , rSampleUnit  :: ByteString
-  , rValueUnit   :: ByteString
-  , rSampleRange :: (Double, Double)
-  , rValueRange  :: (Double, Double)
-  , rCount       :: Int
-  , rFrames      :: [Frame]
-  , rTotals      :: Map ByteString Double
-  }
-
-type Frame = (Double, [(ByteString, Double)])
-
-data Info =
-  Info
-  { iJob         :: ByteString
-  , iDate        :: ByteString
-  , iSampleUnit  :: ByteString
-  , iValueUnit   :: ByteString
-  , iSampleRange :: (Double, Double)
-  , iValueRange  :: (Double, Double)
-  , iCount       :: Int
-  , iSamples     :: [Double]
-  , iValues      :: [(ByteString, [Double])]
-  , iTrace       :: [Double]
-  }
-
-data Graph =
-  Graph
-  { gJob         :: !ByteString
-  , gDate        :: !ByteString
-  , gSampleUnit  :: !ByteString
-  , gValueUnit   :: !ByteString
-  , gSampleRange :: !(Double, Double)
-  , gValueRange  :: !(Double, Double)
-  , gSampleTicks :: ![Double]
-  , gValueTicks  :: ![Double]
-  , gLabels      :: ![ByteString]
-  , gBands       :: !(UArray (Int, Int) Double)
-  , gSamples     :: !(UArray Int Double)
+data Header =
+  Header
+  { hJob         :: ByteString
+  , hDate        :: ByteString
+  , hSampleUnit  :: ByteString
+  , hValueUnit   :: ByteString
+  , hSampleRange :: (Double, Double)
+  , hValueRange  :: (Double, Double)
+  , hCount       :: Int
   }
