@@ -1,3 +1,19 @@
+v0.2	2010-07-30	leaner and meaner
+
+Memory usage and speed have both been improved, in part by
+reading the entire file into a strict ByteString and making
+two parsing passes over it, where the first pass accumulates
+statistics and the second pass extracts the relevant data to
+arrays, thus avoid large intermediate data structures.
+
+Code abtraction has been improved, by separating the SVG
+code into its own module and providing a Graphics interface,
+so that later a PostScript implementation can be added more
+easily.
+
+Source code statistics: 475 lines, 2854 words, 17007 chars.
+
+
 v0.1	2010-07-28	first release
 The result of a few days hacking, hp2pretty is born.
 Source code statistics: 397 lines, 2406 words, 14212 chars.
