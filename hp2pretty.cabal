@@ -22,13 +22,17 @@ Cabal-version:       >=1.6
 
 Executable hp2pretty
   Build-depends:       base >= 4 && < 5, array, bytestring, containers, mtl
+  GHC-options:         -Wall
+  GHC-prof-options:    -prof -auto-all
   HS-source-dirs:      src
   Main-is:             Main.hs
-  Other-modules:       Parse
+  Other-modules:       Types
+                       Parse
                        Process
                        Pretty
                        Print
-                       Types
+                       SVG
+                       Graphics
 
 Source-repository head
   type:                git
