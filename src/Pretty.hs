@@ -2,7 +2,7 @@ module Pretty (pretty) where
 
 import Control.Monad (forM_, liftM2)
 import Data.Array.ST (runSTUArray, newListArray, writeArray, readArray)
-import Data.Array.Unboxed (UArray)
+import Data.Array.Unboxed (UArray, listArray)
 import Data.ByteString.Lazy.Char8 (pack)
 
 import Types
@@ -13,7 +13,7 @@ pretty i =
       vticks = uncurry (ticks 20) (iValueRange i)
       labels = pack "(trace elements)" : (reverse . map fst . iValues) i
       values = iTrace i : (reverse . map snd . iValues) i
-      bands  = accumulate values
+      bands  = accumulate (iCount i) values
   in  Graph
       { gJob         = iJob i
       , gDate        = iDate i
@@ -25,14 +25,13 @@ pretty i =
       , gValueTicks  = vticks
       , gLabels      = labels
       , gBands       = bands
-      , gSamples     = iSamples i
+      , gSamples     = listArray (1, iCount i) (iSamples i)
       }
 
-accumulate :: [[Double]] -> UArray (Int, Int) Double
-accumulate [] = error $ "accumulate': empty"
-accumulate xss@(x:_) = runSTUArray $ do
-  let bands   = length xss
-      samples = length x
+accumulate :: Int -> [[Double]] -> UArray (Int, Int) Double
+accumulate _ [] = error $ "Pretty.accumulate': empty"
+accumulate samples xss = runSTUArray $ do
+  let bands = length xss
   a <- newListArray ((0,1),(bands,samples)) $ replicate samples 0 ++ concat xss
   forM_ [1 .. samples] $ \s ->
     forM_ [1 .. bands] $ \b ->
