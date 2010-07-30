@@ -20,7 +20,7 @@ process r =
       ccs = map fst bands
       ccsMap = fromList . map (\c -> (c, ())) $ ccs
       sr = (minimum &&& maximum) . map fTime $ frames
-      vr = (0, maximum . map (sum . elems) $ samples)
+      vr = (0, maximum . map (sum' . elems) $ samples)
       values = [ (c, [ findWithDefault 0 c m | m <- samples ]) | c <- ccs ]
       traces = map (sum' . elems . (`difference` ccsMap)) samples
   in  Info
@@ -30,6 +30,7 @@ process r =
       , iValueUnit   = rValueUnit r
       , iSampleRange = sr
       , iValueRange  = vr
+      , iCount       = rCount r
       , iSamples     = map fTime frames
       , iValues      = values
       , iTrace       = traces
