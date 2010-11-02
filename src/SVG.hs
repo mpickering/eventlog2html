@@ -2,6 +2,7 @@
 module SVG (svg) where
 
 import Data.ByteString.Char8 (ByteString, pack)
+import qualified Data.ByteString.Char8 as BS
 import Numeric (showHex, showFFloat)
 
 import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..))
@@ -26,7 +27,15 @@ text r a s (x,y) inner =
       showAnchor Start = "start"
       showAnchor Middle = "middle"
       showAnchor End = "end"
-  in  ["<text "] ++ coords ++ [" font-size='", showF s, "' text-anchor='", showAnchor a, "'>"] ++ inner ++ ["</text>\n"]
+  in  ["<text "] ++ coords ++ [" font-size='", showF s, "' text-anchor='", showAnchor a, "'>"] ++ map escape inner ++ ["</text>\n"]
+
+escape :: ByteString -> ByteString
+escape = BS.concatMap escapeChar
+  where
+    escapeChar '<' = "&lt;"
+    escapeChar '>' = "&gt;"
+    escapeChar '&' = "&amp;"
+    escapeChar c   = BS.singleton c
 
 rect :: Point -> Size -> [ByteString]
 rect (x,y) (w,h) = ["<rect x='", showF x, "' y='", showF y, "' width='" , showF w , "' height='" , showF h , "' />\n"]
