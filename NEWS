@@ -1,3 +1,17 @@
+v0.4	2011-05-18	comparability
+
+Colours are stable across program runs (based on a hash of
+the label names).
+
+Command line flag to use the same scale for all input files
+(--uniform-scale=none|time|memory|both).
+
+Usage change: specify XX.hp file(s) on the command line, the
+output is to corresponding XX.svg files.
+
+Source code statistics: 543 lines, 3273 words, 20045 chars.
+
+
 v0.3	2010-11-02	special characters
 
 Fixes a bug where broken SVG was generated when label names
