@@ -1,6 +1,9 @@
 module Graphics where
 
-import Data.ByteString.Char8 (ByteString)
+import Data.ByteString.Char8 (ByteString, foldl')
+import Data.Char (ord)
+import Data.Bits (shiftR)
+import Data.Int (Int32, Int64)
 
 type Point = (Double, Double)
 type Size = (Double, Double)
@@ -35,23 +38,43 @@ black, white :: RGB
 black = RGB 0 0 0
 white = RGB 1 1 1
 
-colours :: [RGB]
-colours = map hueToRGB [0, 2 * pi / (phi * phi) ..]
+colour :: ByteString -> RGB
+colour s = hsvToRGB (c 0x12345) (c 0x6789a) (c 0xbcdef)
   where
-    phi = (sqrt 5 + 1) / 2
-    hueToRGB h =
-      let s = 1
-          v = 1
-          hh = h * 3 / pi
-          i = floor hh `mod` 6 :: Int
-          f = hh - fromIntegral (floor hh :: Int)
-          p = v * (1 - s)
-          q = v * (1 - s * f)
-          t = v * (1 - s * (1 - f))
-      in  case i of
-            0 -> RGB v t p
-            1 -> RGB q v p
-            2 -> RGB p v t
-            3 -> RGB p q v
-            4 -> RGB t p v
-            _ -> RGB v p q
+    c m = fromIntegral (hashByteString m s) * 667 / fromIntegral (maxBound :: Int32)
+
+hsvToRGB :: Double -> Double -> Double -> RGB
+hsvToRGB h0 s0 v0 =
+  let s = 0.5 + 0.5 * (s0 - (fromIntegral (floor s0 :: Int)))
+      v = 0.5 + 0.5 * (v0 - (fromIntegral (floor v0 :: Int)))
+      h = floor h0 :: Int
+      i = h `mod` 6
+      f = h0 - fromIntegral h
+      p = v * (1 - s)
+      q = v * (1 - s * f)
+      t = v * (1 - s * (1 - f))
+  in  case i of
+        0 -> RGB v t p
+        1 -> RGB q v p
+        2 -> RGB p v t
+        3 -> RGB p q v
+        4 -> RGB t p v
+        _ -> RGB v p q
+
+-- hashing functions copied and modified from BSD-style LICENSE'd
+-- base-4.3.1.0:Data.HashTable (c) The University of Glasgow 2003
+
+hashByteString :: Int32 -> ByteString -> Int32
+hashByteString magic = foldl' f golden
+  where f m c = fromIntegral (ord c) * magic + hashInt32 m
+
+hashInt32 :: Int32 -> Int32
+hashInt32 x = mulHi x golden + x
+
+mulHi :: Int32 -> Int32 -> Int32
+mulHi a b = fromIntegral (r `shiftR` 32)
+  where r :: Int64
+        r = fromIntegral a * fromIntegral b
+
+golden :: Int32
+golden = 1013904242

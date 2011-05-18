@@ -12,8 +12,10 @@ print :: Graphics -> Header -> [Double] -> [Double] -> [ByteString] -> UArray In
 print gfx header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
       filled c = visual gfx (Just c) Nothing Nothing Nothing
+      labels' = reverse labels
+      colours = map colour labels'
       polygons = concat . zipWith (\c ps -> filled c (polygon gfx ps)) colours . map (map p) $ bands
-      key = concat . zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [(0::Int) ..] colours . reverse $ labels
+      key = concat . zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [(0::Int) ..] colours $ labels'
       keyBox x y0 dy i c l =
         let y = y0 + fromIntegral i * dy
         in  (filled c $ rect gfx (x, y + 0.1 * dy) (dy * 0.8, dy * 0.8)) ++
