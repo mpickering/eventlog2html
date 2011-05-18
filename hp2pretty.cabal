@@ -1,5 +1,5 @@
 Name:                hp2pretty
-Version:             0.3
+Version:             0.4
 Synopsis:            generate pretty graphs from heap profiles
 Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
                      the aims of being maintainable, with more flexible output, and
@@ -8,20 +8,33 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      Also none (count'em) of hp2ps' options are implemented yet in
                      hp2pretty.
                      .
-                     Usage: "hp2pretty <in.hp >out.svg"
+                     Usage has changed since the previous release:
+                     .
+                        hp2pretty *.hp
+                     .
+                        hp2pretty --uniform-scale=time   *.hp
+                     .
+                        hp2pretty --uniform-scale=memory *.hp
+                     .
+                        hp2pretty --uniform-scale=both   *.hp
+                     .
+                     Colours have also changed: now they are based on a hash of the
+                     cost label, which should make colours have stable semantics
+                     across program runs.
+
 Homepage:            http://gitorious.org/hp2pretty
 License:             BSD3
 License-file:        LICENSE
 Author:              Claude Heiland-Allen
 Maintainer:          claudiusmaximus@goto10.org
-Copyright:           (C) 2010  Claude Heiland-Allen
+Copyright:           (C) 2010,2011  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
-Extra-source-files:  NEWS README THANKS
+Extra-source-files:  BUGS NEWS README THANKS
 Cabal-version:       >=1.6
 
 Executable hp2pretty
-  Build-depends:       base >= 4 && < 5, array, bytestring, containers, mtl
+  Build-depends:       base >= 4 && < 5, array, bytestring, containers, filepath, mtl
   GHC-options:         -Wall
   GHC-prof-options:    -prof -auto-all
   HS-source-dirs:      src
@@ -42,4 +55,4 @@ Source-repository head
 Source-repository this
   type:                git
   location:            git://gitorious.org/hp2pretty/hp2pretty.git
-  tag:                 v0.3
+  tag:                 v0.4
