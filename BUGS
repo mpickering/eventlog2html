@@ -1,2 +1,8 @@
 empty heap profile gives NaN in SVG - detect and abort?
-should probably use Text for correct unicode instead of ByteString
+use Text for correct unicode instead of ByteString
+	$ ./unicode +RTS -h
+	$ hp2pretty unicode.hp
+	$ rsvg unicode.svg unicode.png
+	Error reading SVG:Error domain 1 code 9 on line 83 column 39 unicode.svg: Input is not proper UTF-8, indicate encoding !
+	Bytes: 0xF8 0x62 0x2F 0x6D
+	$
