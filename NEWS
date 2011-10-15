@@ -1,3 +1,12 @@
+v0.5	2011-10-15	acceleration
+
+Vastly improved runtime performance thanks to 'floatshow'
+and 'attoparsec' for (respectively) printing and parsing
+floating point numbers.
+
+Source code statistics: 544 lines, 3275 words, 20061 chars.
+
+
 v0.4	2011-05-18	comparability
 
 Colours are stable across program runs (based on a hash of
