@@ -3,7 +3,8 @@ module SVG (svg) where
 
 import Data.ByteString.Char8 (ByteString, pack)
 import qualified Data.ByteString.Char8 as BS
-import Numeric (showHex, showFFloat)
+import Numeric (showHex)
+import Text.FShow.RealFloat (fshow, Double7(D7))
 
 import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..))
 import qualified Graphics as G
@@ -77,4 +78,4 @@ showP :: Point -> [ByteString]
 showP (x,y) = [showF x, ",", showF y]
 
 showF :: Double -> ByteString
-showF x = pack $ showFFloat Nothing x ""
+showF x = pack $ fshow (D7 x)
