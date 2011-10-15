@@ -7,10 +7,10 @@ import Data.Array.Base (unsafeFreezeSTUArray)
 import Data.Array.ST (writeArray, readArray, newArray)
 import Data.Array.Unboxed (UArray)
 import Data.Map (Map, lookup, size)
-import Numeric (readSigned, readFloat)
 import Prelude hiding (lookup, lines, words, length)
 import Data.ByteString.Char8 (ByteString, pack, unpack, lines, words, isPrefixOf, length)
 import qualified Data.ByteString.Char8 as BS
+import Data.Attoparsec.Char8 (parseOnly, double)
 
 import Types
 
@@ -47,8 +47,8 @@ sampleTime name h =
   else error $ "Parse.sampleTime: expected " ++ unpack name ++ " but got " ++ unpack h
 
 readDouble :: ByteString -> Double
-readDouble s = case readSigned readFloat (unpack s) of
-  ((x,_):_) -> x
+readDouble s = case parseOnly double s of
+  Right x -> x
   _ -> error $ "Parse.readDouble: no parse " ++ unpack s
 
 sBEGIN_SAMPLE, sEND_SAMPLE :: ByteString

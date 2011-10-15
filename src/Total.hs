@@ -4,9 +4,9 @@ module Total (total) where
 import Control.Monad.State.Strict (State(), execState, get, put)
 import Data.List (foldl')
 import Data.Map (Map, empty, lookup, insert, alter)
-import Numeric (readSigned, readFloat)
 import Prelude hiding (lookup, lines, words, drop, length)
 import Data.ByteString.Char8 (ByteString, pack, unpack, lines, words, isPrefixOf, drop, length)
+import Data.Attoparsec.Char8 (parseOnly, double)
 
 import Types
 
@@ -97,8 +97,8 @@ sampleTime name h =
   else error $ "Parse.sampleTime: expected " ++ unpack name ++ " but got " ++ unpack h
 
 readDouble :: ByteString -> Double
-readDouble s = case readSigned readFloat (unpack s) of
-  ((x,_):_) -> x
+readDouble s = case parseOnly double s of
+  Right x -> x
   _ -> error $ "Parse.readDouble: no parse " ++ unpack s
 
 sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT, sBEGIN_SAMPLE, sEND_SAMPLE :: ByteString
