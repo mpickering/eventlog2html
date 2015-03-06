@@ -25,7 +25,7 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      cost label, which should make colours have stable semantics
                      across program runs.
 
-Homepage:            http://gitorious.org/hp2pretty
+Homepage:            http://code.mathr.co.uk/hp2pretty
 License:             BSD3
 License-file:        LICENSE
 Author:              Claude Heiland-Allen
@@ -53,9 +53,9 @@ Executable hp2pretty
 
 Source-repository head
   type:                git
-  location:            git://gitorious.org/hp2pretty/hp2pretty.git
+  location:            http://code.mathr.co.uk/hp2pretty.git
 
 Source-repository this
   type:                git
-  location:            git://gitorious.org/hp2pretty/hp2pretty.git
+  location:            http://code.mathr.co.uk/hp2pretty.git
   tag:                 v0.5.0.1
