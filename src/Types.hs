@@ -1,13 +1,13 @@
 module Types where
 
-import Data.ByteString.Char8 (ByteString)
+import Data.Text (Text)
 
 data Header =
   Header
-  { hJob         :: ByteString
-  , hDate        :: ByteString
-  , hSampleUnit  :: ByteString
-  , hValueUnit   :: ByteString
+  { hJob         :: Text
+  , hDate        :: Text
+  , hSampleUnit  :: Text
+  , hValueUnit   :: Text
   , hSampleRange :: (Double, Double)
   , hValueRange  :: (Double, Double)
   , hCount       :: Int

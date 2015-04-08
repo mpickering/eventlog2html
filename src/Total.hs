@@ -5,15 +5,15 @@ import Control.Monad.State.Strict (State(), execState, get, put)
 import Data.List (foldl')
 import Data.Map (Map, empty, lookup, insert, alter)
 import Prelude hiding (lookup, lines, words, drop, length)
-import Data.ByteString.Char8 (ByteString, pack, unpack, lines, words, isPrefixOf, drop, length)
-import Data.Attoparsec.Char8 (parseOnly, double)
+import Data.Text (Text, pack, unpack, lines, words, isPrefixOf, drop, length)
+import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
 
 data Parse =
   Parse
-  { symbols   :: !(Map ByteString ByteString) -- intern symbols to save RAM
-  , totals    :: !(Map ByteString Double    ) -- compute running totals
+  { symbols   :: !(Map Text Text) -- intern symbols to save RAM
+  , totals    :: !(Map Text Double    ) -- compute running totals
   , sampleMin :: !Double
   , sampleMax :: !Double
   , valueMin  :: !Double
@@ -24,7 +24,7 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ symbols = empty, totals = empty, sampleMin = 0, sampleMax = 0, valueMin = 0, valueMax = 0, count = 0 }
 
-total :: ByteString -> (Header, Map ByteString Double)
+total :: Text -> (Header, Map Text Double)
 total s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls
@@ -43,13 +43,13 @@ total s =
       , totals parse1
       )
 
-header :: ByteString -> ByteString -> ByteString
+header :: Text -> Text -> Text
 header name h =
   if name `isPrefixOf` h
   then pack . read . unpack . drop (length name + 1) $ h
   else error $ "Parse.header: expected " ++ unpack name
 
-chunkSamples :: [ByteString] -> [[ByteString]]
+chunkSamples :: [Text] -> [[Text]]
 chunkSamples [] = []
 chunkSamples (x:xs)
   | sBEGIN_SAMPLE `isPrefixOf` x =
@@ -59,7 +59,7 @@ chunkSamples (x:xs)
             (_:ws) -> (x:ys) : chunkSamples ws
   | otherwise = [] -- expected BEGIN_SAMPLE or EOF...
 
-parseFrame :: [ByteString] -> State Parse ()
+parseFrame :: [Text] -> State Parse ()
 parseFrame [] = error "Parse.parseFrame: empty"
 parseFrame (l:ls) = do
   let !time = sampleTime sBEGIN_SAMPLE l
@@ -72,7 +72,7 @@ parseFrame (l:ls) = do
       vMax = v `max` valueMax p
   put $! p{ count = count p + 1, sampleMin = sMin, sampleMax = sMax, valueMin = vMin, valueMax = vMax }
 
-inserter :: ByteString -> State Parse Double
+inserter :: Text -> State Parse Double
 inserter s = do
   let [k,vs] = words s
       !v = readDouble vs
@@ -90,18 +90,18 @@ accum :: Double -> Maybe Double -> Maybe Double
 accum x Nothing  = Just x
 accum x (Just y) = Just $! x + y
 
-sampleTime :: ByteString -> ByteString -> Double
+sampleTime :: Text -> Text -> Double
 sampleTime name h =
   if name `isPrefixOf` h
   then readDouble .  drop (length name + 1) $ h
   else error $ "Parse.sampleTime: expected " ++ unpack name ++ " but got " ++ unpack h
 
-readDouble :: ByteString -> Double
+readDouble :: Text -> Double
 readDouble s = case parseOnly double s of
   Right x -> x
   _ -> error $ "Parse.readDouble: no parse " ++ unpack s
 
-sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT, sBEGIN_SAMPLE, sEND_SAMPLE :: ByteString
+sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT, sBEGIN_SAMPLE, sEND_SAMPLE :: Text
 sJOB = pack "JOB"
 sDATE = pack "DATE"
 sSAMPLE_UNIT = pack "SAMPLE_UNIT"

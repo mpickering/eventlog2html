@@ -4,14 +4,14 @@ import Control.Monad (forM_, liftM2)
 import Data.Array.MArray (thaw)
 import Data.Array.ST (runSTUArray, writeArray, readArray)
 import Data.Array.Unboxed (UArray, bounds)
-import Data.ByteString.Char8 (ByteString, pack)
+import Data.Text (Text, pack)
 import Data.List (sortBy)
 import Data.Map (Map, toList)
 import Data.Ord (comparing)
 
 import Types
 
-pretty :: Header -> UArray (Int, Int) Double -> Map ByteString Int -> (([Double], [Double]), ([ByteString], UArray (Int, Int) Double))
+pretty :: Header -> UArray (Int, Int) Double -> Map Text Int -> (([Double], [Double]), ([Text], UArray (Int, Int) Double))
 pretty header vals bs =
   let sticks = uncurry (ticks 20) (hSampleRange header)
       vticks = uncurry (ticks 20) (hValueRange header)

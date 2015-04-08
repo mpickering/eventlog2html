@@ -1,11 +1,11 @@
 module Prune (prune) where
 
-import Data.ByteString.Char8 (ByteString)
+import Data.Text (Text)
 import Data.List (foldl', sortBy)
 import Data.Ord (comparing)
 import Data.Map (Map, toList, fromList)
 
-prune :: Map ByteString Double -> Map ByteString Int
+prune :: Map Text Double -> Map Text Int
 prune ts =
   let ccTotals = sortBy (flip $ comparing snd) (toList ts)
       sizes = map snd ccTotals

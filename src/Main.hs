@@ -2,7 +2,7 @@
 module Main (main) where
 
 import Prelude hiding (print, readFile)
-import Data.ByteString.Char8 (readFile, hPutStr)
+import Data.Text.IO (readFile, hPutStr)
 import Control.Monad (forM_, when)
 import Data.List (foldl1', isPrefixOf, partition)
 import Data.Monoid (Last(..), mconcat)

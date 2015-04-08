@@ -37,7 +37,7 @@ Extra-source-files:  BUGS NEWS README THANKS
 Cabal-version:       >=1.6
 
 Executable hp2pretty
-  Build-depends:       base >= 4 && < 5, array, attoparsec, bytestring, containers, filepath, floatshow, mtl
+  Build-depends:       base >= 4 && < 5, array, attoparsec, containers, filepath, floatshow, mtl, text
   GHC-options:         -Wall -rtsopts
   GHC-prof-options:    -prof -auto-all -caf-all
   HS-source-dirs:      src

@@ -8,13 +8,13 @@ import Data.Array.ST (writeArray, readArray, newArray)
 import Data.Array.Unboxed (UArray)
 import Data.Map (Map, lookup, size)
 import Prelude hiding (lookup, lines, words, length)
-import Data.ByteString.Char8 (ByteString, pack, unpack, lines, words, isPrefixOf, length)
-import qualified Data.ByteString.Char8 as BS
-import Data.Attoparsec.Char8 (parseOnly, double)
+import Data.Text (Text, pack, unpack, lines, words, isPrefixOf, length)
+import qualified Data.Text as T
+import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
 
-bands :: Header -> Map ByteString Int -> ByteString -> (UArray Int Double, UArray (Int, Int) Double)
+bands :: Header -> Map Text Int -> Text -> (UArray Int Double, UArray (Int, Int) Double)
 bands h bs input = runST $ do
   times <- newArray (1, hCount h) 0
   vals  <- newArray ((-1,1), (size bs, hCount h)) 0
@@ -30,7 +30,7 @@ bands h bs input = runST $ do
   vals'  <- unsafeFreezeSTUArray vals
   return (times', vals')
 
-chunkSamples :: [ByteString] -> [[ByteString]]
+chunkSamples :: [Text] -> [[Text]]
 chunkSamples [] = []
 chunkSamples (x:xs)
   | sBEGIN_SAMPLE `isPrefixOf` x =
@@ -40,17 +40,17 @@ chunkSamples (x:xs)
             (_:ws) -> (x:ys) : chunkSamples ws
   | otherwise = [] -- expected BEGIN_SAMPLE or EOF...
 
-sampleTime :: ByteString -> ByteString -> Double
+sampleTime :: Text -> Text -> Double
 sampleTime name h =
   if name `isPrefixOf` h
-  then readDouble .  BS.drop (length name + 1) $ h
+  then readDouble .  T.drop (length name + 1) $ h
   else error $ "Parse.sampleTime: expected " ++ unpack name ++ " but got " ++ unpack h
 
-readDouble :: ByteString -> Double
+readDouble :: Text -> Double
 readDouble s = case parseOnly double s of
   Right x -> x
   _ -> error $ "Parse.readDouble: no parse " ++ unpack s
 
-sBEGIN_SAMPLE, sEND_SAMPLE :: ByteString
+sBEGIN_SAMPLE, sEND_SAMPLE :: Text
 sBEGIN_SAMPLE = pack "BEGIN_SAMPLE"
 sEND_SAMPLE = pack "END_SAMPLE"

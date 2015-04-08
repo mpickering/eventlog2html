@@ -1,6 +1,6 @@
 module Graphics where
 
-import Data.ByteString.Char8 (ByteString, foldl')
+import Data.Text (Text, foldl')
 import Data.Char (ord)
 import Data.Bits (shiftR)
 import Data.Int (Int32, Int64)
@@ -18,12 +18,12 @@ data RGB = RGB Double Double Double
 
 data Graphics =
   Graphics
-  { text     :: Maybe Angle -> Anchor -> FontSize -> Point -> [ByteString] -> [ByteString]
-  , rect     :: Point -> Size -> [ByteString]
-  , line     :: Point -> Point -> [ByteString]
-  , polygon  :: [Point] -> [ByteString]
-  , visual   :: Maybe RGB -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [ByteString] -> [ByteString]
-  , document :: Size -> [ByteString] -> [ByteString]
+  { text     :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> [Text]
+  , rect     :: Point -> Size -> [Text]
+  , line     :: Point -> Point -> [Text]
+  , polygon  :: [Point] -> [Text]
+  , visual   :: Maybe RGB -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
+  , document :: Size -> [Text] -> [Text]
   }
 
 rescalePoint :: (Point,Point) -> (Point,Point) -> Point -> Point
@@ -38,10 +38,10 @@ black, white :: RGB
 black = RGB 0 0 0
 white = RGB 1 1 1
 
-colour :: ByteString -> RGB
+colour :: Text -> RGB
 colour s = hsvToRGB (c 0x12345) (c 0x6789a) (c 0xbcdef)
   where
-    c m = fromIntegral (hashByteString m s) * 667 / fromIntegral (maxBound :: Int32)
+    c m = fromIntegral (hashText m s) * 667 / fromIntegral (maxBound :: Int32)
 
 hsvToRGB :: Double -> Double -> Double -> RGB
 hsvToRGB h0 s0 v0 =
@@ -64,8 +64,8 @@ hsvToRGB h0 s0 v0 =
 -- hashing functions copied and modified from BSD-style LICENSE'd
 -- base-4.3.1.0:Data.HashTable (c) The University of Glasgow 2003
 
-hashByteString :: Int32 -> ByteString -> Int32
-hashByteString magic = foldl' f golden
+hashText :: Int32 -> Text -> Int32
+hashText magic = foldl' f golden
   where f m c = fromIntegral (ord c) * magic + hashInt32 m
 
 hashInt32 :: Int32 -> Int32

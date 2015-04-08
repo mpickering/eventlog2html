@@ -2,13 +2,13 @@ module Print (print) where
 
 import Prelude hiding (print)
 import Data.Array.Unboxed (UArray, bounds, (!))
-import Data.ByteString.Char8 (ByteString, pack)
+import Data.Text (Text, pack)
 import Numeric (showFFloat)
 
 import Types
 import Graphics
 
-print :: Graphics -> Header -> [Double] -> [Double] -> [ByteString] -> UArray Int Double -> UArray (Int, Int) Double -> [ByteString]
+print :: Graphics -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
 print gfx header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
       filled c = visual gfx (Just c) Nothing Nothing Nothing
@@ -71,7 +71,7 @@ toPoints ((b0,s0),(b1,s1)) times coords =
     up   b = [s0 + b - b .. s1]
     down b = [s1 + b - b, s1 - 1 .. s0]
 
-showSI :: Double -> [ByteString]
+showSI :: Double -> [Text]
 showSI x | x < 1e3   = [ showF  x       ""  ]
          | x < 1e6   = [ showF (x/1e3 ) "k" ]
          | x < 1e9   = [ showF (x/1e6 ) "M" ]
