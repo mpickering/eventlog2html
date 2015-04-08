@@ -1,3 +1,8 @@
+v0.6	2015-04-08	text
+
+ByteString is replaced by Text, fixing bugs with Unicode.
+
+
 v0.5	2011-10-15	acceleration
 
 Vastly improved runtime performance thanks to 'floatshow'

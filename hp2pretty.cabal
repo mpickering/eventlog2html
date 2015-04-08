@@ -1,5 +1,5 @@
 Name:                hp2pretty
-Version:             0.5.0.1
+Version:             0.6
 Synopsis:            generate pretty graphs from heap profiles
 Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
                      the aims of being maintainable, with more flexible output, and
@@ -7,6 +7,9 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      Vector Graphics (SVG) only, though PostScript (PS) is planned.
                      Also none (count'em) of hp2ps' options are implemented yet in
                      hp2pretty.
+                     .
+                     In hp2pretty-0.6 ByteString is replaced by Text, fixing bugs
+                     with Unicode.
                      .
                      In hp2pretty-0.5 using attoparsec and floatshow internally
                      should give a healthy speedup.
@@ -57,4 +60,4 @@ Source-repository head
 Source-repository this
   type:                git
   location:            http://code.mathr.co.uk/hp2pretty.git
-  tag:                 v0.5.0.1
+  tag:                 v0.6
