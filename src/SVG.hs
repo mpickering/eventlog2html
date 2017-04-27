@@ -28,7 +28,7 @@ text r a s (x,y) inner =
       showAnchor Start = "start"
       showAnchor Middle = "middle"
       showAnchor End = "end"
-  in  ["<text "] ++ coords ++ [" font-size='", showF s, "' text-anchor='", showAnchor a, "'>"] ++ map escape inner ++ ["</text>\n"]
+  in  ["<text stroke='none' "] ++ coords ++ [" font-size='", showF s, "' text-anchor='", showAnchor a, "'>"] ++ map escape inner ++ ["</text>\n"]
 
 escape :: Text -> Text
 escape = T.concatMap escapeChar
