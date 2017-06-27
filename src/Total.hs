@@ -4,8 +4,8 @@ module Total (total) where
 import Control.Monad.State.Strict (State(), execState, get, put)
 import Data.List (foldl')
 import Data.Map (Map, empty, lookup, insert, alter)
-import Prelude hiding (lookup, lines, words, drop, length)
-import Data.Text (Text, pack, unpack, lines, words, isPrefixOf, drop, length)
+import Prelude hiding (init, lookup, lines, words, drop, length)
+import Data.Text (Text, init, pack, unpack, lines, words, isPrefixOf, drop, length)
 import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
@@ -46,7 +46,7 @@ total s =
 header :: Text -> Text -> Text
 header name h =
   if name `isPrefixOf` h
-  then pack . read . unpack . drop (length name + 1) $ h
+  then init . drop (length name + 2) $ h -- drop the name and the quotes
   else error $ "Parse.header: expected " ++ unpack name
 
 chunkSamples :: [Text] -> [[Text]]
