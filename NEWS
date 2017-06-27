@@ -1,3 +1,10 @@
+v0.7	2017-06-27	bugfix
+
+A bugfix in header parsing (thanks to Pepe Iborra).  An
+adjustment to text rendering (no longer stroked, but just
+filled).  HTTPS for urls.
+
+
 v0.6	2015-04-08	text
 
 ByteString is replaced by Text, fixing bugs with Unicode.
