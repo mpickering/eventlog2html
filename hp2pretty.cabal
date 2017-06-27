@@ -33,7 +33,7 @@ License:             BSD3
 License-file:        LICENSE
 Author:              Claude Heiland-Allen
 Maintainer:          claude@mathr.co.uk
-Copyright:           (C) 2010,2011,2015  Claude Heiland-Allen
+Copyright:           (C) 2010,2011,2015,2017  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
 Extra-source-files:  BUGS NEWS README THANKS
