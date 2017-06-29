@@ -1,3 +1,8 @@
+v0.8.0.1	2017-06-29	semigroups
+
+Depend on semigroups to fix build with older GHC versions.
+
+
 v0.8	2017-06-29	patterns
 
 New flags and features:
