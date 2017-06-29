@@ -6,8 +6,32 @@ hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
 the aims of being maintainable, with more flexible output, and
 more beautiful output.  Currently hp2pretty outputs Scalable
 Vector Graphics (SVG) only, though PostScript (PS) is planned.
-Also none (count'em) of hp2ps' options are implemented yet in
-hp2pretty.
+Not all of hp2ps' options are implemented yet in hp2pretty.
+
+
+Usage
+=====
+
+    hp2pretty - generate pretty graphs from heap profiles
+    
+    Usage: hp2pretty [--uniform-scale AXES] [--sort FIELD] [--reverse]
+                     [--trace PERCENT] [--bands COUNT] [--pattern] FILES...
+      Convert heap profile FILES.hp to pretty graphs FILES.svg
+    
+    Available options:
+      --uniform-scale AXES     Whether to use a uniform scale for all outputs. One
+                               of: none (default), time, memory, both.
+      --sort FIELD             How to sort the bands. One of: size (default),
+                               stddev, name.
+      --reverse                Reverse the order of bands.
+      --trace PERCENT          Percentage of trace elements to
+                               combine. (default: 1.0)
+      --bands COUNT            Maximum number of bands to draw (0 for
+                               unlimited). (default: 15)
+      --pattern                Use patterns instead of solid colours to fill bands.
+      FILES...                 Heap profiles (FILE.hp will be converted to
+                               FILE.svg).
+      -h,--help                Show this help text
 
 
 Benchmarks
