@@ -13,7 +13,7 @@ import Types
 data Parse =
   Parse
   { symbols   :: !(Map Text Text) -- intern symbols to save RAM
-  , totals    :: !(Map Text Double    ) -- compute running totals
+  , totals    :: !(Map Text (Double, Double)) -- compute running totass and total of squares
   , sampleMin :: !Double
   , sampleMax :: !Double
   , valueMin  :: !Double
@@ -24,7 +24,7 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ symbols = empty, totals = empty, sampleMin = 0, sampleMax = 0, valueMin = 0, valueMax = 0, count = 0 }
 
-total :: Text -> (Header, Map Text Double)
+total :: Text -> (Header, Map Text (Double, Double))
 total s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls
@@ -40,8 +40,11 @@ total s =
         , hValueRange = (valueMin parse1, valueMax parse1)
         , hCount      = count parse1
         }
-      , totals parse1
+      , fmap (stddev $ fromIntegral (count parse1)) (totals parse1)
       )
+
+stddev :: Double -> (Double, Double) -> (Double, Double)
+stddev s0 (s1, s2) = (s1, sqrt (s0 * s2 - s1 * s1) / s0)
 
 header :: Text -> Text -> Text
 header name h =
@@ -86,9 +89,9 @@ inserter s = do
   put $! p'{ totals = alter (accum  v) k' (totals p') }
   return $! v
 
-accum :: Double -> Maybe Double -> Maybe Double
-accum x Nothing  = Just x
-accum x (Just y) = Just $! x + y
+accum :: Double -> Maybe (Double, Double) -> Maybe (Double, Double)
+accum x Nothing  = Just $! (((,) $! x) $! (x * x))
+accum x (Just (y, yy)) = Just $! (((,) $! (x + y)) $! (x * x + yy))
 
 sampleTime :: Text -> Text -> Double
 sampleTime name h =
