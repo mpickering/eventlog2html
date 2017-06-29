@@ -1,3 +1,13 @@
+v0.8	2017-06-29	patterns
+
+New flags and features:
+  --sort=size|stddev|name   (order bands by this property)
+  --reverse                 (reverse sort order)
+  --trace=1.0               (trace elements threshold percentage)
+  --bands=15                (limit number of bands)
+  --pattern                 (pattern fill, better for printing)
+
+
 v0.7	2017-06-27	bugfix
 
 A bugfix in header parsing (thanks to Pepe Iborra).  An
