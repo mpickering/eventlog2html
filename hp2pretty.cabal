@@ -1,5 +1,5 @@
 Name:                hp2pretty
-Version:             0.8.0.1
+Version:             0.8.0.2
 Synopsis:            generate pretty graphs from heap profiles
 Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
                      the aims of being maintainable, with more flexible output, and
@@ -80,4 +80,4 @@ Source-repository head
 Source-repository this
   type:                git
   location:            https://code.mathr.co.uk/hp2pretty.git
-  tag:                 v0.8.0.1
+  tag:                 v0.8.0.2

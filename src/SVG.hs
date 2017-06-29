@@ -4,7 +4,7 @@ module SVG (svg) where
 import Data.Text (Text, pack)
 import qualified Data.Text as T
 import Data.List (intersperse)
-import Data.Monoid ((<>))
+import Data.Monoid ((<>), mconcat)
 import Numeric (showHex)
 import Text.FShow.RealFloat (fshow, Double7(D7))
 
