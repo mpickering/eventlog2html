@@ -8,12 +8,17 @@ import Numeric (showFFloat)
 import Types
 import Graphics
 
-print :: Graphics -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
-print gfx header sticks vticks labels times coords =
+first :: (a -> c) -> (a, b) -> (c, b)
+first f (a, b) = (f a, b)
+
+print :: Graphics -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
+print gfx patterned header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
       filled c = visual gfx (Just c) Nothing Nothing Nothing
       labels' = reverse labels
-      colours = map colour labels'
+      (colours, defs)
+        | patterned = first (map Left) . unzip $ map (pattern gfx) labels'
+        | otherwise = (map (Right . colour) labels', [])
       polygons = concat . zipWith (\c ps -> filled c (polygon gfx ps)) colours . map (map p) $ bands
       key = concat . zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [(0::Int) ..] colours $ labels'
       keyBox x y0 dy i c l =
@@ -31,8 +36,8 @@ print gfx header sticks vticks labels times coords =
       gRange@((gx0,gy0),(gx1,gy1)) = ((border*1.5, gH + border*1.5), (gW + border*1.5, border*1.5))
       p = rescalePoint ((xMin, yMin), (xMax, yMax)) gRange
       title = text gfx Nothing Middle 25 (w / 2, border * 0.75) [hJob header, pack " (", hDate header, pack ")"]
-      background = filled white $ rect gfx (0,0) (w,h)
-      box = filled white $ rect gfx (gx0,gy1) (gW,gH)
+      background = filled (Right white) $ rect gfx (0,0) (w,h)
+      box = filled (Right white) $ rect gfx (gx0,gy1) (gW,gH)
       leftLabel = text gfx (Just (-90)) Middle 20 (border/2, (gy0 + gy1)/2) [hValueUnit header]
       leftTicks = concatMap (\(y,l) -> let { (x1, y1) = p (xMin, y) ; (x2, y2) = p (xMax, y) } in
           line gfx (x1 - border/2, y1) (x2, y2) ++
@@ -43,9 +48,9 @@ print gfx header sticks vticks labels times coords =
           line gfx (x1, y1 + border/2) (x2, y2) ++
           if l then [] else text gfx Nothing Start 15 (x1 + textOffset, y1+2*textOffset) (showSI x)
         ) (zip sticks (replicate (length sticks - 1) False ++ [True]))
-  in  document gfx (w,h) . concat $
+  in  document gfx (w,h) (concat defs) . concat $
         [ background
-        , visual gfx (Just black) Nothing (Just black) (Just 1) $ concat
+        , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $ concat
             [ title
             , leftLabel
             , bottomLabel

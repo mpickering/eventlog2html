@@ -5,6 +5,8 @@ import Data.Char (ord)
 import Data.Bits (shiftR)
 import Data.Int (Int32, Int64)
 
+import Pattern (patterns)
+
 type Point = (Double, Double)
 type Size = (Double, Double)
 type Angle = Double
@@ -16,14 +18,17 @@ type StrokeWidth = Double
 type Opacity = Double
 data RGB = RGB Double Double Double
 
+type PatternID = Text
+
 data Graphics =
   Graphics
   { text     :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> [Text]
   , rect     :: Point -> Size -> [Text]
   , line     :: Point -> Point -> [Text]
   , polygon  :: [Point] -> [Text]
-  , visual   :: Maybe RGB -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
-  , document :: Size -> [Text] -> [Text]
+  , pattern  :: Text -> (PatternID, [Text])
+  , visual   :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
+  , document :: Size -> [Text] -> [Text] -> [Text]
   }
 
 rescalePoint :: (Point,Point) -> (Point,Point) -> Point -> Point
@@ -60,6 +65,9 @@ hsvToRGB h0 s0 v0 =
         3 -> RGB p q v
         4 -> RGB t p v
         _ -> RGB v p q
+
+patternIx :: Text -> Int
+patternIx s = fromIntegral (hashText 0x54321 s * 555) `mod` length patterns
 
 -- hashing functions copied and modified from BSD-style LICENSE'd
 -- base-4.3.1.0:Data.HashTable (c) The University of Glasgow 2003

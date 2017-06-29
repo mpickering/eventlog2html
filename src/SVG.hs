@@ -3,11 +3,14 @@ module SVG (svg) where
 
 import Data.Text (Text, pack)
 import qualified Data.Text as T
+import Data.List (intersperse)
+import Data.Monoid ((<>))
 import Numeric (showHex)
 import Text.FShow.RealFloat (fshow, Double7(D7))
 
-import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..))
+import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..), PatternID, colour, patternIx)
 import qualified Graphics as G
+import Pattern (Pattern, patterns)
 
 svg :: Graphics
 svg =
@@ -16,6 +19,7 @@ svg =
   , G.rect     = rect
   , G.line     = line
   , G.polygon  = polygon
+  , G.pattern  = pattern
   , G.visual   = visual
   , G.document = document
   }
@@ -44,20 +48,33 @@ rect (x,y) (w,h) = ["<rect x='", showF x, "' y='", showF y, "' width='" , showF 
 line :: Point -> Point -> [Text]
 line (x1,y1) (x2,y2) = ["<line x1='" , showF x1, "' x2='", showF x2, "' y1='", showF y1, "' y2='", showF y2, "' />\n"]
 
-visual :: Maybe RGB -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
+pattern :: Text -> (PatternID, [Text])
+pattern t = ("url(#" <> pid <> ")",
+  [ "<pattern id='", pid, "' x='0' y='0' width='16' height='16' patternUnits='userSpaceOnUse'>\n"
+  , "  <path fill='none' stroke-width='2' stroke='" , s, "' line-cap='round' d='"] ++ intersperse " " (map p ps) ++ ["' />\n"
+  , "</pattern>\n"])
+  where
+    pid = mconcat ["P", pack (show ix), "p", T.tail s]
+    s = showRGB rgb
+    p ((x0, y0), (x1, y1)) = pack $ "M " ++ show x0 ++ "," ++ show y0 ++ " L " ++ show x1 ++ "," ++ show y1
+    rgb = colour t
+    ix = patternIx t
+    ps = patterns !! ix
+
+visual :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
 visual mfill mfillo mstroke mstrokew inner =
-  let fill = maybe [] (\f -> [" fill='", showRGB f, "'"]) mfill
+  let fill = maybe [] (\f -> [" fill='", either id showRGB f, "'"]) mfill
       fillo = maybe [] (\o -> [" fill-opacity='", showF o, "'"]) mfillo
       stroke = maybe [] (\s -> [" stroke='", showRGB s, "'"]) mstroke
       strokew = maybe [] (\w -> [" stroke-width='", showF w, "'"]) mstrokew
   in ["<g"] ++ fill ++ fillo ++ stroke ++ strokew ++ [">\n"] ++ inner ++ ["</g>\n"]
 
-document :: Size -> [Text] -> [Text]
-document (w,h) inner =
+document :: Size -> [Text] -> [Text] -> [Text]
+document (w,h) defs inner =
   [ "<?xml version='1.0' encoding='UTF-8' ?>\n"
   , "<svg xmlns='http://www.w3.org/2000/svg' version='1.0'"
   , " width='", showF w, "' height='", showF h, "'>\n"
-  ] ++ inner ++ ["</svg>\n"]
+  ] ++ ["<defs>\n"] ++ defs ++ ["</defs>\n"] ++ inner ++ ["</svg>\n"]
 
 polygon :: [Point] -> [Text]
 polygon ps = ["<path d='"] ++ path ps ++ ["' />"]
