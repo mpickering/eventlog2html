@@ -5,8 +5,20 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      the aims of being maintainable, with more flexible output, and
                      more beautiful output.  Currently hp2pretty outputs Scalable
                      Vector Graphics (SVG) only, though PostScript (PS) is planned.
-                     Also none (count'em) of hp2ps' options are implemented yet in
-                     hp2pretty.
+                     Not all of hp2ps' options are implemented yet in hp2pretty.
+                     .
+                     In hp2pretty-0.8 output filtering and sorting flags are added,
+                     as well as low-ink pattern fills for printing:
+                     .
+                     > hp2pretty --trace=1     *.hp
+                     > hp2pretty --bands=15    *.hp
+                     > hp2pretty --sort=size   *.hp
+                     > hp2pretty --sort=stddev *.hp
+                     > hp2pretty --sort=name   *.hp
+                     > hp2pretty --reverse     *.hp
+                     > hp2pretty --pattern     *.hp
+                     .
+                     In hp2pretty-0.7 a parsing bug is fixed.
                      .
                      In hp2pretty-0.6 ByteString is replaced by Text, fixing bugs
                      with Unicode.
@@ -16,13 +28,10 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      .
                      In hp2pretty-0.4 usage changed since the previous release:
                      .
-                        hp2pretty *.hp
-                     .
-                        hp2pretty --uniform-scale=time   *.hp
-                     .
-                        hp2pretty --uniform-scale=memory *.hp
-                     .
-                        hp2pretty --uniform-scale=both   *.hp
+                     > hp2pretty *.hp
+                     > hp2pretty --uniform-scale=time   *.hp
+                     > hp2pretty --uniform-scale=memory *.hp
+                     > hp2pretty --uniform-scale=both   *.hp
                      .
                      Colours also changed: now they are based on a hash of the
                      cost label, which should make colours have stable semantics
