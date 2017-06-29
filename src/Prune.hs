@@ -1,19 +1,43 @@
-module Prune (prune) where
+module Prune
+  ( prune
+  , Compare
+  , cmpName
+  , cmpSize
+  , cmpStdDev
+  ) where
 
 import Data.Text (Text)
 import Data.List (foldl', sortBy)
 import Data.Ord (comparing)
 import Data.Map (Map, toList, fromList)
 
-prune :: Map Text Double -> Map Text Int
-prune ts =
-  let ccTotals = sortBy (flip $ comparing snd) (toList ts)
-      sizes = map snd ccTotals
+type Compare a = a -> a -> Ordering
+
+cmpName, cmpSize, cmpStdDev
+  :: (Compare (Text, (Double, Double)), Compare (Text, (Double, Double)))
+cmpName = (cmpNameAscending, cmpNameDescending)
+cmpSize = (cmpSizeDescending, cmpSizeAscending)
+cmpStdDev = (cmpStdDevDescending, cmpStdDevAscending)
+
+cmpNameAscending, cmpNameDescending,
+  cmpStdDevAscending, cmpStdDevDescending,
+  cmpSizeAscending, cmpSizeDescending :: Compare (Text, (Double, Double))
+cmpNameAscending = comparing fst
+cmpNameDescending = flip cmpNameAscending
+cmpStdDevAscending = comparing (snd . snd)
+cmpStdDevDescending = flip cmpStdDevAscending
+cmpSizeAscending = comparing (fst . snd)
+cmpSizeDescending = flip cmpSizeAscending
+
+prune :: Compare (Text, (Double, Double)) -> Double -> Int -> Map Text (Double, Double) -> Map Text Int
+prune cmp tracePercent nBands ts =
+  let ccTotals = sortBy cmpSizeDescending (toList ts)
+      sizes = map (fst . snd) ccTotals
       total = sum' sizes
-      limit = 0.99 * total
+      limit = (1 - tracePercent / 100) * total
       bigs = takeWhile (< limit) . scanl (+) 0 $ sizes
-      bands = zipWith const ccTotals $ take 15 bigs
-      ccs = map fst bands
+      bands = zipWith const ccTotals $ take nBands bigs
+      ccs = map fst (sortBy cmp bands)
   in  fromList (reverse ccs `zip` [1 ..])
 
 sum' :: [Double] -> Double
