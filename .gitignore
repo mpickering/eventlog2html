@@ -2,3 +2,12 @@
 cabal.sandbox.config
 dist
 test
+*.hi
+*.o
+src/Main
+*.svg
+*.hp
+*.html
+tests/escapes
+tests/namelen
+tests/unicode
