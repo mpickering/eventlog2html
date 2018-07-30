@@ -9,7 +9,7 @@ module Prune
 import Data.Text (Text)
 import Data.List (foldl', sortBy)
 import Data.Ord (comparing)
-import Data.Map (Map, toList, fromList)
+import Data.Map.Strict (Map, toList, fromList)
 
 type Compare a = a -> a -> Ordering
 
