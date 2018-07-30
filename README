@@ -14,8 +14,9 @@ Usage
 
     hp2pretty - generate pretty graphs from heap profiles
     
-    Usage: hp2pretty [--uniform-scale AXES] [--sort FIELD] [--reverse]
-                     [--trace PERCENT] [--bands COUNT] [--pattern] FILES...
+    Usage: hp2pretty [--uniform-scale AXES] [--sort FIELD] [--key KEY]
+                     [--reverse] [--trace PERCENT] [--bands COUNT] [--pattern]
+                     FILES...
       Convert heap profile FILES.hp to pretty graphs FILES.svg
     
     Available options:
@@ -23,6 +24,10 @@ Usage
                                of: none (default), time, memory, both.
       --sort FIELD             How to sort the bands. One of: size (default),
                                stddev, name.
+      --key KEY                Whether to embed the key in the image output. One of:
+                               inline (default), FILE.html. Use - for standard
+                               output and ./inline for a file named literally
+                               "inline".
       --reverse                Reverse the order of bands.
       --trace PERCENT          Percentage of trace elements to
                                combine. (default: 1.0)

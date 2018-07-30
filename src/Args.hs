@@ -1,14 +1,16 @@
-module Args (args, Args(..), Uniform(..), Sort(..)) where
+module Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..)) where
 
 import Options.Applicative
 import Data.Semigroup ((<>))
 
 data Uniform = None | Time | Memory | Both deriving (Eq)
 data Sort = Size | StdDev | Name
+data KeyPlace = Inline | File FilePath
 
 data Args = Args
   { uniformity   :: Uniform
   , sorting      :: Sort
+  , keyPlace     :: KeyPlace
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
@@ -28,6 +30,11 @@ argParser = Args
          <> help "How to sort the bands.  One of: size (default), stddev, name."
          <> value Size
          <> metavar "FIELD" )
+      <*> option parseKey
+          ( long "key"
+         <> help "Whether to embed the key in the image output.  One of: inline (default), FILE.html.  Use - for standard output and ./inline for a file named literally \"inline\"."
+         <> value Inline
+         <> metavar "KEY" )
       <*> switch
           ( long "reverse"
          <> help "Reverse the order of bands." )
@@ -64,6 +71,12 @@ parseSort = eitherReader $ \s -> case s of
   "stddev" -> Right StdDev
   "name" -> Right Name
   _ -> Left "expected one of: size, stddev, name"
+
+parseKey :: ReadM KeyPlace
+parseKey = eitherReader $ \s -> case s of
+  "inline" -> Right Inline
+  "" -> Left "expected one of: inline, FILE.html"
+  f -> Right (File f)
 
 
 args :: IO Args

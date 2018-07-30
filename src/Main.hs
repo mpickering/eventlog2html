@@ -1,24 +1,24 @@
 {-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Main (main) where
 
 import Prelude hiding (print, readFile)
-import Data.Text.IO (readFile, hPutStr)
-import Control.Monad (forM_, when)
-import Data.List (foldl1', isPrefixOf, partition)
+import Data.Text.IO (readFile, hPutStr, hPutStrLn)
+import Control.Monad (forM, when)
+import Data.List (foldl1', nub)
 import Data.Tuple (swap)
-import Data.Monoid (Last(..), mconcat)
-import System.Environment (getArgs)
 import System.Exit (exitSuccess)
 import System.FilePath (replaceExtension)
-import System.IO (withFile, IOMode(WriteMode))
+import System.IO (withFile, IOMode(WriteMode), stdout)
 
-import Args (args, Args(..), Uniform(..), Sort(..))
+import Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..))
 import Total (total)
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
 import Bands (bands)
 import Pretty (pretty)
-import Print (print)
+import Print (print, printKey)
 import SVG (svg)
+import HTML (dl)
 import Types (Header(..))
 
 main :: IO ()
@@ -32,16 +32,20 @@ main = do
         StdDev -> cmpStdDev
       reversing' = if reversing a then swap else id
       cmp = fst $ reversing' sorting'
+      sepkey = case keyPlace a of
+        Inline -> False
+        File{} -> True
   when (null (files a)) exitSuccess
-  if not (uniformTime || uniformMemory)
-    then forM_ (files a) $ \file -> do
+  labelss <- if not (uniformTime || uniformMemory)
+    then forM (files a) $ \file -> do
       input <- readFile file
       let (header, totals) = total input
           keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
           (times, vals) = bands header keeps input
           ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-          outputs = print svg (patterned a) header sticks vticks labels times coords
+          outputs = print svg sepkey (patterned a) header sticks vticks labels times coords
       withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+      return $ reverse labels
     else do
       inputs <- mapM readFile (files a)
       let hts0 = map total inputs
@@ -50,12 +54,23 @@ main = do
                | otherwise = hts0
           hts | uniformMemory = map (\(h, t) -> (h{ hValueRange = vmima }, t)) hts1
               | otherwise = hts1
-      forM_ (zip3 (files a) inputs hts) $ \(file, input, (header, totals)) -> do
+      forM (zip3 (files a) inputs hts) $ \(file, input, (header, totals)) -> do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
             (times, vals) = bands header keeps input
             ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-            outputs = print svg (patterned a) header sticks vticks labels times coords
+            outputs = print svg sepkey (patterned a) header sticks vticks labels times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+        return $ reverse labels
+  case keyPlace a of
+    File keyFile -> do
+      let html = concatMap (printKey svg (patterned a)) (nub $ concat labelss)
+      (if keyFile == "-" then ($ stdout) else withFile keyFile WriteMode) $ \h -> do
+        hPutStrLn h "<!DOCTYPE html>"
+        hPutStrLn h "<html><head><title>Key</title><style>svg{border:1px solid;}</style></head><body><h1>Key</h1>"
+        mapM_ (hPutStr h) (dl html)
+        hPutStrLn h ""
+        hPutStrLn h "</body></html>"
+    _ -> return ()
 
 bound :: Int -> Int
 bound n

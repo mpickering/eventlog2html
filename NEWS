@@ -1,3 +1,9 @@
+v0.9  unreleased  detach
+
+New flag:
+  --key=inline|FILE.html    (optionally generate detached key)
+
+
 v0.8.0.2	2017-06-29	imports
 
 Add imports to fix build with even older GHC versions.

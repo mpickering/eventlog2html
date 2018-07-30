@@ -1,11 +1,19 @@
 Name:                hp2pretty
-Version:             0.8.0.2
+Version:             0.9
 Synopsis:            generate pretty graphs from heap profiles
 Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, with
                      the aims of being maintainable, with more flexible output, and
                      more beautiful output.  Currently hp2pretty outputs Scalable
                      Vector Graphics (SVG) only, though PostScript (PS) is planned.
                      Not all of hp2ps' options are implemented yet in hp2pretty.
+                     .
+                     In hp2pretty-0.9 a mode for detached key is added:
+                     .
+                     > hp2pretty --key=inline *.hp
+                     > hp2pretty --key=key.html *.hp
+                     > hp2pretty --key=- *.hp
+                     .
+                     The output file is an HTML5 document with embedded SVG images.
                      .
                      In hp2pretty-0.8 output filtering and sorting flags are added,
                      as well as low-ink pattern fills for printing:
@@ -81,4 +89,4 @@ Source-repository head
 Source-repository this
   type:                git
   location:            https://code.mathr.co.uk/hp2pretty.git
-  tag:                 v0.8.0.2
+  tag:                 v0.9
