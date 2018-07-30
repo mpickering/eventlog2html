@@ -1,4 +1,4 @@
-module Print (print) where
+module Print (print, printKey) where
 
 import Prelude hiding (print)
 import Data.Array.Unboxed (UArray, bounds, (!))
@@ -7,15 +7,19 @@ import Numeric (showFFloat)
 
 import Types
 import Graphics
+import HTML
 
 first :: (a -> c) -> (a, b) -> (c, b)
 first f (a, b) = (f a, b)
 
-print :: Graphics -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
-print gfx patterned header sticks vticks labels times coords =
+filled0 :: Graphics -> Either PatternID RGB -> [Text] -> [Text]
+filled0 gfx c = visual gfx (Just c) Nothing Nothing Nothing
+
+print :: Graphics -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
+print gfx sepkey patterned header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
-      filled c = visual gfx (Just c) Nothing Nothing Nothing
       labels' = reverse labels
+      filled = filled0 gfx
       (colours, defs)
         | patterned = first (map Left) . unzip $ map (pattern gfx) labels'
         | otherwise = (map (Right . colour) labels', [])
@@ -27,7 +31,7 @@ print gfx patterned header sticks vticks labels times coords =
             text gfx Nothing Start 15 (x + dy, y + dy * 0.6) [l]
       w = 1280
       h = 720
-      gW = 960 - 2 * border
+      gW = (if sepkey then 1280 else 960) - 2 * border
       gH = 720 - 3 * border
       border = 60
       textOffset = 10
@@ -59,10 +63,26 @@ print gfx patterned header sticks vticks labels times coords =
             , visual gfx Nothing (Just 0.7) Nothing Nothing $ concat
                 [ box
                 , polygons
-                , key
-                ]
+                ] ++ if sepkey then [] else key
             ]
         ]
+
+printKey :: Graphics -> Bool {- ^ patterned -} -> Text -> [Text]
+printKey gfx True label =
+  let (pname, pdef) = pattern gfx label
+  in  printKey' gfx pdef (Left pname) label
+printKey gfx False label =
+  let cname = colour label
+  in  printKey' gfx [] (Right cname) label
+
+printKey' :: Graphics -> [Text] -> Either PatternID RGB -> Text -> [Text]
+printKey' gfx defs c label =
+  dt (drop 1 {- <?xml?> declaration for SVG (FIXME HACK) -} $
+    document gfx (boxSize, boxSize) defs (filled0 gfx c $ rect gfx (0, 0) (boxSize, boxSize))) ++
+  dd [escape label]
+
+boxSize :: Double
+boxSize = 27
 
 toPoints :: ((Int,Int),(Int,Int)) -> UArray Int Double -> UArray (Int,Int) Double -> [[(Double,Double)]]
 toPoints ((b0,s0),(b1,s1)) times coords =
