@@ -72,6 +72,7 @@ Executable hp2pretty
                        SVG
                        Graphics
                        Pattern
+                       HTML
 
 Source-repository head
   type:                git
