@@ -10,7 +10,7 @@ import Text.FShow.RealFloat (fshow, Double7(D7))
 
 import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..), PatternID, colour, patternIx)
 import qualified Graphics as G
-import Pattern (Pattern, patterns)
+import Pattern (patterns)
 
 svg :: Graphics
 svg =
