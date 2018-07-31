@@ -10,10 +10,20 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      In hp2pretty-0.9 a mode for detached key is added:
                      .
                      > hp2pretty --key=inline *.hp
-                     > hp2pretty --key=key.html *.hp
+                     > hp2pretty --key=key.txt *.hp
                      > hp2pretty --key=- *.hp
                      .
-                     The output file is an HTML5 document with embedded SVG images.
+                     The output file is an simple text file, that mentions additional
+                     SVG files for the legend - how you format it is up to you.
+                     .
+                     A mode for detached titles is also added:
+                     .
+                     > hp2pretty --title=inline *.hp
+                     > hp2pretty --title=title.txt *.hp
+                     > hp2pretty --title=- *.hp
+                     .
+                     The output file is an simple text file, that mentions the image
+                     SVG files.  You could use this for figure captions, etc.
                      .
                      In hp2pretty-0.8 output filtering and sorting flags are added,
                      as well as low-ink pattern fills for printing:
@@ -80,7 +90,6 @@ Executable hp2pretty
                        SVG
                        Graphics
                        Pattern
-                       HTML
 
 Source-repository head
   type:                git

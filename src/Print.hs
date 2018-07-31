@@ -2,12 +2,13 @@ module Print (print, printKey) where
 
 import Prelude hiding (print)
 import Data.Array.Unboxed (UArray, bounds, (!))
-import Data.Text (Text, pack)
+import Data.Text (Text, pack, unpack)
 import Numeric (showFFloat)
+import System.FilePath (replaceExtension)
 
 import Types
 import Graphics
-import HTML
+import SVG (fillStyleName)
 
 first :: (a -> c) -> (a, b) -> (c, b)
 first f (a, b) = (f a, b)
@@ -67,7 +68,7 @@ print gfx notitle sepkey patterned header sticks vticks labels times coords =
             ]
         ]
 
-printKey :: Graphics -> Bool {- ^ patterned -} -> Text -> [Text]
+printKey :: Graphics -> Bool {- ^ patterned -} -> Text -> (FilePath, [Text])
 printKey gfx True label =
   let (pname, pdef) = pattern gfx label
   in  printKey' gfx pdef (Left pname) label
@@ -75,11 +76,11 @@ printKey gfx False label =
   let cname = colour label
   in  printKey' gfx [] (Right cname) label
 
-printKey' :: Graphics -> [Text] -> Either PatternID RGB -> Text -> [Text]
+printKey' :: Graphics -> [Text] -> Either PatternID RGB -> Text -> (FilePath, [Text])
 printKey' gfx defs c label =
-  dt (drop 1 {- <?xml?> declaration for SVG (FIXME HACK) -} $
-    document gfx (boxSize, boxSize) defs (filled0 gfx c $ rect gfx (0, 0) (boxSize, boxSize))) ++
-  dd [escape label]
+  ( replaceExtension (unpack (fillStyleName c)) "svg"
+  , document gfx (boxSize, boxSize) defs (filled0 gfx c $ rect gfx (0, 0) (boxSize, boxSize))
+  )
 
 boxSize :: Double
 boxSize = 27

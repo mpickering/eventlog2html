@@ -1,17 +1,18 @@
-module Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..)) where
+module Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..)) where
 
 import Options.Applicative
 import Data.Semigroup ((<>))
 
 data Uniform = None | Time | Memory | Both deriving (Eq)
 data Sort = Size | StdDev | Name
-data KeyPlace = Inline | File FilePath
+data KeyPlace = KeyInline | KeyFile FilePath
+data TitlePlace = TitleInline | TitleFile FilePath
 
 data Args = Args
   { uniformity   :: Uniform
   , sorting      :: Sort
   , keyPlace     :: KeyPlace
-  , noTitle      :: Bool
+  , titlePlace   :: TitlePlace
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
@@ -33,12 +34,14 @@ argParser = Args
          <> metavar "FIELD" )
       <*> option parseKey
           ( long "key"
-         <> help "Whether to embed the key in the image output.  One of: inline (default), FILE.html.  Use - for standard output and ./inline for a file named literally \"inline\"."
-         <> value Inline
+         <> help "Whether to embed the key in the image output.  One of: inline (default), FILE.txt.  Use - for standard output and ./inline for a file named literally \"inline\"."
+         <> value KeyInline
          <> metavar "KEY" )
-      <*> switch
-          ( long "no-title"
-         <> help "Don't show the title in the images." )
+      <*> option parseTitle
+          ( long "title"
+         <> help "Whether to embed the title in the image output.  One of: inline (default), FILE.txt.  Use - for standard output and ./inline for a file named literally \"inline\"."
+         <> value TitleInline
+         <> metavar "TITLE" )
       <*> switch
           ( long "reverse"
          <> help "Reverse the order of bands." )
@@ -78,10 +81,15 @@ parseSort = eitherReader $ \s -> case s of
 
 parseKey :: ReadM KeyPlace
 parseKey = eitherReader $ \s -> case s of
-  "inline" -> Right Inline
-  "" -> Left "expected one of: inline, FILE.html"
-  f -> Right (File f)
+  "inline" -> Right KeyInline
+  "" -> Left "expected one of: inline, FILE.txt"
+  f -> Right (KeyFile f)
 
+parseTitle :: ReadM TitlePlace
+parseTitle = eitherReader $ \s -> case s of
+  "inline" -> Right TitleInline
+  "" -> Left "expected one of: inline, FILE.txt"
+  f -> Right (TitleFile f)
 
 args :: IO Args
 args = execParser opts

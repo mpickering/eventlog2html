@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module SVG (svg) where
+module SVG (svg, fillStyleName) where
 
 import Data.Text (Text, pack)
 import qualified Data.Text as T
@@ -96,3 +96,7 @@ showP (x,y) = [showF x, ",", showF y]
 
 showF :: Double -> Text
 showF x = pack $ fshow (D7 x)
+
+fillStyleName :: Either PatternID RGB -> Text
+fillStyleName (Left c) = T.drop 5 (T.init c)
+fillStyleName (Right c) = T.singleton 'C' <> T.tail (showRGB c)
