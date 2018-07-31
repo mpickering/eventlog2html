@@ -15,8 +15,8 @@ first f (a, b) = (f a, b)
 filled0 :: Graphics -> Either PatternID RGB -> [Text] -> [Text]
 filled0 gfx c = visual gfx (Just c) Nothing Nothing Nothing
 
-print :: Graphics -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
-print gfx sepkey patterned header sticks vticks labels times coords =
+print :: Graphics -> Bool -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
+print gfx notitle sepkey patterned header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
       labels' = reverse labels
       filled = filled0 gfx
@@ -32,12 +32,12 @@ print gfx sepkey patterned header sticks vticks labels times coords =
       w = 1280
       h = 720
       gW = (if sepkey then 1280 else 960) - 2 * border
-      gH = 720 - 3 * border
+      gH = if notitle then 720 - 2 * border else 720 - 3 * border
       border = 60
       textOffset = 10
       (xMin, xMax) = hSampleRange header
       (yMin, yMax) = hValueRange header
-      gRange@((gx0,gy0),(gx1,gy1)) = ((border*1.5, gH + border*1.5), (gW + border*1.5, border*1.5))
+      gRange@((gx0,gy0),(gx1,gy1)) = ((border*1.5, gH + if notitle then border*0.5 else border*1.5), (gW + border*1.5, if notitle then border*0.5 else border*1.5))
       p = rescalePoint ((xMin, yMin), (xMax, yMax)) gRange
       title = text gfx Nothing Middle 25 (w / 2, border * 0.75) [hJob header, pack " (", hDate header, pack ")"]
       background = filled (Right white) $ rect gfx (0,0) (w,h)
@@ -54,16 +54,16 @@ print gfx sepkey patterned header sticks vticks labels times coords =
         ) (zip sticks (replicate (length sticks - 1) False ++ [True]))
   in  document gfx (w,h) (concat defs) . concat $
         [ background
-        , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $ concat
-            [ title
-            , leftLabel
+        , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $ concat $
+            (if notitle then [] else [title]) ++
+            [ leftLabel
             , bottomLabel
             , leftTicks
             , bottomTicks
-            , visual gfx Nothing (Just 0.7) Nothing Nothing $ concat
+            , visual gfx Nothing (Just 0.7) Nothing Nothing $ concat $
                 [ box
                 , polygons
-                ] ++ if sepkey then [] else key
+                ] ++ if sepkey then [] else [key]
             ]
         ]
 

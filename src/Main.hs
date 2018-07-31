@@ -43,7 +43,7 @@ main = do
           keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
           (times, vals) = bands header keeps input
           ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-          outputs = print svg sepkey (patterned a) header sticks vticks labels times coords
+          outputs = print svg (noTitle a) sepkey (patterned a) header sticks vticks labels times coords
       withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ reverse labels
     else do
@@ -58,7 +58,7 @@ main = do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
             (times, vals) = bands header keeps input
             ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-            outputs = print svg sepkey (patterned a) header sticks vticks labels times coords
+            outputs = print svg (noTitle a) sepkey (patterned a) header sticks vticks labels times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
         return $ reverse labels
   case keyPlace a of

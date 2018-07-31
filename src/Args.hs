@@ -11,6 +11,7 @@ data Args = Args
   { uniformity   :: Uniform
   , sorting      :: Sort
   , keyPlace     :: KeyPlace
+  , noTitle      :: Bool
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
@@ -35,6 +36,9 @@ argParser = Args
          <> help "Whether to embed the key in the image output.  One of: inline (default), FILE.html.  Use - for standard output and ./inline for a file named literally \"inline\"."
          <> value Inline
          <> metavar "KEY" )
+      <*> switch
+          ( long "no-title"
+         <> help "Don't show the title in the images." )
       <*> switch
           ( long "reverse"
          <> help "Reverse the order of bands." )
