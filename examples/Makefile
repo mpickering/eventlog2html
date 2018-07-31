@@ -1,4 +1,4 @@
-all: report.pdf
+all: report.pdf report.html
 
 clean:
 	-rm -f Describe2.hp Describe2.svg title.txt key.txt figure.tex
@@ -14,3 +14,6 @@ figure.tex: figure.sh title.txt key.txt Describe2.svg
 
 report.pdf: report.tex figure.tex $(wildcard *.svg)
 	pdflatex -synctex=1 -interaction=nonstopmode --shell-escape report.tex
+
+report.html: html.sh title.txt key.txt Describe2.svg $(wildcard *.svg)
+	bash html.sh title.txt key.txt > report.html
