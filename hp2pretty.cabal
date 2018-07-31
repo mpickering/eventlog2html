@@ -25,6 +25,8 @@ Description:         hp2pretty is a rewrite of hp2ps, implemented in Haskell, wi
                      The output file is an simple text file, that mentions the image
                      SVG files.  You could use this for figure captions, etc.
                      .
+                     See the examples/ directory in the source distribution for hints.
+                     .
                      In hp2pretty-0.8 output filtering and sorting flags are added,
                      as well as low-ink pattern fills for printing:
                      .
@@ -63,7 +65,17 @@ Maintainer:          claude@mathr.co.uk
 Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
-Extra-source-files:  BUGS NEWS README THANKS
+Extra-source-files:
+  BUGS
+  NEWS
+  README
+  THANKS
+  examples/Describe2.hp.gz
+  examples/figure.sh
+  examples/html.sh
+  examples/Makefile
+  examples/report.tex
+
 Cabal-version:       >=1.6
 
 Executable hp2pretty
