@@ -1,5 +1,6 @@
 module HTML where
 
+import Data.Semigroup ((<>))
 import Data.Text (Text, pack, concatMap, singleton)
 
 escape :: Text -> Text
