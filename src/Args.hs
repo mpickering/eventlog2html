@@ -17,6 +17,8 @@ data Args = Args
   , tracePercent :: Double
   , nBands       :: Int
   , patterned    :: Bool
+  , eventlog     :: Bool
+  , test         :: Bool
   , files        :: [String]
   }
 
@@ -60,10 +62,17 @@ argParser = Args
       <*> switch
           ( long "pattern"
          <> help "Use patterns instead of solid colours to fill bands." )
+      <*> switch
+          ( long "eventlog"
+          <> short 'e'
+         <> help "Input files are eventlogs")
+      <*> switch
+          (short 't')
+
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))
-         
+
 parseUniform :: ReadM Uniform
 parseUniform = eitherReader $ \s -> case s of
   "none" -> Right None
@@ -71,7 +80,7 @@ parseUniform = eitherReader $ \s -> case s of
   "memory" -> Right Memory
   "both" -> Right Both
   _ -> Left "expected one of: none, time, memory, both"
-  
+
 parseSort :: ReadM Sort
 parseSort = eitherReader $ \s -> case s of
   "size" -> Right Size

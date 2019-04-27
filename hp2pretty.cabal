@@ -88,8 +88,9 @@ Executable hp2pretty
                        mtl,
                        optparse-applicative,
                        semigroups,
-                       text
-  GHC-options:         -Wall -rtsopts
+                       text,
+                       ghc-events
+  GHC-options:         -Wall -rtsopts -eventlog
   HS-source-dirs:      src
   Main-is:             Main.hs
   Other-modules:       Args
@@ -102,6 +103,8 @@ Executable hp2pretty
                        SVG
                        Graphics
                        Pattern
+                       Events
+                       HeapProf
 
 Source-repository head
   type:                git

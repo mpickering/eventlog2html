@@ -3,7 +3,7 @@
 module Main (main) where
 
 import Prelude hiding (print, readFile)
-import Data.Text.IO (readFile, hPutStr, hPutStrLn)
+import Data.Text.IO (hPutStr, hPutStrLn)
 import qualified Data.Text as T
 import Control.Monad (forM, forM_, when)
 import Data.List (foldl1', nub)
@@ -21,11 +21,19 @@ import Pretty (pretty)
 import Print (print, printKey)
 import SVG (svg)
 import Types (Header(..))
+import qualified Events as E
+import qualified HeapProf as H
+
+testMain :: Show b => (FilePath -> IO (a, [b])) -> [FilePath] -> IO ()
+testMain c [f] = do
+  (_, fs) <- c f
+  mapM_ (putStrLn . show) fs
 
 main :: IO ()
 main = do
   a <- args
-  let uniformTime = uniformity a `elem` [Time, Both]
+  let chunk = if eventlog a then E.chunk else H.chunk
+      uniformTime = uniformity a `elem` [Time, Both]
       uniformMemory = uniformity a `elem` [Memory, Both]
       sorting' = case sorting a of
         Name -> cmpName
@@ -39,20 +47,22 @@ main = do
       noTitle = case titlePlace a of
         TitleInline -> False
         TitleFile{} -> True
+  if test a then testMain chunk (files a)
+            else do
   when (null (files a)) exitSuccess
   labelss <- if not (uniformTime || uniformMemory)
     then forM (files a) $ \file -> do
-      input <- readFile file
-      let (header, totals) = total input
+      (ph, fs) <- chunk file
+      let (header, totals) = total ph fs
           keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
-          (times, vals) = bands header keeps input
+          (times, vals) = bands header keeps fs
           ((sticks, vticks), (labels, coords)) = pretty header vals keeps
           outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
       withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
       return $ (header, reverse labels)
     else do
-      inputs <- mapM readFile (files a)
-      let hts0 = map total inputs
+      inputs <- mapM chunk (files a)
+      let hts0 = map (uncurry total) inputs
           (smima, vmima) = foldl1' (\((!smi, !sma), (!vmi, !vma)) ((!smi', !sma'), (!vmi', !vma')) -> ((smi`min`smi', sma`max`sma'), (vmi`min`vmi', vma`max`vma'))) . map (\(h, _) -> (hSampleRange h, hValueRange h)) $ hts0
           hts1 | uniformTime = map (\(h, t) -> (h{ hSampleRange = smima }, t)) hts0
                | otherwise = hts0
@@ -60,7 +70,7 @@ main = do
               | otherwise = hts1
       forM (zip3 (files a) inputs hts) $ \(file, input, (header, totals)) -> do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
-            (times, vals) = bands header keeps input
+            (times, vals) = bands header keeps (snd input)
             ((sticks, vticks), (labels, coords)) = pretty header vals keeps
             outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs

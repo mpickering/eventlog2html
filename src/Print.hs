@@ -77,7 +77,7 @@ printKey gfx False label =
   in  printKey' gfx [] (Right cname) label
 
 printKey' :: Graphics -> [Text] -> Either PatternID RGB -> Text -> (FilePath, [Text])
-printKey' gfx defs c label =
+printKey' gfx defs c _label =
   ( replaceExtension (unpack (fillStyleName c)) "svg"
   , document gfx (boxSize, boxSize) defs (filled0 gfx c $ rect gfx (0, 0) (boxSize, boxSize))
   )

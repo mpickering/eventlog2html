@@ -12,3 +12,9 @@ data Header =
   , hValueRange  :: (Double, Double)
   , hCount       :: Int
   }
+
+type PartialHeader = (Double, Double) -> (Double, Double) -> Int -> Header
+
+data Sample = Sample Text Double deriving Show
+
+data Frame = Frame Double [Sample] deriving Show
