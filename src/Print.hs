@@ -9,26 +9,25 @@ import System.FilePath (replaceExtension)
 import Types
 import Graphics
 import SVG (fillStyleName)
+import Graphics.Svg
+import Data.Bifunctor
 
-first :: (a -> c) -> (a, b) -> (c, b)
-first f (a, b) = (f a, b)
-
-filled0 :: Graphics -> Either PatternID RGB -> [Text] -> [Text]
+filled0 :: Graphics -> Either PatternID RGB -> Element -> Element
 filled0 gfx c = visual gfx (Just c) Nothing Nothing Nothing
 
-print :: Graphics -> Bool -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> [Text]
+print :: Graphics -> Bool -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> Element
 print gfx notitle sepkey patterned header sticks vticks labels times coords =
   let bands = toPoints (bounds coords) times coords
       labels' = reverse labels
       filled = filled0 gfx
       (colours, defs)
-        | patterned = first (map Left) . unzip $ map (pattern gfx) labels'
-        | otherwise = (map (Right . colour) labels', [])
-      polygons = concat . zipWith (\c ps -> filled c (polygon gfx ps)) colours . map (map p) $ bands
-      key = concat . zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [(0::Int) ..] colours $ labels'
+        | patterned = bimap (map Left) mconcat . unzip $ map (pattern gfx) labels'
+        | otherwise = (map (Right . colour) labels', mempty)
+      polygons = mconcat . zipWith (\c ps -> filled c (polygon gfx ps)) colours . map (map p) $ bands
+      key = mconcat . zipWith3 (keyBox (gW + border * 2.5) (border * 1.5) (gH / 16)) [(0::Int) ..] colours $ labels'
       keyBox x y0 dy i c l =
         let y = y0 + fromIntegral i * dy
-        in  (filled c $ rect gfx (x, y + 0.1 * dy) (dy * 0.8, dy * 0.8)) ++
+        in  (filled c $ rect gfx (x, y + 0.1 * dy) (dy * 0.8, dy * 0.8)) <>
             text gfx Nothing Start 15 (x + dy, y + dy * 0.6) [l]
       w = 1280
       h = 720
@@ -44,39 +43,39 @@ print gfx notitle sepkey patterned header sticks vticks labels times coords =
       background = filled (Right white) $ rect gfx (0,0) (w,h)
       box = filled (Right white) $ rect gfx (gx0,gy1) (gW,gH)
       leftLabel = text gfx (Just (-90)) Middle 20 (border/2, (gy0 + gy1)/2) [hValueUnit header]
-      leftTicks = concatMap (\(y,l) -> let { (x1, y1) = p (xMin, y) ; (x2, y2) = p (xMax, y) } in
-          line gfx (x1 - border/2, y1) (x2, y2) ++
-          if l then [] else text gfx Nothing End 15 (x1 - textOffset, y1 - textOffset) (showSI y)
+      leftTicks = foldMap (\(y,l) -> let { (x1, y1) = p (xMin, y) ; (x2, y2) = p (xMax, y) } in
+          line gfx (x1 - border/2, y1) (x2, y2) <>
+          if l then mempty else text gfx Nothing End 15 (x1 - textOffset, y1 - textOffset) (showSI y)
         ) (zip vticks (replicate (length vticks - 1) False ++ [True]))
       bottomLabel = text gfx Nothing Middle 20 ((gx0 + gx1)/2, gy0 + border) [hSampleUnit header]
-      bottomTicks = concatMap (\(x,l) -> let { (x1, y1) = p (x, yMin) ; (x2, y2) = p (x, yMax) } in
-          line gfx (x1, y1 + border/2) (x2, y2) ++
-          if l then [] else text gfx Nothing Start 15 (x1 + textOffset, y1+2*textOffset) (showSI x)
+      bottomTicks = foldMap (\(x,l) -> let { (x1, y1) = p (x, yMin) ; (x2, y2) = p (x, yMax) } in
+          line gfx (x1, y1 + border/2) (x2, y2) <>
+          if l then mempty else text gfx Nothing Start 15 (x1 + textOffset, y1+2*textOffset) (showSI x)
         ) (zip sticks (replicate (length sticks - 1) False ++ [True]))
-  in  document gfx (w,h) (concat defs) . concat $
+  in  document gfx (w,h) defs . mconcat $
         [ background
-        , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $ concat $
-            (if notitle then [] else [title]) ++
-            [ leftLabel
+        , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $
+            (if notitle then mempty else title) <>
+            mconcat [ leftLabel
             , bottomLabel
             , leftTicks
             , bottomTicks
-            , visual gfx Nothing (Just 0.7) Nothing Nothing $ concat $
+            , visual gfx Nothing (Just 0.7) Nothing Nothing $ mconcat $
                 [ box
                 , polygons
                 ] ++ if sepkey then [] else [key]
             ]
         ]
 
-printKey :: Graphics -> Bool {- ^ patterned -} -> Text -> (FilePath, [Text])
+printKey :: Graphics -> Bool {- ^ patterned -} -> Text -> (FilePath, Element)
 printKey gfx True label =
   let (pname, pdef) = pattern gfx label
   in  printKey' gfx pdef (Left pname) label
 printKey gfx False label =
   let cname = colour label
-  in  printKey' gfx [] (Right cname) label
+  in  printKey' gfx mempty (Right cname) label
 
-printKey' :: Graphics -> [Text] -> Either PatternID RGB -> Text -> (FilePath, [Text])
+printKey' :: Graphics -> Element -> Either PatternID RGB -> Text -> (FilePath, Element)
 printKey' gfx defs c _label =
   ( replaceExtension (unpack (fillStyleName c)) "svg"
   , document gfx (boxSize, boxSize) defs (filled0 gfx c $ rect gfx (0, 0) (boxSize, boxSize))

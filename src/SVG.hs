@@ -3,7 +3,6 @@ module SVG (svg, fillStyleName) where
 
 import Data.Text (Text, pack)
 import qualified Data.Text as T
-import Data.List (intersperse)
 import Data.Monoid ((<>), mconcat)
 import Numeric (showHex)
 import Text.FShow.RealFloat (fshow, Double7(D7))
@@ -11,6 +10,7 @@ import Text.FShow.RealFloat (fshow, Double7(D7))
 import Graphics (Graphics(Graphics), Point, Size, Angle, FontSize, Anchor(..), StrokeWidth, Opacity, RGB(..), PatternID, colour, patternIx)
 import qualified Graphics as G
 import Pattern (patterns)
+import Graphics.Svg
 
 svg :: Graphics
 svg =
@@ -24,15 +24,16 @@ svg =
   , G.document = document
   }
 
-text :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> [Text]
+text :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> Element
 text r a s (x,y) inner =
   let coords = case r of
-        Nothing -> ["x='", showF x, "' y='", showF y, "'"]
-        Just ra -> ["transform='translate(" , showF x, "," , showF y, ") rotate(", showF ra, ")'"]
+        Nothing -> [X_ <<- showF x, Y_ <<- showF y]
+        Just ra -> [Transform_ <<- translate x y <> rotate ra]
       showAnchor Start = "start"
       showAnchor Middle = "middle"
       showAnchor End = "end"
-  in  ["<text stroke='none' "] ++ coords ++ [" font-size='", showF s, "' text-anchor='", showAnchor a, "'>"] ++ map escape inner ++ ["</text>\n"]
+  in  text_ ([Stroke_ <<- "none", Font_size_ <<- showF s, Text_anchor_ <<- showAnchor a] ++ coords )
+            (toElement (T.unlines (map escape inner)))
 
 escape :: Text -> Text
 escape = T.concatMap escapeChar
@@ -42,57 +43,64 @@ escape = T.concatMap escapeChar
     escapeChar '&' = "&amp;"
     escapeChar c   = T.singleton c
 
-rect :: Point -> Size -> [Text]
-rect (x,y) (w,h) = ["<rect x='", showF x, "' y='", showF y, "' width='" , showF w , "' height='" , showF h , "' />\n"]
+rect :: Point -> Size -> Element
+rect (x,y) (w,h) =
+  rect_ [X_ <<- showF x, Y_ <<- showF y, Width_ <<- showF w, Height_ <<- showF h ]
 
-line :: Point -> Point -> [Text]
-line (x1,y1) (x2,y2) = ["<line x1='" , showF x1, "' x2='", showF x2, "' y1='", showF y1, "' y2='", showF y2, "' />\n"]
+line :: Point -> Point -> Element
+line (x1,y1) (x2,y2) =
+  line_ [X1_ <<- showF x1, X2_ <<- showF x2, Y1_ <<- showF y1, Y2_ <<- showF y2]
 
-pattern :: Text -> (PatternID, [Text])
+pattern :: Text -> (PatternID, Element)
 pattern t = ("url(#" <> pid <> ")",
-  [ "<pattern id='", pid, "' x='0' y='0' width='16' height='16' patternUnits='userSpaceOnUse'>\n"
-  , "  <path fill='none' stroke-width='2' stroke='" , s, "' line-cap='round' d='"] ++ intersperse " " (map p ps) ++ ["' />\n"
-  , "</pattern>\n"])
+  pattern_ [Id_ <<- pid, X_ <<- "0", Y_ <<- "0", Width_ <<- "16", Height_ <<- "16"
+           , PatternUnits_ <<- "userSpaceOnUse"]
+           (path_ [ Fill_ <<- "none", Stroke_width_ <<- "2", makeAttribute "line-cap" "round"
+                 , D_ <<- foldMap p ps ]))
+
   where
     pid = mconcat ["P", pack (show ix), "p", T.tail s]
     s = showRGB rgb
-    p ((x0, y0), (x1, y1)) = pack $ "M " ++ show x0 ++ "," ++ show y0 ++ " L " ++ show x1 ++ "," ++ show y1
+    p ((x0, y0), (x1, y1)) = mA x0 y0 <> lA x1 y1
     rgb = colour t
     ix = patternIx t
     ps = patterns !! ix
 
-visual :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
+visual :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> Element -> Element
 visual mfill mfillo mstroke mstrokew inner =
-  let fill = maybe [] (\f -> [" fill='", either id showRGB f, "'"]) mfill
-      fillo = maybe [] (\o -> [" fill-opacity='", showF o, "'"]) mfillo
-      stroke = maybe [] (\s -> [" stroke='", showRGB s, "'"]) mstroke
-      strokew = maybe [] (\w -> [" stroke-width='", showF w, "'"]) mstrokew
-  in ["<g"] ++ fill ++ fillo ++ stroke ++ strokew ++ [">\n"] ++ inner ++ ["</g>\n"]
+  let fill = maybe [] (\f -> [Fill_ <<- either id showRGB f]) mfill
+      fillo = maybe [] (\o -> [Fill_opacity_ <<- showF o]) mfillo
+      stroke = maybe [] (\s -> [Stroke_ <<- showRGB s]) mstroke
+      strokew = maybe [] (\w -> [Stroke_width_ <<- showF w]) mstrokew
+  in g_ (fill ++ fillo ++ stroke ++ strokew) inner
 
-document :: Size -> [Text] -> [Text] -> [Text]
+document :: Size -> Element -> Element -> Element
 document (w,h) defs inner =
+    doctype
+  <> with (svg11_ (defs_ [] defs <> inner)) [Version_ <<- "1.0", Width_ <<- showF w, Height_ <<- showF h]
+
+{-
   [ "<?xml version='1.0' encoding='UTF-8' ?>\n"
   , "<svg xmlns='http://www.w3.org/2000/svg' version='1.0'"
+
   , " width='", showF w, "' height='", showF h, "'>\n"
   ] ++ ["<defs>\n"] ++ defs ++ ["</defs>\n"] ++ inner ++ ["</svg>\n"]
+  -}
 
-polygon :: [Point] -> [Text]
-polygon ps = ["<path d='"] ++ path ps ++ ["' />"]
+polygon :: [Point] -> Element
+polygon ps = path_ [ D_ <<- path ps ]
 
-path :: [(Double,Double)] -> [Text]
+path :: [(Double,Double)] -> Text
 path [] = error "SVG.path: empty"
-path (p0:ps) =
-  let lineTo p = [ " L " ] ++ showP p
-  in  [ "M " ] ++ showP p0 ++ concatMap lineTo (ps ++ [p0]) ++ [ " Z" ]
+path (p0@(x, y):ps) =
+  let lineTo (x1, y1) = lA x1 y1
+  in  mA x y <> foldMap lineTo (ps ++ [p0]) <> z
 
 showRGB :: RGB -> Text
 showRGB (RGB r g b) =
   let toInt x = let y = floor (256 * x) in 0 `max` y `min` 255 :: Int
       hex2 i = (if i < 16 then ('0':) else id) (showHex i "")
   in  pack $ '#' : concatMap (hex2 . toInt) [r,g,b]
-
-showP :: Point -> [Text]
-showP (x,y) = [showF x, ",", showF y]
 
 showF :: Double -> Text
 showF x = pack $ fshow (D7 x)

@@ -3,8 +3,9 @@
 module Main (main) where
 
 import Prelude hiding (print, readFile)
-import Data.Text.IO (hPutStr, hPutStrLn)
+import Data.Text.IO (hPutStrLn)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy.IO as T
 import Control.Monad (forM, forM_, when)
 import Data.List (foldl1', nub)
 import Data.Tuple (swap)
@@ -23,11 +24,13 @@ import SVG (svg)
 import Types (Header(..))
 import qualified Events as E
 import qualified HeapProf as H
+import Graphics.Svg
 
 testMain :: Show b => (FilePath -> IO (a, [b])) -> [FilePath] -> IO ()
 testMain c [f] = do
   (_, fs) <- c f
   mapM_ (putStrLn . show) fs
+testMain _ _ = error "One file only"
 
 main :: IO ()
 main = do
@@ -57,8 +60,8 @@ main = do
           keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
           (times, vals) = bands header keeps fs
           ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-          outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
-      withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+          output = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
+      withFile (replaceExtension file "svg") WriteMode $ \h -> T.hPutStr h output
       return $ (header, reverse labels)
     else do
       inputs <- mapM chunk (files a)
@@ -72,14 +75,14 @@ main = do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
             (times, vals) = bands header keeps (snd input)
             ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-            outputs = print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
-        withFile (replaceExtension file "svg") WriteMode $ \h -> mapM_ (hPutStr h) outputs
+            outputs = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
+        withFile (replaceExtension file "svg") WriteMode $ \h -> T.hPutStr h outputs
         return $ (header, reverse labels)
   case keyPlace a of
     KeyFile keyFile -> (if keyFile == "-" then ($ stdout) else withFile keyFile WriteMode) $ \txt -> do
       forM_ (nub $ concatMap snd labelss) $ \label -> do
         let (filename, content) = printKey svg (patterned a) label
-        withFile filename WriteMode $ \h -> mapM_ (hPutStr h) content
+        withFile filename WriteMode $ \h -> T.hPutStr h (renderText content)
         hPutStrLn txt (T.pack filename <> " " <> label)
     _ -> return ()
   case titlePlace a of

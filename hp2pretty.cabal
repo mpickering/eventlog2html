@@ -89,7 +89,8 @@ Executable hp2pretty
                        optparse-applicative,
                        semigroups,
                        text,
-                       ghc-events
+                       ghc-events,
+                       svg-builder
   GHC-options:         -Wall -rtsopts -eventlog
   HS-source-dirs:      src
   Main-is:             Main.hs

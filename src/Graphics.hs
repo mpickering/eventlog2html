@@ -6,6 +6,7 @@ import Data.Bits (shiftR)
 import Data.Int (Int32, Int64)
 
 import Pattern (patterns)
+import Graphics.Svg
 
 type Point = (Double, Double)
 type Size = (Double, Double)
@@ -22,13 +23,13 @@ type PatternID = Text
 
 data Graphics =
   Graphics
-  { text     :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> [Text]
-  , rect     :: Point -> Size -> [Text]
-  , line     :: Point -> Point -> [Text]
-  , polygon  :: [Point] -> [Text]
-  , pattern  :: Text -> (PatternID, [Text])
-  , visual   :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> [Text] -> [Text]
-  , document :: Size -> [Text] -> [Text] -> [Text]
+  { text     :: Maybe Angle -> Anchor -> FontSize -> Point -> [Text] -> Element
+  , rect     :: Point -> Size -> Element
+  , line     :: Point -> Point -> Element
+  , polygon  :: [Point] -> Element
+  , pattern  :: Text -> (PatternID, Element)
+  , visual   :: Maybe (Either PatternID RGB) -> Maybe Opacity -> Maybe RGB -> Maybe StrokeWidth -> Element -> Element
+  , document :: Size -> Element -> Element -> Element
   }
 
 rescalePoint :: (Point,Point) -> (Point,Point) -> Point -> Point
