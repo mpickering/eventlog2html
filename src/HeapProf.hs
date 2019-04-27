@@ -8,8 +8,11 @@ import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
 
-chunk :: FilePath -> IO (PartialHeader, [Frame])
-chunk f = chunkT <$> readFile f
+chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
+chunk f = do
+  (ph, fs) <- chunkT <$> readFile f
+  -- Heap profiles do not support traces
+  return (ph, fs, [])
 
 chunkT :: Text -> (PartialHeader, [Frame])
 chunkT s =

@@ -25,11 +25,13 @@ import Types (Header(..))
 import qualified Events as E
 import qualified HeapProf as H
 import Graphics.Svg
+import Debug.Trace
 
-testMain :: Show b => (FilePath -> IO (a, [b])) -> [FilePath] -> IO ()
+testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
 testMain c [f] = do
-  (_, fs) <- c f
+  (_, fs, ts) <- c f
   mapM_ (putStrLn . show) fs
+  mapM_ (putStrLn . show) ts
 testMain _ _ = error "One file only"
 
 main :: IO ()
@@ -55,27 +57,29 @@ main = do
   when (null (files a)) exitSuccess
   labelss <- if not (uniformTime || uniformMemory)
     then forM (files a) $ \file -> do
-      (ph, fs) <- chunk file
+      (ph, fs, traces) <- chunk file
       let (header, totals) = total ph fs
           keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
           (times, vals) = bands header keeps fs
           ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-          output = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
+          output = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels traces times coords
+      traceEventIO "Writing"
       withFile (replaceExtension file "svg") WriteMode $ \h -> T.hPutStr h output
+      traceEventIO "Finishing"
       return $ (header, reverse labels)
     else do
       inputs <- mapM chunk (files a)
-      let hts0 = map (uncurry total) inputs
+      let hts0 = map (\(ph, b, _) -> total ph b) inputs
           (smima, vmima) = foldl1' (\((!smi, !sma), (!vmi, !vma)) ((!smi', !sma'), (!vmi', !vma')) -> ((smi`min`smi', sma`max`sma'), (vmi`min`vmi', vma`max`vma'))) . map (\(h, _) -> (hSampleRange h, hValueRange h)) $ hts0
           hts1 | uniformTime = map (\(h, t) -> (h{ hSampleRange = smima }, t)) hts0
                | otherwise = hts0
           hts | uniformMemory = map (\(h, t) -> (h{ hValueRange = vmima }, t)) hts1
               | otherwise = hts1
-      forM (zip3 (files a) inputs hts) $ \(file, input, (header, totals)) -> do
+      forM (zip3 (files a) inputs hts) $ \(file, (_ph, fs, traces), (header, totals)) -> do
         let keeps = prune cmp (tracePercent a) (bound $ nBands a) totals
-            (times, vals) = bands header keeps (snd input)
+            (times, vals) = bands header keeps fs
             ((sticks, vticks), (labels, coords)) = pretty header vals keeps
-            outputs = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels times coords
+            outputs = renderText $ print svg noTitle sepkey (patterned a) header sticks vticks labels traces times coords
         withFile (replaceExtension file "svg") WriteMode $ \h -> T.hPutStr h outputs
         return $ (header, reverse labels)
   case keyPlace a of

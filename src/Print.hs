@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Print (print, printKey) where
 
 import Prelude hiding (print)
@@ -15,8 +16,10 @@ import Data.Bifunctor
 filled0 :: Graphics -> Either PatternID RGB -> Element -> Element
 filled0 gfx c = visual gfx (Just c) Nothing Nothing Nothing
 
-print :: Graphics -> Bool -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text] -> UArray Int Double -> UArray (Int, Int) Double -> Element
-print gfx notitle sepkey patterned header sticks vticks labels times coords =
+print :: Graphics -> Bool -> Bool -> Bool -> Header -> [Double] -> [Double] -> [Text]
+      -> [Trace]
+      -> UArray Int Double -> UArray (Int, Int) Double -> Element
+print gfx notitle sepkey patterned header sticks vticks labels traces times coords =
   let bands = toPoints (bounds coords) times coords
       labels' = reverse labels
       filled = filled0 gfx
@@ -52,6 +55,13 @@ print gfx notitle sepkey patterned header sticks vticks labels times coords =
           line gfx (x1, y1 + border/2) (x2, y2) <>
           if l then mempty else text gfx Nothing Start 15 (x1 + textOffset, y1+2*textOffset) (showSI x)
         ) (zip sticks (replicate (length sticks - 1) False ++ [True]))
+      traceLines =
+        foldMap (\(Trace d t) ->
+          let (x1, y1) = p (d, yMin)
+              (x2, y2) = p (d, yMax)
+          in line gfx (x1, y1) (x2, y2 - 10)
+              <> text gfx Nothing Middle 15 (x2, y2 - 2*textOffset) [t]
+          ) traces
   in  document gfx (w,h) defs . mconcat $
         [ background
         , visual gfx (Just (Right black)) Nothing (Just black) (Just 1) $
@@ -64,6 +74,7 @@ print gfx notitle sepkey patterned header sticks vticks labels times coords =
                 [ box
                 , polygons
                 ] ++ if sepkey then [] else [key]
+            , traceLines
             ]
         ]
 
