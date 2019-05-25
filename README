@@ -12,35 +12,35 @@ Not all of hp2ps' options are implemented yet in hp2pretty.
 Usage
 =====
 
-    hp2pretty - generate pretty graphs from heap profiles
-    
-    Usage: hp2pretty [--uniform-scale AXES] [--sort FIELD] [--key KEY]
-                     [--title TITLE] [--reverse] [--trace PERCENT] [--bands COUNT]
-                     [--pattern] FILES...
-      Convert heap profile FILES.hp to pretty graphs FILES.svg
-    
-    Available options:
-      --uniform-scale AXES     Whether to use a uniform scale for all outputs. One
-                               of: none (default), time, memory, both.
-      --sort FIELD             How to sort the bands. One of: size (default),
-                               stddev, name.
-      --key KEY                Whether to embed the key in the image output. One of:
-                               inline (default), FILE.txt. Use - for standard output
-                               and ./inline for a file named literally "inline".
-      --title TITLE            Whether to embed the title in the image output. One
-                               of: inline (default), FILE.txt. Use - for standard
-                               output and ./inline for a file named literally
-                               "inline".
-      --reverse                Reverse the order of bands.
-      --trace PERCENT          Percentage of trace elements to
-                               combine. (default: 1.0)
-      --bands COUNT            Maximum number of bands to draw (0 for
-                               unlimited). (default: 15)
-      --pattern                Use patterns instead of solid colours to fill bands.
-      FILES...                 Heap profiles (FILE.hp will be converted to
-                               FILE.svg).
-      -h,--help                Show this help text
+hp2pretty - generate pretty graphs from heap profiles
 
+Usage: hp2pretty [--uniform-scale AXES] [--sort FIELD] [--key KEY]
+                 [--title TITLE] [--reverse] [--trace PERCENT] [--bands COUNT]
+                 [--pattern] [-e|--eventlog] [-t] FILES...
+  Convert heap profile FILES.hp to pretty graphs FILES.svg
+
+Available options:
+  --uniform-scale AXES     Whether to use a uniform scale for all outputs. One
+                           of: none (default), time, memory, both.
+  --sort FIELD             How to sort the bands. One of: size (default),
+                           stddev, name.
+  --key KEY                Whether to embed the key in the image output. One of:
+                           inline (default), FILE.txt. Use - for standard output
+                           and ./inline for a file named literally "inline".
+  --title TITLE            Whether to embed the title in the image output. One
+                           of: inline (default), FILE.txt. Use - for standard
+                           output and ./inline for a file named literally
+                           "inline".
+  --reverse                Reverse the order of bands.
+  --trace PERCENT          Percentage of trace elements to
+                           combine. (default: 1.0)
+  --bands COUNT            Maximum number of bands to draw (0 for
+                           unlimited). (default: 15)
+  --pattern                Use patterns instead of solid colours to fill bands.
+  -e,--eventlog            Input files are eventlogs
+  FILES...                 Heap profiles (FILE.hp will be converted to
+                           FILE.svg).
+  -h,--help                Show this help text
 
 Benchmarks
 ==========

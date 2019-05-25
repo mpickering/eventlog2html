@@ -90,11 +90,13 @@ Executable hp2pretty
                        semigroups,
                        text,
                        ghc-events,
-                       svg-builder
+                       svg-builder,
+                       time
   GHC-options:         -Wall -rtsopts -eventlog
   HS-source-dirs:      src
   Main-is:             Main.hs
-  Other-modules:       Args
+  Other-modules:       Main
+                       Args
                        Types
                        Total
                        Prune

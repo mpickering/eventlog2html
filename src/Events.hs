@@ -1,7 +1,9 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
-module Events(chunk) where
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE RecordWildCards #-}
+module Events where
 
 import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
@@ -9,6 +11,12 @@ import qualified Data.Text as T
 
 import Types
 import Data.Maybe
+import Data.List
+import Data.Function
+import Data.Word
+import Data.Time
+import Data.Time
+import Data.Time.Clock.POSIX(posixSecondsToUTCTime)
 
 chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
 chunk f = eventlogToHP . either error id =<< readEventLogFromFile f
@@ -19,17 +27,78 @@ eventlogToHP (EventLog _h e) = do
 
 eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
 eventsToHP (Data es) = do
-  let fir = Frame (fromIntegral (evTime (head es))) []
-      las = Frame (fromIntegral (evTime (last es))) []
-  return $ (partialHeader, fir : chunkSamples es ++ [las], getTraces es)
+  let
+      el@EL{..} = foldEvents es
+      duration = end - start
+      fir = Frame (fromIntegral start) []
+      las = Frame (fromIntegral end) []
+  return $ (elHeader el, fir : reverse (las: normalise duration frames) , traces)
+
+normalise dur fs = map
+                    (\(t, ss) -> Frame (fromIntegral t) ss) fs
+
+data EL = EL
+  { pargs :: Maybe [String]
+  , samples :: Maybe (Word64, [Sample])
+  , frames :: [(Word64, [Sample])]
+  , traces :: [Trace]
+  , start :: Word64
+  , end :: Word64 } deriving Show
+
+initEL :: Word64 -> EL
+initEL t = EL Nothing Nothing [] [] t 0
+
+foldEvents :: [Event] -> EL
+foldEvents (e:es) =
+  let res = foldl' folder  (initEL (fromIntegral (evTime e))) (e:es)
+  in addFrame 0 res
+foldEvents [] = error "Empty event log"
+
+folder :: EL -> Event -> EL
+folder el (Event t e _) = el &
+  updateLast t .
+    case e of
+      -- Traces
+      Message s -> addTrace (Trace (fromIntegral t) (T.pack s))
+      UserMessage s -> addTrace (Trace (fromIntegral t) (T.pack s))
+      HeapProfBegin {} -> addFrame (fromIntegral t)
+      --HeapProfCostCentre {} -> False
+      HeapProfSampleBegin {} -> addFrame (fromIntegral t)
+      --HeapProfSampleCostCentre {} -> True
+      HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
+      ProgramArgs _ as -> addArgs as
+      _ -> id
+
+
+
+
+addArgs as el = el { pargs = Just as }
+getTime = fromIntegral . evTime
+
+addTrace t el = el { traces = t : traces el }
+
+addFrame t el =
+  el { samples = Just (t, [])
+     , frames = sampleToFrames (samples el) (frames el) }
+
+sampleToFrames :: Maybe (Word64, [Sample]) -> [(Word64, [Sample])]
+                                           -> [(Word64, [Sample])]
+sampleToFrames (Just (t, ss)) fs = (t, (reverse ss)) : fs
+sampleToFrames Nothing fs = fs
+
+addSample s el = el { samples = go <$> (samples el) }
+  where
+    go (t, ss) = (t, (s:ss))
+
+updateLast :: Word64 -> EL -> EL
+updateLast t el = el { end = t }
+
 
 getTraces :: [Event] -> [Trace]
 getTraces = mapMaybe isTrace
   where
     isTrace (Event t e _) =
       case e of
-        Message s -> Just (Trace (fromIntegral t) (T.pack s))
-        UserMessage s -> Just (Trace (fromIntegral t) (T.pack s))
         _ -> Nothing
 
 filterEvent :: Event -> Bool
@@ -37,11 +106,6 @@ filterEvent e = p (evSpec e)
 
 p :: EventInfo -> Bool
 p e = case e of
-        HeapProfBegin {} -> True
-        HeapProfCostCentre {} -> False
-        HeapProfSampleBegin {} -> True
-        HeapProfSampleCostCentre {} -> True
-        HeapProfSampleString {} -> True
         _ -> False
 
 isStartEvent :: Event -> Maybe Timestamp
@@ -69,7 +133,12 @@ mkSample (Event _t s _) =
     HeapProfSampleString _hid res k -> Just $ Sample k (fromIntegral res)
     _ -> Nothing
 
-partialHeader :: PartialHeader
-partialHeader = Header "" "" "" ""
+elHeader :: EL -> PartialHeader
+elHeader EL{..} =
+  let title = maybe "" (T.unwords . map T.pack) pargs
+      dl = formatTime defaultTimeLocale "%c"
+         . posixSecondsToUTCTime $ realToFrac start
+
+  in Header title "aaa" "" ""
 
 
