@@ -18,6 +18,9 @@ import Data.Time
 import Data.Time
 import Data.Time.Clock.POSIX(posixSecondsToUTCTime)
 
+fromNano :: Word64 -> Double
+fromNano e = fromIntegral e * 1e-9
+
 chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
 chunk f = eventlogToHP . either error id =<< readEventLogFromFile f
 
@@ -30,12 +33,12 @@ eventsToHP (Data es) = do
   let
       el@EL{..} = foldEvents es
       duration = end - start
-      fir = Frame (fromIntegral start) []
-      las = Frame (fromIntegral end) []
+      fir = Frame (fromNano start) []
+      las = Frame (fromNano end) []
   return $ (elHeader el, fir : reverse (las: normalise duration frames) , traces)
 
 normalise dur fs = map
-                    (\(t, ss) -> Frame (fromIntegral t) ss) fs
+                    (\(t, ss) -> Frame (fromNano t) ss) fs
 
 data EL = EL
   { pargs :: Maybe [String]
@@ -50,7 +53,7 @@ initEL t = EL Nothing Nothing [] [] t 0
 
 foldEvents :: [Event] -> EL
 foldEvents (e:es) =
-  let res = foldl' folder  (initEL (fromIntegral (evTime e))) (e:es)
+  let res = foldl' folder  (initEL (evTime e)) (e:es)
   in addFrame 0 res
 foldEvents [] = error "Empty event log"
 
@@ -59,13 +62,13 @@ folder el (Event t e _) = el &
   updateLast t .
     case e of
       -- Traces
-      Message s -> addTrace (Trace (fromIntegral t) (T.pack s))
-      UserMessage s -> addTrace (Trace (fromIntegral t) (T.pack s))
-      HeapProfBegin {} -> addFrame (fromIntegral t)
+      Message s -> addTrace (Trace (fromNano t) (T.pack s))
+      UserMessage s -> addTrace (Trace (fromNano t) (T.pack s))
+      HeapProfBegin {} -> addFrame t
       --HeapProfCostCentre {} -> False
-      HeapProfSampleBegin {} -> addFrame (fromIntegral t)
+      HeapProfSampleBegin {} -> addFrame t
       --HeapProfSampleCostCentre {} -> True
-      HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
+      HeapProfSampleString _hid res k -> addSample (Sample k (fromNano res))
       ProgramArgs _ as -> addArgs as
       _ -> id
 
@@ -73,7 +76,7 @@ folder el (Event t e _) = el &
 
 
 addArgs as el = el { pargs = Just as }
-getTime = fromIntegral . evTime
+getTime = fromNano . evTime
 
 addTrace t el = el { traces = t : traces el }
 
@@ -124,13 +127,13 @@ chunkSamples [] = []
 chunkSamples (x:xs)
   | Just t <- isStartEvent x =
       let (ys, zs) = break (isJust . isStartEvent) xs
-      in  (Frame (fromIntegral t) (mapMaybe mkSample ys)) : chunkSamples zs
+      in  (Frame (fromNano t) (mapMaybe mkSample ys)) : chunkSamples zs
   | otherwise = chunkSamples xs -- expected BEGIN_SAMPLE or EOF...
 
 mkSample :: Event -> Maybe Sample
 mkSample (Event _t s _) =
   case s of
-    HeapProfSampleString _hid res k -> Just $ Sample k (fromIntegral res)
+    HeapProfSampleString _hid res k -> Just $ Sample k (fromNano res)
     _ -> Nothing
 
 elHeader :: EL -> PartialHeader
