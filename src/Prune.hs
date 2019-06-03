@@ -34,7 +34,8 @@ prune cmp tracePercent nBands ts =
   let ccTotals = sortBy cmpSizeDescending (toList ts)
       sizes = map (fst . snd) ccTotals
       total = sum' sizes
-      limit = (1 - tracePercent / 100) * total
+      limit = if tracePercent == 0 then total
+                                   else (1 - tracePercent / 100) * total
       bigs = takeWhile (< limit) . scanl (+) 0 $ sizes
       bands = zipWith const ccTotals $ take nBands bigs
       ccs = map fst (sortBy cmp bands)

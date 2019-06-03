@@ -19,6 +19,7 @@ data Args = Args
   , patterned    :: Bool
   , eventlog     :: Bool
   , test         :: Bool
+  , json         :: Bool
   , files        :: [String]
   }
 
@@ -68,6 +69,10 @@ argParser = Args
          <> help "Input files are eventlogs")
       <*> switch
           (short 't')
+      <*> switch
+          ( long "json"
+          <> short 'j'
+          <> help "Output JSON")
 
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."

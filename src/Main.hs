@@ -1,5 +1,6 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE MultiWayIf #-}
 module Main (main) where
 
 import Prelude hiding (print, readFile)
@@ -17,7 +18,7 @@ import System.IO (withFile, IOMode(WriteMode), stdout)
 import Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..))
 import Total (total)
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Bands (bands)
+import Bands (bands, series)
 import Pretty (pretty)
 import Print (print, printKey)
 import SVG (svg)
@@ -26,6 +27,9 @@ import qualified Events as E
 import qualified HeapProf as H
 import Graphics.Svg
 import Debug.Trace
+import Data.Aeson (encodeFile)
+import System.FilePath
+
 
 testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
 testMain c [f] = do
@@ -34,9 +38,20 @@ testMain c [f] = do
   mapM_ (putStrLn . show) ts
 testMain _ _ = error "One file only"
 
-main :: IO ()
-main = do
-  a <- args
+data Output = Test | JSON | SVG
+
+argsToOutput a =
+  if | test a -> doTest a
+     | json a -> doJson a
+     | otherwise -> doSvg a
+
+doTest :: Args -> IO ()
+doTest a =
+  let chunk = if eventlog a then E.chunk else H.chunk
+  in testMain chunk (files a)
+
+doSvg :: Args -> IO ()
+doSvg a = do
   let chunk = if eventlog a then E.chunk else H.chunk
       uniformTime = uniformity a `elem` [Time, Both]
       uniformMemory = uniformity a `elem` [Memory, Both]
@@ -52,9 +67,6 @@ main = do
       noTitle = case titlePlace a of
         TitleInline -> False
         TitleFile{} -> True
-  if test a then testMain chunk (files a)
-            else do
-  when (null (files a)) exitSuccess
   labelss <- if not (uniformTime || uniformMemory)
     then forM (files a) $ \file -> do
       (ph, fs, traces) <- chunk file
@@ -97,7 +109,29 @@ main = do
         hPutStrLn txt (T.pack filename <> " " <> title)
     _ -> return ()
 
+
+
+main :: IO ()
+main = do
+  a <- args
+  when (null (files a)) exitSuccess
+  argsToOutput a
+
 bound :: Int -> Int
 bound n
   | n <= 0 = maxBound
   | otherwise = n
+
+doJson :: Args -> IO ()
+doJson a = do
+  let chunk = if eventlog a then E.chunk else H.chunk
+      cmp = fst $ reversing' sorting'
+      sorting' = case sorting a of
+        Name -> cmpName
+        Size -> cmpSize
+        StdDev -> cmpStdDev
+      reversing' = if reversing a then swap else id
+  forM_ (files a) $ \file -> do
+    (ph, fs, traces) <- chunk file
+    encodeFile (file <.> "json") (series fs)
+    exitSuccess

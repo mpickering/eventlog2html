@@ -91,7 +91,11 @@ Executable hp2pretty
                        text,
                        ghc-events,
                        svg-builder,
-                       time
+                       time,
+                       hashtables,
+                       aeson,
+                       filepath
+
   GHC-options:         -Wall -rtsopts -eventlog
   HS-source-dirs:      src
   Main-is:             Main.hs
