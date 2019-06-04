@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Embedding Vega-Lite</title>
+    <title>Heap Profile</title>
     <script src="https://cdn.jsdelivr.net/npm/vega@5.4.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.3.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@4.2.0"></script>
@@ -16,20 +16,25 @@
   "width": 1000,
   "height": 1000,
   "config": {"text": {"align": "right", "dx": -5, "dy": 5}},
-  "description": "Area chart showing weight of cars over time.",
+  "description": "Heap Profile",
 "layer": [{
   "data": {"url": "ghc.eventlog.json"},
   "mark": "area",
   "encoding": {
     "x": {
       "field": "x",
-      "type": "quantitative"
+      "type": "quantitative",
+      "axis" : {"title" : "Time (s)"}
     },
-    "y": {"aggregate": "sum", "field": "y", "type": "quantitative"},
+    "y": {"aggregate": "sum", "field": "y", "type": "quantitative"
+        , "stack": "zero",
+        "axis" : {"title" : "Allocation (M)" },
+         },
     "color": {
       "field": "c",
       "type": "nominal",
-      "scale": {"scheme": "category20"}
+      "scale": {"scheme": "category20"},
+      "legend" : { "title" : null }
     },
   "order": {
       "field": "k",

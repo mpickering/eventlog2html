@@ -7,7 +7,6 @@ test
 src/Main
 *.svg
 *.hp
-*.html
 *.pdf
 tests/escapes
 tests/namelen
