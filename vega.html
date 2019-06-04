@@ -15,26 +15,31 @@
   "$schema": "https://vega.github.io/schema/vega-lite/v3.json",
   "width": 1000,
   "height": 1000,
-  "config": {"text": {"align": "right", "dx": -5, "dy": 5}},
+  "config": {"text": {"align": "right", "dx": -5, "dy": 5}
+            , "view": {"width" : 400, "height": 300}},
   "description": "Heap Profile",
-"layer": [{
-  "data": {"url": "ghc.eventlog.json"},
-  "mark": "area",
-  "encoding": {
-    "x": {
-      "field": "x",
-      "type": "quantitative",
-      "axis" : {"title" : "Time (s)"}
-    },
-    "y": {"aggregate": "sum", "field": "y", "type": "quantitative"
-        , "stack": "zero",
-        "axis" : {"title" : "Allocation (M)" },
-         },
+  "hconcat" : [{
+    "layer": [{
+      "width": 800,
+      "height": 1000,
+      "data": {"url": "ghc.eventlog.json"},
+      "transform": [{"filter": {"selection": "legend"}}],
+      "mark": "area",
+      "encoding": {
+        "x": {
+          "field": "x",
+          "type": "quantitative",
+          "axis" : {"title" : "Time (s)"}
+          },
+        "y": {"aggregate": "sum", "field": "y", "type": "quantitative"
+             , "stack": "zero",
+               "axis" : {"title" : "Allocation (M)" },
+          },
     "color": {
       "field": "c",
       "type": "nominal",
       "scale": {"scheme": "category20"},
-      "legend" : { "title" : null }
+      "legend" : null
     },
   "order": {
       "field": "k",
@@ -68,9 +73,53 @@
       }}
     }]
 
+}] },
+  // The legend is actually another chart.
+  // Workaround comes from https://github.com/vega/vega-lite/issues/1657
+  {
+  "mark": { "type" : "point",
+            "style" : { "cell" : { "stroke" : "transparent" }}},
+      "data": {"url": "ghc.eventlog.json"},
+      "encoding": {
+        "tooltip" : null,
+        "order": {
+          "field": "k",
+          "type": "quantitative"
+          },
+        "color": {
+          "condition": {
+            "type": "nominal",
+            "aggregate": "min",
+            "field": "c",
+            "legend": null,
+            "selection": "legend"
+          },
+          "value": "lightgray"
+        },
+        "y": {"type": "nominal"
+             , "field": "c"
+             , "title": null
+             , "axis" : { "orient" : "right"
+                        , "domain" : false
+                        , "domainOpacity" : 0
+                        , "ticks" : false
+                        , "grid" : false
+                        , "gridWidth" : 0 }
+             }
+      },
+      "selection": {
+        "legend": {
+          "type": "multi",
+          "encodings": ["color"],
+          "on": "click",
+          "toggle": "event.shiftKey",
+          "resolve": "global",
+          "empty": "all"
+        }
+      }
     }
 
-] }
+    ] }
 
       vegaEmbed('#vis', yourVlSpec);
     </script>
