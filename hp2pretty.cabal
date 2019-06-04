@@ -112,6 +112,7 @@ Executable hp2pretty
                        Pattern
                        Events
                        HeapProf
+                       Vega
 
 Source-repository head
   type:                git

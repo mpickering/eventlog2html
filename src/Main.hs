@@ -18,7 +18,8 @@ import System.IO (withFile, IOMode(WriteMode), stdout)
 import Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..))
 import Total (total)
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Bands (bands, series)
+import Bands (bands, series, bandsToSeries)
+import Vega
 import Pretty (pretty)
 import Print (print, printKey)
 import SVG (svg)
@@ -29,6 +30,7 @@ import Graphics.Svg
 import Debug.Trace
 import Data.Aeson (encodeFile)
 import System.FilePath
+import Data.Map(keysSet)
 
 
 testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
@@ -133,5 +135,9 @@ doJson a = do
       reversing' = if reversing a then swap else id
   forM_ (files a) $ \file -> do
     (ph, fs, traces) <- chunk file
-    encodeFile (file <.> "json") (series fs)
+    let (h, totals) = total ph fs
+    let keeps = prune cmp 0 (bound $ nBands a) totals
+    encodeFile (file <.> "json") (bandsToVega keeps (bands h keeps fs))
+    encodeFile (file <.> "json" <.> "traces") (tracesToVega traces)
     exitSuccess
+
