@@ -68,7 +68,7 @@ folder el (Event t e _) = el &
       --HeapProfCostCentre {} -> False
       HeapProfSampleBegin {} -> addFrame t
       --HeapProfSampleCostCentre {} -> True
-      HeapProfSampleString _hid res k -> addSample (Sample k (fromNano res))
+      HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
       ProgramArgs _ as -> addArgs as
       _ -> id
 

@@ -21,7 +21,7 @@
   "hconcat" : [{
     "layer": [{
       "width": 800,
-      "height": 1000,
+      "height": 800,
       "data": {"url": "ghc.eventlog.json"},
       "transform": [{"filter": {"selection": "legend"}}],
       "mark": "area",
@@ -33,8 +33,7 @@
           },
         "y": {"aggregate": "sum", "field": "y", "type": "quantitative"
              , "stack": "zero",
-               "axis" : {"title" : "Allocation (M)" },
-          },
+          "axis" : {"title" : "Allocation", "format": "s" }} ,
     "color": {
       "field": "c",
       "type": "nominal",
@@ -44,9 +43,10 @@
   "order": {
       "field": "k",
       "type": "quantitative"
-    }
+  },
   }
-},
+
+    },
 { "data": {"url": "ghc.eventlog.json.traces"},
   "layer":[{
       "mark": "rule",
