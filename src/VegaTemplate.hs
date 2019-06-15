@@ -12,12 +12,12 @@ import Data.Text (Text)
 foo :: Text -> Value -> BuildLabelledSpecs
 foo t val = \x -> x ++ [(t,val)]
 
-config :: [LabelledSpec] -> (VLProperty, VLSpec)
-config =
-  configure
-    . configuration (View [ViewWidth 400, ViewHeight 300])
-    . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
-    
+-----------------------------------------------------------------------------------
+-- The visualization consists of:
+-- - Area Chart (on the left)
+-- - Legend (on the right)
+-----------------------------------------------------------------------------------
+
 vegaResult :: Text -> Text -> VegaLite
 vegaResult bands traces = toVegaLite
   [
@@ -25,50 +25,71 @@ vegaResult bands traces = toVegaLite
     VL.height 1000,
     config [],
     description "Heap Profile",
-    hConcat [asSpec (leftDiagram bands traces), asSpec (rightDiagram bands)]
+    hConcat [asSpec (areaChart bands traces), asSpec (legendDiagram bands)]
   ]
 
+config :: [LabelledSpec] -> (VLProperty, VLSpec)
+config =
+  configure
+    . configuration (View [ViewWidth 400, ViewHeight 300])
+    . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
+
 -----------------------------------------------------------------------------------
--- Left Diagram 
+-- The Area Chart consists of:
+-- - Traces Layer
+-- - Bands Layer
 -----------------------------------------------------------------------------------
 
-leftDiagram :: Text -> Text -> [(VLProperty, VLSpec)]
-leftDiagram bands traces = [layer [ asSpec (layerOne bands), asSpec (layerTwo traces)]]
+areaChart :: Text -> Text -> [(VLProperty, VLSpec)]
+areaChart bands traces = [layer [asSpec (bandsLayer bands), asSpec (tracesLayer traces)]]
 
 -----------------------------------------------------------------------------------
--- LayerOne of Left Diagram
+-- The bands layer:
 -----------------------------------------------------------------------------------
 
-encodingLayerOne :: [LabelledSpec] -> (VLProperty, VLSpec)
-encodingLayerOne =
+bandsLayer :: Text -> [(VLProperty, VLSpec)]
+bandsLayer bands =
+  [
+    VL.width 800,
+    VL.height 800,
+    dataFromUrl bands [],
+    VL.mark Area [],
+    encodingBandsLayer [],
+    transformBandsLayer []
+  ]
+  
+encodingBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+encodingBandsLayer =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"], PAggregate Sum, PStack StZero]
 
-transformLayerOne :: [LabelledSpec] -> (VLProperty, VLSpec)
-transformLayerOne =
+transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+transformBandsLayer =
   transform
     . filter (FSelection "legend")
     
-layerOne :: Text -> [(VLProperty, VLSpec)]
-layerOne bands =
+-----------------------------------------------------------------------------------
+-- The traces layer:
+-----------------------------------------------------------------------------------
+
+tracesLayer :: Text -> [(VLProperty, VLSpec)]
+tracesLayer traces =
   [
-    VL.width 800,
-    VL.height 800,
-    dataFromUrl bands [],
-    VL.mark Area [],
-    encodingLayerOne [],
-    transformLayerOne []
+    dataFromUrl traces [],
+    layer $ return $ asSpec
+      [
+        VL.mark Rule [],
+        encodingTracesLayer [],
+        selectionTracesLayer []
+      ]
+      
   ]
 
------------------------------------------------------------------------------------
--- LayerTwo of Left Diagram
------------------------------------------------------------------------------------
-
-encodingLayerTwo :: [LabelledSpec] -> (VLProperty, VLSpec)
-encodingLayerTwo =
+encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+encodingTracesLayer =
   encoding
     . color [MString "grey"]
     . position X [PmType Quantitative, PAxis [], PName "tx"]
@@ -80,27 +101,23 @@ encodingLayerTwo =
     -- . tooltip [TName "tx", TmType Quantitative]
     -- . tooltip [TName "desc", TmType Nominal]
 
-selectionLayerTwo ::  [LabelledSpec] -> (VLProperty, VLSpec)
-selectionLayerTwo =
+selectionTracesLayer ::  [LabelledSpec] -> (VLProperty, VLSpec)
+selectionTracesLayer =
   selection
     . VL.select "index" Single [On "mousemove", Encodings [ChX], Nearest True]
 
-layerTwo :: Text -> [(VLProperty, VLSpec)]
-layerTwo traces =
-  [
-    dataFromUrl traces [],
-    layer $ return $ asSpec
-      [
-        VL.mark Rule [],
-        encodingLayerTwo [],
-        selectionLayerTwo []
-      ]
-      
-  ]
+-----------------------------------------------------------------------------------
+-- The legend
+-----------------------------------------------------------------------------------
 
------------------------------------------------------------------------------------
--- Right Diagram 
------------------------------------------------------------------------------------
+legendDiagram :: Text -> [(VLProperty, VLSpec)]
+legendDiagram bands =
+  [
+    VL.mark Point [MStroke "transparent"],
+    dataFromUrl bands [],
+    encodingRight [],
+    selectionRight []
+  ]
 
 encodingRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingRight =
@@ -139,11 +156,3 @@ selectionRight =
                         "type" .= String "multi",
                         "toggle" .= String "event.shiftKey"])
 
-rightDiagram :: Text -> [(VLProperty, VLSpec)]
-rightDiagram bands =
-  [
-    VL.mark Point [MStroke "transparent"],
-    dataFromUrl bands [],
-    encodingRight [],
-    selectionRight []
-  ]
