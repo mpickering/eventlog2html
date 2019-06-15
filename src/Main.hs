@@ -7,6 +7,8 @@ import Prelude hiding (print, readFile)
 import Data.Text.IO (hPutStrLn)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as T
+import Data.Text.Lazy (toStrict)
+import Data.Text.Lazy.Encoding (decodeUtf8)
 import Control.Monad (forM, forM_, when)
 import Data.List (foldl1', nub)
 import Data.Tuple (swap)
@@ -15,10 +17,14 @@ import System.Exit (exitSuccess)
 import System.FilePath (replaceExtension)
 import System.IO (withFile, IOMode(WriteMode), stdout)
 
+--import qualified Data.ByteString.Lazy as BS
+import HtmlTemplate
+import VegaTemplate
 import Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..))
 import Total (total)
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Bands (bands, series, bandsToSeries)
+import Bands (bands)
+--import Bands (bands, series, bandsToSeries)
 import Vega
 import Pretty (pretty)
 import Print (print, printKey)
@@ -28,10 +34,13 @@ import qualified Events as E
 import qualified HeapProf as H
 import Graphics.Svg
 import Debug.Trace
-import Data.Aeson (encodeFile)
+import Data.Aeson (encodeFile, encode)
+import Data.Aeson.Text (encodeToLazyText)
+import Data.Aeson.Encode.Pretty (encodePretty)
 import System.FilePath
-import Data.Map(keysSet)
-
+--import Data.Map(keysSet)
+import Text.Blaze.Html.Renderer.String
+import Graphics.Vega.VegaLite (fromVL)
 
 testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
 testMain c [f] = do
@@ -40,8 +49,9 @@ testMain c [f] = do
   mapM_ (putStrLn . show) ts
 testMain _ _ = error "One file only"
 
-data Output = Test | JSON | SVG
+--data Output = Test | JSON | SVG
 
+argsToOutput :: Args -> IO ()
 argsToOutput a =
   if | test a -> doTest a
      | json a -> doJson a
@@ -139,5 +149,16 @@ doJson a = do
     let keeps = prune cmp 0 (bound $ nBands a) totals
     encodeFile (file <.> "json") (bandsToVega keeps (bands h keeps fs))
     encodeFile (file <.> "json" <.> "traces") (tracesToVega traces)
+    --let mybands = encode (bandsToVega keeps (bands h keeps fs))
+    --let mytraces = (tracesToVega traces)
+    let vegaspec =  toStrict (decodeUtf8 (encodePretty (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces"))))))
+    let html = renderHtml (template (encloseScript vegaspec))
+    let filename2 = file <.> "html"
+    writeFile filename2 html
     exitSuccess
+
+
+
+
+
 

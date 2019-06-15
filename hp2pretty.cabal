@@ -75,16 +75,20 @@ Extra-source-files:
   examples/html.sh
   examples/Makefile
   examples/report.tex
-
+  javascript/vegalite@3.3.0
 Cabal-version:       >=1.6
 
 Executable hp2pretty
   Build-depends:       base >= 4 && < 5,
                        array,
                        attoparsec,
+                       blaze-html,
+                       bytestring,
                        containers >= 0.5,
                        filepath,
+                       file-embed,
                        floatshow,
+                       hvega,
                        mtl,
                        optparse-applicative,
                        semigroups,
@@ -94,13 +98,14 @@ Executable hp2pretty
                        time,
                        hashtables,
                        aeson,
+                       aeson-pretty,
                        filepath
 
   GHC-options:         -Wall -rtsopts -eventlog
   HS-source-dirs:      src
   Main-is:             Main.hs
-  Other-modules:       Main
-                       Args
+  Other-modules:       Args
+                       Javascript
                        Types
                        Total
                        Prune
@@ -113,6 +118,8 @@ Executable hp2pretty
                        Events
                        HeapProf
                        Vega
+                       HtmlTemplate
+                       VegaTemplate
 
 Source-repository head
   type:                git

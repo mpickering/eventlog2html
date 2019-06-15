@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>Heap Profile</title>
+    <meta charset="UTF-8"> 
     <script src="https://cdn.jsdelivr.net/npm/vega@5.4.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.3.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/vega-embed@4.2.0"></script>
@@ -43,7 +44,7 @@
   "order": {
       "field": "k",
       "type": "quantitative"
-  },
+  }
   }
 
     },
@@ -74,8 +75,6 @@
     }]
 
 }] },
-  // The legend is actually another chart.
-  // Workaround comes from https://github.com/vega/vega-lite/issues/1657
   {
   "mark": { "type" : "point",
             "style" : { "cell" : { "stroke" : "transparent" }}},
