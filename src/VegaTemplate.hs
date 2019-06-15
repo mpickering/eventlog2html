@@ -79,13 +79,9 @@ tracesLayer :: Text -> [(VLProperty, VLSpec)]
 tracesLayer traces =
   [
     dataFromUrl traces [],
-    layer $ return $ asSpec
-      [
-        VL.mark Rule [],
-        encodingTracesLayer [],
-        selectionTracesLayer []
-      ]
-      
+    VL.mark Rule [],
+    encodingTracesLayer [],
+    selectionTracesLayer []
   ]
 
 encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
