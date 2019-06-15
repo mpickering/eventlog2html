@@ -11,3 +11,7 @@ src/Main
 tests/escapes
 tests/namelen
 tests/unicode
+*.html
+*.eventlog
+*.eventlog.json
+*.eventlog.json.traces
