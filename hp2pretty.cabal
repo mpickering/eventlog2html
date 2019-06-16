@@ -75,7 +75,7 @@ Extra-source-files:
   examples/html.sh
   examples/Makefile
   examples/report.tex
-  javascript/vegalite@3.3.0
+  javascript/vega-lite@3.3.0
 Cabal-version:       >=1.6
 
 Executable hp2pretty
