@@ -20,6 +20,7 @@ template vegaSpec = docTypeHtml $ do
     script $ preEscapedToHtml vega
     script $ preEscapedToHtml vegaEmbed
   body $ do
+    h1 $ "Heap Profile"
     H.div ! A.id "vis" $ ""
     script ! type_ "text/javascript" $ do
       vegaSpec
