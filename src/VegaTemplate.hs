@@ -6,13 +6,16 @@ module VegaTemplate
 
 import Prelude hiding (filter, lookup)
 import Graphics.Vega.VegaLite as VL
-import Data.Aeson.Types 
+import Data.Aeson.Types
 import Data.Text (Text)
 
 -- | Workaround for some limitations in the HVega library.
 -- This function should be removed once the features are merged into HVega.
 injectJSON :: Text -> Value -> BuildLabelledSpecs
 injectJSON t val = \x -> x ++ [(t,val)]
+
+injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
+injectJSONs ts = \x -> x ++ ts
 
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
@@ -29,14 +32,60 @@ vegaResult bands traces = toVegaLite
     VL.height 1000,
     config [],
     description "Heap Profile",
-    hConcat [asSpec [vConcat [areaChart bands traces, selectionChart bands]], legendDiagram bands]
+    hConcat [lineChart bands traces, legendDiagram bands]
   ]
+
+
+areaChartFull :: Text -> Text -> VLSpec
+areaChartFull bands traces = asSpec [vConcat [areaChart bands traces, selectionChart bands]]
 
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
 config =
   configure
     . configuration (View [ViewWidth 400, ViewHeight 300])
     . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
+
+
+-----------------------------------------------------------------------------------
+-- The Line Chart
+-----------------------------------------------------------------------------------
+
+lineChart :: Text -> Text -> VLSpec
+lineChart bands traces = asSpec [layer [linesLayer bands , tracesLayer traces]]
+
+linesLayer :: Text -> VLSpec
+linesLayer bands = asSpec
+  [
+    VL.width 800,
+    VL.height 700,
+    dataFromUrl bands [],
+    VL.mark Line [],
+    encodingLineLayer [],
+    transformLineLayer
+  ]
+
+encodingLineLayer
+ = encoding
+    . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]]
+    . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"]]
+
+transformLineLayer :: (VLProperty, VLSpec)
+transformLineLayer =
+  -- We need to get the `VLTransform` data constructor but it's not
+  -- exported
+  let (label, vs) = transform . filter (FSelection "legend") $ []
+  in (label,
+  toJSON [object ["window" .= [object ["field" .= String "y"
+                                      , "op" .= String "max"
+                                      , "as" .= String "max_y"]]
+                              , "frame" .= toJSON [Null, Null]
+                              , "groupby" .= toJSON [String "k"]]
+         , object ["calculate" .= String "datum.y / datum.max_y"
+                          , "as" .= String "norm_y"]
+         , object ["filter" .= object ["selection" .= String "legend"]]])
+
+
 
 -----------------------------------------------------------------------------------
 -- The Selection Chart
@@ -87,7 +136,7 @@ bandsLayer bands = asSpec
     encodingBandsLayer [],
     transformBandsLayer []
   ]
-  
+
 encodingBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingBandsLayer =
   encoding
@@ -100,7 +149,7 @@ transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =
   transform
     . filter (FSelection "legend")
-    
+
 -----------------------------------------------------------------------------------
 -- The traces layer:
 -----------------------------------------------------------------------------------
@@ -158,7 +207,7 @@ encodingRight =
                                            ,("type", String "nominal")])
                     ])
   . position Y [PName "c", PmType Nominal, PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]]
-  
+
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection
