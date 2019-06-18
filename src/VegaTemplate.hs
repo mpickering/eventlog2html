@@ -32,12 +32,14 @@ vegaResult bands traces = toVegaLite
     VL.height 1000,
     config [],
     description "Heap Profile",
-    hConcat [lineChart bands traces, legendDiagram bands]
+    hConcat [lineChartFull bands traces, legendDiagram bands]
   ]
 
 
-areaChartFull :: Text -> Text -> VLSpec
+lineChartFull, areaChartFull :: Text -> Text -> VLSpec
 areaChartFull bands traces = asSpec [vConcat [areaChart bands traces, selectionChart bands]]
+
+lineChartFull bands traces = asSpec [vConcat [lineChart bands traces, selectionChart bands]]
 
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
 config =
@@ -67,7 +69,8 @@ linesLayer bands = asSpec
 encodingLineLayer
  = encoding
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
-    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
+                  PScale [SDomain (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"]]
 
 transformLineLayer :: (VLProperty, VLSpec)
@@ -142,7 +145,8 @@ encodingBandsLayer =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
-    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""], PScale [SDomain (DSelection "brush")]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
+                    PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"], PAggregate Sum, PStack StZero]
 
 transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
