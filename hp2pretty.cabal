@@ -66,15 +66,6 @@ Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen
 Category:            Development
 Build-type:          Simple
 Extra-source-files:
-  BUGS
-  NEWS
-  README
-  THANKS
-  examples/Describe2.hp.gz
-  examples/figure.sh
-  examples/html.sh
-  examples/Makefile
-  examples/report.tex
   javascript/vega-lite@3.3.0
 Cabal-version:       >=1.6
 
@@ -94,7 +85,6 @@ Executable hp2pretty
                        semigroups,
                        text,
                        ghc-events,
-                       svg-builder,
                        time,
                        hashtables,
                        aeson,
@@ -109,11 +99,6 @@ Executable hp2pretty
                        Total
                        Prune
                        Bands
-                       Pretty
-                       Print
-                       SVG
-                       Graphics
-                       Pattern
                        Events
                        HeapProf
                        Vega
