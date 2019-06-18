@@ -8,7 +8,6 @@ import Data.Text.IO (hPutStrLn)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as T
 import Data.Text.Lazy (toStrict)
-import Data.Text.Lazy.Encoding (decodeUtf8)
 import Control.Monad (forM, forM_, when)
 import Data.List (foldl1', nub)
 import Data.Tuple (swap)
@@ -34,9 +33,8 @@ import qualified Events as E
 import qualified HeapProf as H
 import Graphics.Svg
 import Debug.Trace
-import Data.Aeson (encodeFile, encode)
+import Data.Aeson (encodeFile)
 import Data.Aeson.Text (encodeToLazyText)
-import Data.Aeson.Encode.Pretty (encodePretty)
 import System.FilePath
 --import Data.Map(keysSet)
 import Text.Blaze.Html.Renderer.String
@@ -151,7 +149,7 @@ doJson a = do
     encodeFile (file <.> "json" <.> "traces") (tracesToVega traces)
     --let mybands = encode (bandsToVega keeps (bands h keeps fs))
     --let mytraces = (tracesToVega traces)
-    let vegaspec =  toStrict (decodeUtf8 (encodePretty (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces"))))))
+    let vegaspec =  toStrict (encodeToLazyText (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces")))))
     let html = renderHtml (template (encloseScript vegaspec))
     let filename2 = file <.> "html"
     writeFile filename2 html
