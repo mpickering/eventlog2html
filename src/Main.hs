@@ -72,7 +72,7 @@ doJson a = do
     --let mybands = encode (bandsToVega keeps (bands h keeps fs))
     --let mytraces = (tracesToVega traces)
     let vegaspec =  toStrict (encodeToLazyText (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces")))))
-    let html = renderHtml (template (encloseScript vegaspec))
+    let html = renderHtml (template a (encloseScript vegaspec))
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

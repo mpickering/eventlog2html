@@ -1,4 +1,12 @@
-module Args (args, Args(..), Uniform(..), Sort(..), KeyPlace(..), TitlePlace(..)) where
+module Args
+  (
+    args
+  , Args(..)
+  , Uniform(..)
+  , Sort(..)
+  , KeyPlace(..)
+  , TitlePlace(..)
+  ) where
 
 import Options.Applicative
 import Data.Semigroup ((<>))
@@ -19,6 +27,7 @@ data Args = Args
   , patterned    :: Bool
   , eventlog     :: Bool
   , test         :: Bool
+  , includejs    :: Bool
   , json         :: Bool
   , files        :: [String]
   }
@@ -70,13 +79,16 @@ argParser = Args
       <*> switch
           (short 't')
       <*> switch
+          (long "include-js"
+          <> help "Include the javascript into the generated HTML instead of fetching it from a CDN.")
+      <*> switch
           ( long "json"
           <> short 'j'
           <> help "Output JSON")
-
       <*> some (argument str
           ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
          <> metavar "FILES..." ))
+
 
 parseUniform :: ReadM Uniform
 parseUniform = eitherReader $ \s -> case s of
