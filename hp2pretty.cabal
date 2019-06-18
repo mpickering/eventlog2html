@@ -98,7 +98,6 @@ Executable hp2pretty
                        time,
                        hashtables,
                        aeson,
-                       aeson-pretty,
                        filepath
 
   GHC-options:         -Wall -rtsopts -eventlog
