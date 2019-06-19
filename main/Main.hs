@@ -5,10 +5,8 @@ module Main (main) where
 
 import Control.Monad
 import Data.Aeson (encodeFile, Value, toJSON)
-import Data.Aeson.Text (encodeToLazyText)
 import System.FilePath
 import System.Exit
-import Data.Text.Lazy (toStrict)
 
 import Args (args, Args(..), Sort(..))
 import Bands (bands)
@@ -66,8 +64,7 @@ doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
     data_json <- generateJson file a
-    let vegaspec =  toStrict (encodeToLazyText vegaJson)
-    let html = templateString data_json a vegaspec
+    let html = templateString data_json a vegaJsonText
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

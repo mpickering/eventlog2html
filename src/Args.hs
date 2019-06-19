@@ -1,6 +1,7 @@
 module Args
   (
     args
+  , argsInfo
   , Args(..)
   , Uniform(..)
   , Sort(..)
@@ -118,7 +119,10 @@ parseTitle = eitherReader $ \s -> case s of
   f -> Right (TitleFile f)
 
 args :: IO Args
-args = execParser opts
+args = execParser argsInfo
+
+argsInfo :: ParserInfo Args
+argsInfo = opts
   where
     opts = info (argParser <**> helper)
       ( fullDesc
