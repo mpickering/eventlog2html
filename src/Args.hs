@@ -25,7 +25,7 @@ data Args = Args
   , tracePercent :: Double
   , nBands       :: Int
   , patterned    :: Bool
-  , eventlog     :: Bool
+  , heapProfile  :: Bool
   , test         :: Bool
   , includejs    :: Bool
   , json         :: Bool
@@ -73,9 +73,9 @@ argParser = Args
           ( long "pattern"
          <> help "Use patterns instead of solid colours to fill bands." )
       <*> switch
-          ( long "eventlog"
-          <> short 'e'
-         <> help "Input files are eventlogs")
+          ( long "heap-profile"
+          <> short 'p'
+          <> help "Input files are .hp heap profiles.")
       <*> switch
           (short 't')
       <*> switch
@@ -86,7 +86,7 @@ argParser = Args
           <> short 'j'
           <> help "Output JSON")
       <*> some (argument str
-          ( help "Heap profiles (FILE.hp will be converted to FILE.svg)."
+          ( help "Eventlogs (FILE.eventlog will be converted to FILE.html)."
          <> metavar "FILES..." ))
 
 
@@ -122,5 +122,5 @@ args = execParser opts
   where
     opts = info (argParser <**> helper)
       ( fullDesc
-     <> progDesc "Convert heap profile FILES.hp to pretty graphs FILES.svg"
-     <> header "hp2pretty - generate pretty graphs from heap profiles" )
+     <> progDesc "Convert eventlogs FILES.eventlog to interactive FILES.html"
+     <> header "eventlog2html - generate interactive html from eventlogs" )
