@@ -74,7 +74,7 @@ argParser = Args
          <> help "Use patterns instead of solid colours to fill bands." )
       <*> switch
           ( long "heap-profile"
-          <> short 'h'
+          <> short 'p'
           <> help "Input files are .hp heap profiles.")
       <*> switch
           (short 't')
