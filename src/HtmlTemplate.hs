@@ -30,7 +30,7 @@ encloseScript (dh, dt) vegaspec = preEscapedToHtml $ T.unlines [
     dtt = TL.toStrict (T.decodeUtf8 (encode dt))
 
 template :: (Value, Value) -> Args -> Text -> Html
-template dat args vegaSpec = docTypeHtml $ do
+template dat as vegaSpec = docTypeHtml $ do
   H.head $ do
     H.title "Heap Profile"
     meta ! charset "UTF-8"
@@ -49,3 +49,4 @@ template dat args vegaSpec = docTypeHtml $ do
     H.div ! A.id "vis" $ ""
     script ! type_ "text/javascript" $ do
       (encloseScript dat vegaSpec)
+
