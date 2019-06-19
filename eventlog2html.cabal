@@ -23,10 +23,10 @@ Extra-source-files:
   javascript/vega-lite@3.3.0
   javascript/vega-embed@4.2.0
   javascript/vega@5.4.0
-Cabal-version:       >=1.6
+Cabal-version:       >=1.8
 Tested-With:         GHC ==8.6.4
 
-Executable eventlog2html
+Library
   Build-depends:       base >= 4 && < 5,
                        array,
                        attoparsec,
@@ -49,8 +49,8 @@ Executable eventlog2html
 
   GHC-options:         -Wall
   HS-source-dirs:      src
-  Main-is:             Main.hs
-  Other-modules:       Args
+  exposed-modules:     Args
+                       Data
                        Javascript
                        Types
                        Total
@@ -61,6 +61,12 @@ Executable eventlog2html
                        Vega
                        HtmlTemplate
                        VegaTemplate
+
+Executable eventlog2html
+  HS-source-dirs:      main
+  Main-is:             Main.hs
+  build-depends: base >= 4 && < 5, eventlog2html, aeson, filepath, text
+
 
 Source-repository head
   type:                git

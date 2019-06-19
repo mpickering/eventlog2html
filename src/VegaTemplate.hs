@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module VegaTemplate
   (
-    vegaResult
+    vegaResult, vegaJson
   ) where
 
 import Prelude hiding (filter, lookup)
@@ -20,6 +20,9 @@ injectJSON t val = \x -> x ++ [(t,val)]
 -- - SelectionChart (on the left bottom)
 -- - Legend (on the right)
 -----------------------------------------------------------------------------------
+
+vegaJson :: Value
+vegaJson = fromVL vegaResult
 
 vegaResult :: VegaLite
 vegaResult = toVegaLite

@@ -3,17 +3,12 @@
 {-# LANGUAGE MultiWayIf #-}
 module Main (main) where
 
-import Prelude hiding (print, readFile)
-import Control.Monad (forM_, when)
+import Control.Monad
 import Data.Aeson (encodeFile, Value, toJSON)
 import Data.Aeson.Text (encodeToLazyText)
-import qualified Data.Text as T
-import Data.Text.Lazy (toStrict)
-import Data.Tuple (swap)
-import Graphics.Vega.VegaLite (fromVL)
-import System.Exit (exitSuccess)
 import System.FilePath
-import Text.Blaze.Html.Renderer.String
+import System.Exit
+import Data.Text.Lazy (toStrict)
 
 import Args (args, Args(..), Sort(..))
 import Bands (bands)
@@ -22,6 +17,7 @@ import qualified HeapProf as H
 import HtmlTemplate
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
 import Total (total)
+import Data
 import Vega
 import VegaTemplate
 
@@ -54,21 +50,6 @@ bound n
   | n <= 0 = maxBound
   | otherwise = n
 
-generateJson :: FilePath -> Args -> IO (Value, Value)
-generateJson file a = do
-  let chunk = if heapProfile a then H.chunk else E.chunk
-      cmp = fst $ reversing' sorting'
-      sorting' = case sorting a of
-        Name -> cmpName
-        Size -> cmpSize
-        StdDev -> cmpStdDev
-      reversing' = if reversing a then swap else id
-  (ph, fs, traces) <- chunk file
-  let (h, totals) = total ph fs
-  let keeps = prune cmp 0 (bound $ nBands a) totals
-  let dataJson = toJSON (bandsToVega keeps (bands h keeps fs))
-      dataTraces =  toJSON (tracesToVega traces)
-  return (dataJson, dataTraces)
 
 doOneJson :: FilePath -> Args -> IO ()
 doOneJson file a = do
@@ -85,8 +66,8 @@ doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
     data_json <- generateJson file a
-    let vegaspec =  toStrict (encodeToLazyText (fromVL vegaResult))
-    let html = renderHtml (template data_json a vegaspec)
+    let vegaspec =  toStrict (encodeToLazyText vegaJson)
+    let html = templateString data_json a vegaspec
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess
