@@ -6,7 +6,7 @@ module VegaTemplate
 
 import Prelude hiding (filter, lookup)
 import Graphics.Vega.VegaLite as VL
-import Data.Aeson.Types 
+import Data.Aeson.Types hiding (Number)
 import Data.Text (Text)
 
 -- | Workaround for some limitations in the HVega library.
@@ -22,14 +22,16 @@ injectJSON t val = \x -> x ++ [(t,val)]
 -----------------------------------------------------------------------------------
 
 -- | Takes as arguments the URLs of the JSON files for the bands and traces.
-vegaResult :: Text -> Text -> VegaLite
-vegaResult bands traces = toVegaLite
+vegaResult :: VegaLite
+vegaResult = toVegaLite
   [
     VL.width 1200,
     VL.height 1000,
     config [],
     description "Heap Profile",
-    hConcat [asSpec [vConcat [areaChart bands traces, selectionChart bands]], legendDiagram bands]
+    hConcat [asSpec [vConcat [areaChart
+                             , selectionChart]]
+            , legendDiagram]
   ]
 
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
@@ -52,13 +54,15 @@ encodingSelection =
     . position Y [PName "y", PmType Quantitative, PAxis [{-AxTitle "Allocation", AxFormat "s"-}], PAggregate Sum, PStack StZero]
 
 brush :: (VLProperty, VLSpec)
-brush = (selection . select "brush" Interval [Encodings [ChX]]) []
+brush = (selection . injectJSON "brush" (object [ "type" .= String "interval"
+                                                , "init" .= object [ "x" .= [Null, Null] ] ])) []
+-- init field is not supported and necessary for dynamic loading
 
-selectionChart :: Text -> VLSpec
-selectionChart bands = asSpec [
+selectionChart :: VLSpec
+selectionChart  = asSpec [
     VL.width 800,
     VL.height 100,
-    dataFromUrl bands [],
+    dataFromSource "heap" [],
     VL.mark Area [],
     encodingSelection [],
     brush
@@ -70,45 +74,46 @@ selectionChart bands = asSpec [
 -- - Bands Layer
 -----------------------------------------------------------------------------------
 
-areaChart :: Text -> Text -> VLSpec
-areaChart bands traces = asSpec [layer [bandsLayer bands, tracesLayer traces]]
+areaChart :: VLSpec
+areaChart = asSpec [layer [bandsLayer, tracesLayer]]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:
 -----------------------------------------------------------------------------------
 
-bandsLayer :: Text -> VLSpec
-bandsLayer bands = asSpec
+bandsLayer :: VLSpec
+bandsLayer = asSpec
   [
     VL.width 800,
     VL.height 700,
-    dataFromUrl bands [],
+    dataFromSource "heap" [],
     VL.mark Area [],
     encodingBandsLayer [],
     transformBandsLayer []
   ]
-  
+
 encodingBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingBandsLayer =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
-    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""], PScale [SDomain (DSelection "brush")]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
+                 , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"], PAggregate Sum, PStack StZero]
 
 transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =
   transform
     . filter (FSelection "legend")
-    
+
 -----------------------------------------------------------------------------------
 -- The traces layer:
 -----------------------------------------------------------------------------------
 
-tracesLayer :: Text -> VLSpec
-tracesLayer traces = asSpec
+tracesLayer :: VLSpec
+tracesLayer = asSpec
   [
-    dataFromUrl traces [],
+    dataFromSource "traces" [],
     VL.mark Rule [],
     encodingTracesLayer [],
     selectionTracesLayer []
@@ -118,7 +123,8 @@ encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingTracesLayer =
   encoding
     . color [MString "grey"]
-    . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
+    . position X [PmType Quantitative, PAxis [], PName "tx"
+                 , PScale [SDomain (DSelection "brush")]]
     . VL.size [MNumber 2]
     . opacity [MSelectionCondition (Expr "index") [MNumber 1] [MNumber 0.5]]
     -- The "tooltips" feature is not in the current version of HVega
@@ -134,11 +140,11 @@ selectionTracesLayer =
 -- The legend
 -----------------------------------------------------------------------------------
 
-legendDiagram :: Text -> VLSpec
-legendDiagram bands = asSpec
+legendDiagram :: VLSpec
+legendDiagram  = asSpec
   [
     VL.mark Point [MStroke "transparent"],
-    dataFromUrl bands [],
+    dataFromSource "heap" [],
     encodingRight [],
     selectionRight []
   ]
@@ -158,7 +164,7 @@ encodingRight =
                                            ,("type", String "nominal")])
                     ])
   . position Y [PName "c", PmType Nominal, PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]]
-  
+
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection

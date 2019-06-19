@@ -84,9 +84,9 @@ doJson a = do
 doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
-    doOneJson file a
-    let vegaspec =  toStrict (encodeToLazyText (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces")))))
-    let html = renderHtml (template a (encloseScript vegaspec))
+    data_json <- generateJson file a
+    let vegaspec =  toStrict (encodeToLazyText (fromVL vegaResult))
+    let html = renderHtml (template data_json a vegaspec)
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess
