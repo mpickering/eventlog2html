@@ -36,7 +36,7 @@ argsToOutput a =
   if | test a -> doTest a
      | json a -> doJson a
      | otherwise -> doTest a
-     
+
 testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
 testMain c [f] = do
   (_, fs, ts) <- c f
