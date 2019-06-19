@@ -132,6 +132,8 @@ selectionTracesLayer =
 
 -----------------------------------------------------------------------------------
 -- The legend
+-- In order to make the legend interactive we make it into another chart.
+-- Workaround comes from https://github.com/vega/vega-lite/issues/1657
 -----------------------------------------------------------------------------------
 
 legendDiagram :: Text -> VLSpec
