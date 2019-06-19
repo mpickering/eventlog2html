@@ -6,7 +6,7 @@ module VegaTemplate
 
 import Prelude hiding (filter, lookup)
 import Graphics.Vega.VegaLite as VL
-import Data.Aeson.Types 
+import Data.Aeson.Types
 import Data.Text (Text)
 
 -- | Workaround for some limitations in the HVega library.
@@ -87,7 +87,7 @@ bandsLayer bands = asSpec
     encodingBandsLayer [],
     transformBandsLayer []
   ]
-  
+
 encodingBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingBandsLayer =
   encoding
@@ -100,7 +100,7 @@ transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =
   transform
     . filter (FSelection "legend")
-    
+
 -----------------------------------------------------------------------------------
 -- The traces layer:
 -----------------------------------------------------------------------------------
@@ -136,6 +136,7 @@ selectionTracesLayer =
 -- Workaround comes from https://github.com/vega/vega-lite/issues/1657
 -----------------------------------------------------------------------------------
 
+
 legendDiagram :: Text -> VLSpec
 legendDiagram bands = asSpec
   [
@@ -160,7 +161,7 @@ encodingRight =
                                            ,("type", String "nominal")])
                     ])
   . position Y [PName "c", PmType Nominal, PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]]
-  
+
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection
