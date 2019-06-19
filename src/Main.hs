@@ -46,7 +46,7 @@ testMain _ _ = error "One file only"
 
 doTest :: Args -> IO ()
 doTest a =
-  let chunk = if eventlog a then E.chunk else H.chunk
+  let chunk = if heapProfile a then H.chunk else E.chunk
   in testMain chunk (files a)
 
 bound :: Int -> Int
@@ -56,7 +56,7 @@ bound n
 
 generateJson :: FilePath -> Args -> IO (Value, Value)
 generateJson file a = do
-  let chunk = if eventlog a then E.chunk else H.chunk
+  let chunk = if heapProfile a then H.chunk else E.chunk
       cmp = fst $ reversing' sorting'
       sorting' = case sorting a of
         Name -> cmpName
