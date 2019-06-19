@@ -5,7 +5,7 @@ module Main (main) where
 
 import Prelude hiding (print, readFile)
 import Control.Monad (forM_, when)
-import Data.Aeson (encodeFile)
+import Data.Aeson (encodeFile, Value, toJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Text as T
 import Data.Text.Lazy (toStrict)
@@ -35,7 +35,7 @@ argsToOutput :: Args -> IO ()
 argsToOutput a =
   if | test a -> doTest a
      | json a -> doJson a
-     | otherwise -> doTest a
+     | otherwise -> doHtml a
 
 testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
 testMain c [f] = do
@@ -54,8 +54,8 @@ bound n
   | n <= 0 = maxBound
   | otherwise = n
 
-doJson :: Args -> IO ()
-doJson a = do
+generateJson :: FilePath -> Args -> IO (Value, Value)
+generateJson file a = do
   let chunk = if eventlog a then E.chunk else H.chunk
       cmp = fst $ reversing' sorting'
       sorting' = case sorting a of
@@ -63,16 +63,30 @@ doJson a = do
         Size -> cmpSize
         StdDev -> cmpStdDev
       reversing' = if reversing a then swap else id
+  (ph, fs, traces) <- chunk file
+  let (h, totals) = total ph fs
+  let keeps = prune cmp 0 (bound $ nBands a) totals
+  let dataJson = toJSON (bandsToVega keeps (bands h keeps fs))
+      dataTraces =  toJSON (tracesToVega traces)
+  return (dataJson, dataTraces)
+
+doOneJson :: FilePath -> Args -> IO ()
+doOneJson file a = do
+  (dh, dt) <- generateJson file a
+  encodeFile (file <.> "json") dh
+  encodeFile (file <.> "json" <.> "traces") dt
+
+doJson :: Args -> IO ()
+doJson a = do
   forM_ (files a) $ \file -> do
-    (ph, fs, traces) <- chunk file
-    let (h, totals) = total ph fs
-    let keeps = prune cmp 0 (bound $ nBands a) totals
-    encodeFile (file <.> "json") (bandsToVega keeps (bands h keeps fs))
-    encodeFile (file <.> "json" <.> "traces") (tracesToVega traces)
-    --let mybands = encode (bandsToVega keeps (bands h keeps fs))
-    --let mytraces = (tracesToVega traces)
-    let vegaspec =  toStrict (encodeToLazyText (fromVL (vegaResult (T.pack (file <.> "json"))(T.pack (file <.> "json" <.> "traces")))))
-    let html = renderHtml (template a (encloseScript vegaspec))
+    doOneJson file a
+
+doHtml :: Args -> IO ()
+doHtml a = do
+  forM_ (files a) $ \file -> do
+    data_json <- generateJson file a
+    let vegaspec =  toStrict (encodeToLazyText (fromVL vegaResult))
+    let html = renderHtml (template data_json a vegaspec)
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

@@ -2,18 +2,35 @@
 module HtmlTemplate where
 
 import Data.Text (Text, append)
+import qualified Data.Text as T
+import qualified Data.Text.Lazy.Encoding as T
+import qualified Data.Text.Lazy as TL
 --import Text.Blaze.Html
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Javascript
 import Args
+import Data.Aeson (Value, encode)
 
-encloseScript :: Text -> Html
-encloseScript vegaspec = preEscapedToHtml $
-  "var yourVlSpec = " `append` vegaspec `append` ";\n vegaEmbed('#vis', yourVlSpec);"
+encloseScript :: (Value, Value) -> Text -> Html
+encloseScript (dh, dt) vegaspec = preEscapedToHtml $ T.unlines [
+  "var yourVlSpec = " `append` vegaspec  `append` ";"
+  , "data_heap = " `append` dht `append` ";"
+  , "data_traces =" `append` dtt `append` ";"
+  , "console.log(data_traces);"
+  , "console.log(data_heap);"
+  , "vegaEmbed('#vis', yourVlSpec)"
+  , ".then((res) => "
+  , "res.view"
+  , ".insert(\"heap\", data_heap)"
+  , ".insert(\"traces\", data_traces)"
+  , ".runAsync());" ]
+  where
+    dht = TL.toStrict (T.decodeUtf8 (encode dh))
+    dtt = TL.toStrict (T.decodeUtf8 (encode dt))
 
-template :: Args -> Html -> Html
-template as vegaSpec = docTypeHtml $ do
+template :: (Value, Value) -> Args -> Text -> Html
+template dat as vegaSpec = docTypeHtml $ do
   H.head $ do
     H.title "Heap Profile"
     meta ! charset "UTF-8"
@@ -26,8 +43,10 @@ template as vegaSpec = docTypeHtml $ do
         script ! src "https://cdn.jsdelivr.net/npm/vega@5.4.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-lite@3.3.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-embed@4.2.0" $ ""
+
   body $ do
     h1 $ "Heap Profile"
     H.div ! A.id "vis" $ ""
     script ! type_ "text/javascript" $ do
-      vegaSpec
+      (encloseScript dat vegaSpec)
+
