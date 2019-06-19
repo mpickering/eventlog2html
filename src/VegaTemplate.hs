@@ -147,7 +147,6 @@ encodingRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingRight =
   encoding
   . injectJSON "tooltip" Null
-  . order [OName "k", OmType Quantitative]
   . injectJSON "color" (object [
                     ("value", String "lightgray")
                     , ("condition", object [
@@ -157,8 +156,11 @@ encodingRight =
                                            ,("selection", String "legend")
                                            ,("type", String "nominal")])
                     ])
-  . position Y [PName "c", PmType Nominal, PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]]
-  
+  . position Y [PName "c"
+               , PmType Nominal
+               , PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]
+               , PSort [(ByField "k"), Descending]]
+
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection
