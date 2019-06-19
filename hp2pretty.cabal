@@ -67,6 +67,8 @@ Category:            Development
 Build-type:          Simple
 Extra-source-files:
   javascript/vega-lite@3.3.0
+  javascript/vega-embed@4.2.0
+  javascript/vega@5.4.0
 Cabal-version:       >=1.6
 Tested-With:         GHC ==8.6.4
 
