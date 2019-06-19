@@ -21,7 +21,6 @@ injectJSON t val = \x -> x ++ [(t,val)]
 -- - Legend (on the right)
 -----------------------------------------------------------------------------------
 
--- | Takes as arguments the URLs of the JSON files for the bands and traces.
 vegaResult :: VegaLite
 vegaResult = toVegaLite
   [
@@ -138,6 +137,8 @@ selectionTracesLayer =
 
 -----------------------------------------------------------------------------------
 -- The legend
+-- In order to make the legend interactive we make it into another chart.
+-- Workaround comes from https://github.com/vega/vega-lite/issues/1657
 -----------------------------------------------------------------------------------
 
 legendDiagram :: VLSpec
@@ -153,7 +154,6 @@ encodingRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingRight =
   encoding
   . injectJSON "tooltip" Null
-  . order [OName "k", OmType Quantitative]
   . injectJSON "color" (object [
                     ("value", String "lightgray")
                     , ("condition", object [
@@ -163,7 +163,10 @@ encodingRight =
                                            ,("selection", String "legend")
                                            ,("type", String "nominal")])
                     ])
-  . position Y [PName "c", PmType Nominal, PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]]
+  . position Y [PName "c"
+               , PmType Nominal
+               , PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]
+               , PSort [(ByField "k"), Descending]]
 
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
