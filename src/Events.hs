@@ -3,20 +3,18 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
-module Events where
+module Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 
 import Types
-import Data.Maybe
 import Data.List
 import Data.Function
 import Data.Word
-import Data.Time
-import Data.Time
-import Data.Time.Clock.POSIX(posixSecondsToUTCTime)
+--import Data.Time
+--import Data.Time.Clock.POSIX(posixSecondsToUTCTime)
 
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
@@ -32,13 +30,12 @@ eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
 eventsToHP (Data es) = do
   let
       el@EL{..} = foldEvents es
-      duration = end - start
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
-  return $ (elHeader el, fir : reverse (las: normalise duration frames) , traces)
+  return $ (elHeader el, fir : reverse (las: normalise frames) , traces)
 
-normalise dur fs = map
-                    (\(t, ss) -> Frame (fromNano t) ss) fs
+normalise :: [(Word64, [Sample])] -> [Frame]
+normalise fs = map (\(t, ss) -> Frame (fromNano t) ss) fs
 
 data EL = EL
   { pargs :: Maybe [String]
@@ -74,12 +71,13 @@ folder el (Event t e _) = el &
 
 
 
-
+addArgs :: [String] -> EL -> EL
 addArgs as el = el { pargs = Just as }
-getTime = fromNano . evTime
 
+addTrace :: Trace -> EL -> EL
 addTrace t el = el { traces = t : traces el }
 
+addFrame :: Word64 -> EL -> EL
 addFrame t el =
   el { samples = Just (t, [])
      , frames = sampleToFrames (samples el) (frames el) }
@@ -89,6 +87,7 @@ sampleToFrames :: Maybe (Word64, [Sample]) -> [(Word64, [Sample])]
 sampleToFrames (Just (t, ss)) fs = (t, (reverse ss)) : fs
 sampleToFrames Nothing fs = fs
 
+addSample :: Sample -> EL -> EL
 addSample s el = el { samples = go <$> (samples el) }
   where
     go (t, ss) = (t, (s:ss))
@@ -97,50 +96,11 @@ updateLast :: Word64 -> EL -> EL
 updateLast t el = el { end = t }
 
 
-getTraces :: [Event] -> [Trace]
-getTraces = mapMaybe isTrace
-  where
-    isTrace (Event t e _) =
-      case e of
-        _ -> Nothing
-
-filterEvent :: Event -> Bool
-filterEvent e = p (evSpec e)
-
-p :: EventInfo -> Bool
-p e = case e of
-        _ -> False
-
-isStartEvent :: Event -> Maybe Timestamp
-isStartEvent e = case evSpec e of
-                   HeapProfSampleBegin {} -> Just (evTime e)
-                   _ -> Nothing
-
-isNonSampleEvent :: Event -> Maybe Timestamp
-isNonSampleEvent e = case evSpec e of
-                       Startup {} -> Just (evTime e)
-                       Shutdown   -> Just (evTime e)
-                       _ -> Nothing
-
-chunkSamples :: [Event] -> [Frame]
-chunkSamples [] = []
-chunkSamples (x:xs)
-  | Just t <- isStartEvent x =
-      let (ys, zs) = break (isJust . isStartEvent) xs
-      in  (Frame (fromNano t) (mapMaybe mkSample ys)) : chunkSamples zs
-  | otherwise = chunkSamples xs -- expected BEGIN_SAMPLE or EOF...
-
-mkSample :: Event -> Maybe Sample
-mkSample (Event _t s _) =
-  case s of
-    HeapProfSampleString _hid res k -> Just $ Sample k (fromNano res)
-    _ -> Nothing
-
 elHeader :: EL -> PartialHeader
 elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
-      dl = formatTime defaultTimeLocale "%c"
-         . posixSecondsToUTCTime $ realToFrac start
+   --   dl = formatTime defaultTimeLocale "%c"
+   --      . posixSecondsToUTCTime $ realToFrac start
 
   in Header title "aaa" "" ""
 

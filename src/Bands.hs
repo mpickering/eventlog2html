@@ -17,7 +17,6 @@ import Data.HashTable.ST.Basic hiding (lookup)
 import Data.Aeson hiding (Series)
 import GHC.Generics
 import Data.Set (Set, notMember)
-import Data.Traversable (for)
 
 bands :: Header -> Map Text Int -> [Frame] -> (UArray Int Double, UArray (Int, Int) Double)
 bands h bs frames = runST $ do

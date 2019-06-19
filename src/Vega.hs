@@ -4,19 +4,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Vega (bandsToVega, tracesToVega) where
 
-import Control.Monad (forM_)
-import Control.Monad.ST (runST)
-import Data.Array.Base (unsafeFreezeSTUArray, (!), bounds)
-import Data.Array.ST (writeArray, readArray, newArray)
+import Data.Array.Base ((!), bounds)
 import Data.Array.Unboxed (UArray)
-import Data.Map (Map, lookup, size, foldrWithKey)
+import Data.Map (Map,  foldrWithKey)
 import Prelude hiding (lookup, lines, words, length)
 import Data.Text (Text)
 import Types
-import Data.HashTable.ST.Basic hiding (lookup)
 import Data.Aeson hiding (Series)
 import GHC.Generics
-import Data.Set (Set, notMember)
 
 data VegaEntry = VegaEntry { x :: Double, y :: Double, k :: Int, c :: Text }
   deriving (Show, ToJSON, Generic)
@@ -26,10 +21,10 @@ bandsToVega :: Map Text Int
             -> [VegaEntry]
 bandsToVega ks (ts, vs) =
   let (t1, tn) = bounds ts
-      go k v rs = go_1 ++ rs
+      go key v rs = go_1 ++ rs
         where
           go_1 :: [VegaEntry]
-          go_1 = flip map [t1 .. tn] $ \t -> VegaEntry (ts ! t) (vs ! (v, t)) v k
+          go_1 = flip map [t1 .. tn] $ \t -> VegaEntry (ts ! t) (vs ! (v, t)) v key
   in foldrWithKey go (go "OTHER" 0 []) ks
 
 data VegaTrace = VegaTrace { tx :: Double, desc :: Text }
