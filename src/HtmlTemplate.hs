@@ -8,6 +8,7 @@ import qualified Data.Text.Lazy as TL
 --import Text.Blaze.Html
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html.Renderer.String
 import Javascript
 import Args
 import Data.Aeson (Value, encode)
@@ -46,7 +47,15 @@ template dat as vegaSpec = docTypeHtml $ do
 
   body $ do
     h1 $ "Heap Profile"
+    renderChart dat vegaSpec
+
+
+renderChart :: (Value, Value) -> Text -> Html
+renderChart dat vegaSpec = do
     H.div ! A.id "vis" $ ""
     script ! type_ "text/javascript" $ do
       (encloseScript dat vegaSpec)
+
+templateString :: (Value, Value) -> Args -> Text -> String
+templateString dat as vegaSpec = renderHtml $ template dat as vegaSpec
 

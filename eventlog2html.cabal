@@ -1,0 +1,74 @@
+Name:                eventlog2html
+Version:             0.9
+Synopsis:            Visualise an eventlog
+Description:         eventlog2html is a library for visualising eventlogs.
+                     At the moment, the intended use is to visualise eventlogs
+                     which have heap profiling events, as a replacement to hp2ps
+                     and hp2pretty.
+
+                     eventlog2html creates a static webpage which contains
+                     a collection of different interactive charts for analysing
+                     heap usage. Trace events are displayed on the chart and
+                     the charts can be zoomed, scrolled and filtered to give
+                     a more exploratory feel to heap profile analysis.
+Homepage:            https://mpickering.github.io/eventlog2html
+License:             BSD3
+License-file:        LICENSE
+Author:              Matthew Pickering, David Binder, Claude Heiland-Allen
+Maintainer:          matthewtpickering@gmail.com
+Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen 2019 Matthew Pickering
+Category:            Development
+Build-type:          Simple
+Extra-source-files:
+  javascript/vega-lite@3.3.0
+  javascript/vega-embed@4.2.0
+  javascript/vega@5.4.0
+Cabal-version:       >=1.8
+Tested-With:         GHC ==8.6.4
+
+Library
+  Build-depends:       base >= 4 && < 5,
+                       array,
+                       attoparsec,
+                       blaze-html,
+                       bytestring,
+                       containers >= 0.5,
+                       filepath,
+                       file-embed,
+                       floatshow,
+                       hvega,
+                       mtl,
+                       optparse-applicative,
+                       semigroups,
+                       text,
+                       ghc-events,
+                       time,
+                       hashtables,
+                       aeson,
+                       filepath
+
+  GHC-options:         -Wall
+  HS-source-dirs:      src
+  exposed-modules:     Args
+                       Data
+                       Javascript
+                       Types
+                       Total
+                       Prune
+                       Bands
+                       Events
+                       HeapProf
+                       Vega
+                       HtmlTemplate
+                       VegaTemplate
+
+Executable eventlog2html
+  HS-source-dirs:      main
+  Main-is:             Main.hs
+  build-depends: base >= 4 && < 5, eventlog2html, aeson, filepath, text
+
+
+Source-repository head
+  type:                git
+  location:            https://github.com/mpickering/eventlog2html.git
+
