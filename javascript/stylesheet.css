@@ -1,9 +1,8 @@
 .tabcontent {
-  color: white;
   display: none;
-  padding: 25px;
+  padding: 15px;
   text-align: center;
-  background-color:#993399;
+  background-color:#bfbfbf;
 }
 .tablink {
   background-color: #555;

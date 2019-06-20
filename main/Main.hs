@@ -66,8 +66,7 @@ doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
     data_json <- generateJson file a
-    let vegaspec =  toStrict (encodeToLazyText vegaJson)
-    let html = templateString data_json a vegaspec
+    let html = templateString data_json a
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

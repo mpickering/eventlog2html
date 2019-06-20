@@ -24,7 +24,7 @@ function changeTab(tabName,tabNameViz,elmnt) {
     document.getElementById(tabNameViz).style.display = "block";
 
     // Add the specific color to the button used to open the tab content
-    elmnt.style.backgroundColor = "#993399";
+    elmnt.style.backgroundColor = "#595959";
 }
 
 // Get the element with id="defaultOpen" and click on it

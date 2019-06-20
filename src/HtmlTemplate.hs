@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module HtmlTemplate where
 
+import Data.Aeson (Value, encode)
+import Data.Aeson.Text (encodeToLazyText)
 import Data.String
 import Data.Text (Text, append)
 import qualified Data.Text as T
@@ -10,9 +12,10 @@ import qualified Data.Text.Lazy as TL
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.String
+
 import Javascript
 import Args
-import Data.Aeson (Value, encode)
+import VegaTemplate
 
 type VizID = Int
 
@@ -56,8 +59,8 @@ htmlHeader dat as =
         script ! src "https://cdn.jsdelivr.net/npm/vega-lite@3.3.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-embed@4.2.0" $ ""
 
-template :: (Value, Value) -> Args -> Text -> Html
-template dat as vegaSpec = docTypeHtml $ do
+template :: (Value, Value) -> Args -> Html
+template dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ do
     H.div ! A.id "areachart" ! class_ "tabcontent" $ do
@@ -82,17 +85,13 @@ template dat as vegaSpec = docTypeHtml $ do
     button ! class_ "tablink" ! onclick "changeTab('linechart', 'linechart-viz', this)" $ "Linechart"
 
     H.div ! A.id "areachart-viz" ! class_ "tabviz" $ do
-      p $ "Area chart"
-      renderChart 1 dat vegaSpec
+      renderChart 1 dat (TL.toStrict (encodeToLazyText (vegaJson AreaChart)))
     H.div ! A.id "normalizedchart-viz" ! class_ "tabviz" $ do
-      p $ "Normalized chart"
-      renderChart 2 dat vegaSpec
+      renderChart 2 dat (TL.toStrict (encodeToLazyText (vegaJson NormalizedChart)))
     H.div ! A.id "streamgraph-viz" ! class_ "tabviz" $ do
-      p $ "Streamgraph"
-      renderChart 3 dat vegaSpec
+      renderChart 3 dat (TL.toStrict (encodeToLazyText (vegaJson StreamGraph)))
     H.div ! A.id "linechart-viz" ! class_ "tabviz" $ do
-      p $ "linechart"
-      renderChart 4 dat vegaSpec
+      renderChart 4 dat (TL.toStrict (encodeToLazyText (vegaJson LineChart)))
 
     script $ preEscapedToHtml tablogic
 
@@ -103,6 +102,7 @@ renderChart vid dat vegaSpec = do
     script ! type_ "text/javascript" $ do
       (encloseScript vid dat vegaSpec)
 
-templateString :: (Value, Value) -> Args -> Text -> String
-templateString dat as vegaSpec = renderHtml $ template dat as vegaSpec
+templateString :: (Value, Value) -> Args -> String
+templateString dat as =
+  renderHtml $ template dat as
 
