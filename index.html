@@ -75,22 +75,39 @@ res.view
 .insert("traces", data_traces)
 .runAsync());
 </script>
+<h2 id="implementation">Implementation</h2>
+<p>The charts are implemented using the <a href="https://vega.github.io/vega-lite/"><code>vega-lite</code></a> library. If there’s a visualisation that you would like to see added or a different type of chart then feel free to open an issue.</p>
+<h2 id="development">Development</h2>
+<p>The library started as a fork of <a href="https://hackage.haskell.org/package/hp2pretty"><code>hp2pretty</code></a> but the majority of code has been rewritten since then. It was implemented by Matthew Pickering of this parish and <a href="https://github.com/BinderDavid">David Binder</a> around the time of Zurihac 2019. The project is developed on <a href="https://github.com/mpickering/eventlog2html">GitHub</a>.</p>
+<h2 id="complete-options">Complete Options</h2>
 <div class="bg-light">
-<pre><code>
-## Implementation
+<pre><code>eventlog2html - generate interactive html from eventlogs
 
-The charts are implemented using the [`vega-lite`](https://vega.github.io/vega-lite/) library. If there's a visualisation that you would like to see added or a
-different type of chart then feel free to open an issue.
-
-## Development
-
-The library started as a fork of [`hp2pretty`](https://hackage.haskell.org/package/hp2pretty) but the majority of code has been rewritten since then. It was
-implemented by Matthew Pickering of this parish and [David Binder](https://github.com/BinderDavid) around the time of Zurihac 2019.
-The project is developed on [GitHub](https://github.com/mpickering/eventlog2html).
-
-## Complete Options
-
-```{.help}</code></pre>
+Available options:
+  --uniform-scale AXES     Whether to use a uniform scale for all outputs. One
+                           of: none (default), time, memory, both.
+  --sort FIELD             How to sort the bands. One of: size (default),
+                           stddev, name.
+  --key KEY                Whether to embed the key in the image output. One of:
+                           inline (default), FILE.txt. Use - for standard output
+                           and ./inline for a file named literally &quot;inline&quot;.
+  --title TITLE            Whether to embed the title in the image output. One
+                           of: inline (default), FILE.txt. Use - for standard
+                           output and ./inline for a file named literally
+                           &quot;inline&quot;.
+  --reverse                Reverse the order of bands.
+  --trace PERCENT          Percentage of trace elements to
+                           combine. (default: 1.0)
+  --bands COUNT            Maximum number of bands to draw (0 for
+                           unlimited). (default: 15)
+  --pattern                Use patterns instead of solid colours to fill bands.
+  -p,--heap-profile        Input files are .hp heap profiles.
+  --include-js             Include the javascript into the generated HTML
+                           instead of fetching it from a CDN.
+  -j,--json                Output JSON
+  FILES...                 Eventlogs (FILE.eventlog will be converted to
+                           FILE.html).
+  -h,--help                Show this help text</code></pre>
 </div>
         </main>
         <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
