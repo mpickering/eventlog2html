@@ -58,18 +58,21 @@ htmlHeader dat as =
         script ! src "https://cdn.jsdelivr.net/npm/vega@5.4.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-lite@3.3.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-embed@4.2.0" $ ""
+        link ! rel "stylesheet" ! href "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
+        link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
+        link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
 
 template :: (Value, Value) -> Args -> Html
 template dat as = docTypeHtml $ do
   htmlHeader dat as
-  body $ do
+  body $ H.div ! class_ "container" $ do
     H.div ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
 
-    button ! class_ "tablink" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
-    button ! class_ "tablink" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
-    button ! class_ "tablink" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
-    button ! class_ "tablink" ! onclick "changeTab('linechart', this)" $ "Linechart"
+    button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
+    button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
+    button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
+    button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
 
     mapM_ (\(vid, name, conf) ->
              H.div ! A.id name ! class_ "tabviz" $ do

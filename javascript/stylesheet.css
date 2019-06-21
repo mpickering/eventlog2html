@@ -1,27 +1,12 @@
-.tabcontent {
-    padding: 15px;
-    text-align: center;
-    background-color:#bfbfbf;
+/* Custom color */
+.button-black {
+  background-color: black;
+  border-color: black;
+  color: white;
 }
-.tablink {
-    background-color: #555;
-    color: white;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    font-size: 17px;
-    width: 25%;
+.button-black.button-clear,
+.button-black.button-outline {
+  background-color: transparent;
+  color: black;
 }
-.tablink:hover {
-    background-color: #777;
-}
-
-.tabviz {
-    padding: 10px;
-}
-
-.chart {
-    padding: 20px;
-}
+.container { width: 90%; }
