@@ -63,7 +63,6 @@ This information can be hard to see in the stacked charts.
 ```{.eventlog type=line}
 examples/ghc.eventlog --bands 10
 ```
-```
 
 ## Implementation
 
