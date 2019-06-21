@@ -64,7 +64,7 @@ doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
     data_json <- generateJson file a
-    let html = templateString data_json a vegaJsonText
+    let html = templateString data_json a
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

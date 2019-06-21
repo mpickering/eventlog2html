@@ -63,5 +63,5 @@ drawEventlog :: [String] -> IO String
 drawEventlog args = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo args)
   dat <- generateJson (head $ files as) as
-  return $ renderHtml $ renderChart dat vegaJsonText
+  return $ renderHtml $ renderChartWithJson dat (vegaJsonText (AreaChart Stacked))
 
