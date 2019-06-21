@@ -100,7 +100,7 @@ transformLineLayer :: (VLProperty, VLSpec)
 transformLineLayer =
   -- We need to get the `VLTransform` data constructor but it's not
   -- exported
-  let (label, vs) = transform . filter (FSelection "legend") $ []
+  let (label, _vs) = transform . filter (FSelection "legend") $ []
   in (label,
   toJSON [object ["window" .= [object ["field" .= String "y"
                                       , "op" .= String "max"

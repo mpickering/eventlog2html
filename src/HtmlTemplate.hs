@@ -30,8 +30,8 @@ insertJsonData (dh, dt) = preEscapedToHtml $ T.unlines [
     dtt = TL.toStrict (T.decodeUtf8 (encode dt))
 
 
-encloseScript :: VizID -> (Value, Value) -> Text -> Html
-encloseScript vid (dh, dt) vegaspec = preEscapedToHtml $ T.unlines [
+encloseScript :: VizID -> Text -> Html
+encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
   , ".then((res) => "
@@ -81,21 +81,27 @@ template dat as = docTypeHtml $ do
     button ! class_ "tablink" ! onclick "changeTab('linechart', 'linechart-viz', this)" $ "Linechart"
 
     H.div ! A.id "areachart-viz" ! class_ "tabviz" $ do
-      renderChart 1 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Stacked))))
+      renderChart 1 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Stacked))))
     H.div ! A.id "normalizedchart-viz" ! class_ "tabviz" $ do
-      renderChart 2 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Normalized))))
+      renderChart 2 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Normalized))))
     H.div ! A.id "streamgraph-viz" ! class_ "tabviz" $ do
-      renderChart 3 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart StreamGraph))))
+      renderChart 3 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart StreamGraph))))
     H.div ! A.id "linechart-viz" ! class_ "tabviz" $ do
-      renderChart 4 dat (TL.toStrict (encodeToLazyText (vegaJson LineChart)))
+      renderChart 4 (TL.toStrict (encodeToLazyText (vegaJson LineChart)))
 
     script $ preEscapedToHtml tablogic
       
-renderChart :: VizID -> (Value, Value) -> Text -> Html
-renderChart vid dat vegaSpec = do
+renderChart :: VizID -> Text -> Html
+renderChart vid vegaSpec = do
     H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
-      (encloseScript vid dat vegaSpec)
+      (encloseScript vid vegaSpec)
+
+renderChartWithJson :: (Value, Value) -> Text -> Html
+renderChartWithJson dat vegaSpec = do
+    insertJsonData dat
+    renderChart 1 vegaSpec
+
 
 templateString :: (Value, Value) -> Args -> String
 templateString dat as =
