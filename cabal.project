@@ -1,0 +1,3 @@
+packages: .
+          hakyll-eventlog
+profiling: true

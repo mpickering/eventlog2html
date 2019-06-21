@@ -5,10 +5,8 @@ module Main (main) where
 
 import Control.Monad
 import Data.Aeson (encodeFile, Value, toJSON)
-import Data.Aeson.Text (encodeToLazyText)
 import System.FilePath
 import System.Exit
-import Data.Text.Lazy (toStrict)
 
 import Args (args, Args(..), Sort(..))
 import Bands (bands)

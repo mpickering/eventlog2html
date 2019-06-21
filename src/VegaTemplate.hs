@@ -5,12 +5,15 @@ module VegaTemplate
   , ChartConfig(..)
   , vegaResult
   , vegaJson
+  , vegaJsonText
   ) where
 
 import Prelude hiding (filter, lookup)
 import Graphics.Vega.VegaLite as VL
 import Data.Aeson.Types hiding (Number)
 import Data.Text (Text)
+import Data.Aeson.Text (encodeToLazyText)
+import Data.Text.Lazy (toStrict)
 
 -- | Workaround for some limitations in the HVega library.
 -- This function should be removed once the features are merged into HVega.
@@ -36,8 +39,12 @@ data ChartConfig
 -- - Legend (on the right)
 -----------------------------------------------------------------------------------
 
+
 vegaJson :: ChartConfig -> Value
 vegaJson conf = fromVL (vegaResult conf)
+
+vegaJsonText :: ChartConfig -> Text
+vegaJsonText conf = toStrict (encodeToLazyText (vegaJson conf))
 
 vegaResult :: ChartConfig -> VegaLite
 vegaResult conf = toVegaLite
@@ -61,7 +68,6 @@ lineChartFull = asSpec [vConcat [lineChart, selectionChart]]
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
 config =
   configure
-    . configuration (View [ViewWidth 400, ViewHeight 300])
     . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
 
 -----------------------------------------------------------------------------------
