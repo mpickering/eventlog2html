@@ -36,6 +36,13 @@ main = hakyll $ do
         route   idRoute
         compile compressCssCompiler
 
+    match "examples/*.eventlog" $ do
+      route $ customRoute $ (++ ".html") . toFilePath
+      compile $ do
+        path <- getResourceFilePath
+        res <- unsafeCompiler $ fullEventLogPage path
+        makeItem res
+
     match "index.md" $ do
         route $ setExtension "html"
         compile $ pandocCompilerWithTransformM defaultHakyllReaderOptions defaultHakyllWriterOptions eventlogTransformer
@@ -105,4 +112,10 @@ insertHelp =
       where
         h = headerHelp (infoHeader i)
         f = footerHelp (infoFooter i)
+
+fullEventLogPage :: FilePath -> IO String
+fullEventLogPage file = do
+  as <- handleParseResult (execParserPure defaultPrefs argsInfo [file])
+  data_json <- generateJson file as
+  return $ templateString data_json as
 

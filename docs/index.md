@@ -6,7 +6,7 @@ eventlog2html is a tool to visualise eventlogs. In particular, it creates charts
 for the heap profiling events in an eventlog.
 
 ```{.eventlog traces=False }
-ghc.eventlog
+examples/ghc.eventlog --bands 10
 ```
 
 The default view is a stacked area chart which shows the cumulative memory
@@ -48,7 +48,7 @@ chart as a verticle gray line. Hovering near the line will display the name of
 the event which is nearest to the cursor.
 
 ```{.eventlog traces=True }
-ghc.eventlog
+examples/ghc.eventlog --bands 10
 ```
 
 ### Normalised Line Chart
@@ -61,7 +61,8 @@ being used. A constant line means a constant amount of memory is being used.
 This information can be hard to see in the stacked charts.
 
 ```{.eventlog type=line}
-ghc.eventlog
+examples/ghc.eventlog --bands 10
+```
 ```
 
 ## Implementation
