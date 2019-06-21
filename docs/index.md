@@ -1,10 +1,22 @@
 ---
-title: Home
+title: eventlog2html
 ---
 
-# eventlog2html
+eventlog2html is a tool to visualise eventlogs. In particular, it creates charts
+for the heap profiling events in an eventlog.
 
-eventlog2html is a tool to visualise event
+```{.eventlog traces=False }
+ghc.eventlog
+```
+
+The default view is a stacked area chart which shows the cumulative memory
+usage of a program over time with a band for each type of allocation.
+This is similar to the chart produced by `hp2ps` and `hp2pretty`.
+
+This chart is interactive. An area can be selected on the viewfinder, the
+selection can be scrolled and zoomed. The legend is interactive, click on the
+toggles to select individual bands to display and shift-click to select multiple
+bands to display at once.
 
 
 ## How to use
@@ -26,16 +38,48 @@ In the current directory a file `my-leaky-program.eventlog` will be produced.
 This is what you need to pass to `eventlog2html` to generate the profiling
 graphs.
 
-```{.eventlog}
-ghc.eventlog
-```
-
 
 
 ### Adding markers
 
+An advantage of using the eventlog is that other events can be correlated with
+heap allocations. Strings emitted using [`traceEvent`](http://hackage.haskell.org/package/base-4.12.0.0/docs/Debug-Trace.html#v:traceEvent) are displayed on the
+chart as a verticle gray line. Hovering near the line will display the name of
+the event which is nearest to the cursor.
+
+```{.eventlog traces=True }
+ghc.eventlog
+```
+
+### Normalised Line Chart
+
+The normalised line chart is useful for finding out what is increasing in
+memory throughout the profiling run. Each line represents one type of allocation
+and the values are normalised against the maximum allocation value for that
+type. A monotonically increasing line means an increasing amount of memory is
+being used. A constant line means a constant amount of memory is being used.
+This information can be hard to see in the stacked charts.
+
+```{.eventlog type=line}
+ghc.eventlog
+```
+
 ## Implementation
 
-## Examples
+The charts are implemented using the [`vega-lite`](https://vega.github.io/vega-lite/) library. If there's a visualisation that you would like to see added or a
+different type of chart then feel free to open an issue.
+
+## Development
+
+The library started as a fork of [`hp2pretty`](https://hackage.haskell.org/package/hp2pretty) but the majority of code has been rewritten since then. It was
+implemented by Matthew Pickering of this parish and [David Binder](https://github.com/BinderDavid) around the time of Zurihac 2019.
+The project is developed on [GitHub](https://github.com/mpickering/eventlog2html).
+
+## Complete Options
+
+```{.help}
+```
+
+
 
 

@@ -21,6 +21,9 @@ import           VegaTemplate
 import           HtmlTemplate
 import           Text.Blaze.Html.Renderer.String
 import           Options.Applicative
+import           Options.Applicative.Help.Types
+import           Options.Applicative.Help.Core
+import           Data.IORef
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -42,26 +45,64 @@ main = hakyll $ do
     match "templates/*" $ compile templateBodyCompiler
 
 eventlogTransformer :: Pandoc -> Compiler Pandoc
-eventlogTransformer pandoc = unsafeCompiler $ renderEventlog pandoc
+eventlogTransformer pandoc =
+  unsafeCompiler $ renderEventlog pandoc
 
 
 data Echo = Above | Below
    deriving (Read, Show)
 
 renderEventlog :: Pandoc -> IO Pandoc
-renderEventlog p = bottomUpM insertEventlogs p
+renderEventlog p = do
+  counter <- newIORef 0
+  bottomUpM (insertEventlogs counter) p
 
-insertEventlogs :: Block -> IO Block
-insertEventlogs block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `elem` classes = do
-   d <- drawEventlog (words code)
-   return (Div nullAttr [render code, RawBlock (Format "html") d])
-insertEventlogs block = print block >> return block
+insertEventlogs :: IORef Int -> Block -> IO Block
+insertEventlogs c block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `elem` classes = do
+   n <- readIORef c
+   modifyIORef c (+1)
+   let cid = "viz" ++ show n
+   d <- drawEventlog (words code) n attrs
+   return (RawBlock (Format "html") d)
+insertEventlogs _ (CodeBlock (_, ["help"], _) _) = insertHelp
+insertEventlogs _ (c@(CodeBlock {})) = return $ Div ("", ["bg-light"],[]) [c]
+insertEventlogs _ block = print block >> return block
 
-render c = CodeBlock nullAttr ("> eventlog2html " ++ c)
 
-drawEventlog :: [String] -> IO String
-drawEventlog args = do
+render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " ++ c)]
+
+drawEventlog :: [String] -> Int -> [(String, String)] -> IO String
+drawEventlog args vid attrs = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo args)
   dat <- generateJson (head $ files as) as
-  return $ renderHtml $ renderChartWithJson dat (vegaJsonText (AreaChart Stacked))
+  return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText (chartConfig attrs))
+
+chartConfig :: [(String, String)] -> ChartConfig
+chartConfig as = foldr go def as
+  where
+    def = ChartConfig 600 500 True (AreaChart Stacked)
+
+    go :: (String, String) -> ChartConfig -> ChartConfig
+    go (k,v) c = case k of
+                   "w"      -> c { cwidth  = read v }
+                   "h"      -> c { cheight = read v }
+                   "traces" -> c { traces = read v }
+                   "type"   -> c { chartType = readChart v }
+
+    readChart "stack"  = AreaChart Stacked
+    readChart "stream" = AreaChart StreamGraph
+    readChart "normal" = AreaChart Normalized
+    readChart "line"   = LineChart
+    readChart e = error $ "Unknown chart type: "  ++ e
+
+insertHelp :: IO Block
+insertHelp =
+  return $ Div ("", ["bg-light"], []) [CodeBlock nullAttr (base_help argsInfo)]
+  where
+    base_help :: ParserInfo a -> String
+    base_help i =
+      renderHelp 80 (mconcat [h, f, parserHelp defaultPrefs (infoParser i)])
+      where
+        h = headerHelp (infoHeader i)
+        f = footerHelp (infoFooter i)
 
