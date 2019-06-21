@@ -1,0 +1,19 @@
+name:               hakyll-eventlog
+version:            0.1.0.0
+build-type:         Simple
+cabal-version:      >= 1.10
+
+executable site
+  main-is:          site.hs
+  build-depends:    base == 4.*
+                  , hakyll >= 4.10
+                  , eventlog2html >= 0.9
+                  , pandoc-types
+                  , directory
+                  , filepath
+                  , optparse-applicative
+                  , blaze-html
+                  , process
+                  , split
+  ghc-options:      -threaded
+  default-language: Haskell2010
