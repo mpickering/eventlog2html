@@ -66,7 +66,7 @@ insertEventlogs c block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `e
    return (RawBlock (Format "html") d)
 insertEventlogs _ (CodeBlock (_, ["help"], _) _) = insertHelp
 insertEventlogs _ (c@(CodeBlock {})) = return $ Div ("", ["bg-light"],[]) [c]
-insertEventlogs _ block = print block >> return block
+insertEventlogs _ block = return block
 
 
 render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " ++ c)]
