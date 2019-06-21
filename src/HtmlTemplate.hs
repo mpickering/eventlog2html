@@ -63,32 +63,22 @@ template :: (Value, Value) -> Args -> Html
 template dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ do
-    H.div ! A.id "areachart" ! class_ "tabcontent" $ do
-      h1 $ "eventlog2html"
-      
-    H.div ! A.id "normalizedchart" ! class_ "tabcontent" $ do
-      h1 $ "eventlog2html"
-      
-    H.div ! A.id "streamgraph" ! class_ "tabcontent" $ do
-      h1 $ "eventlog2html"
-      
-    H.div ! A.id "linechart" ! class_ "tabcontent" $ do
+    H.div ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
 
-    button ! class_ "tablink" ! onclick "changeTab('areachart','areachart-viz', this)" ! A.id "defaultOpen" $ "Area Chart"
-    button ! class_ "tablink" ! onclick "changeTab('normalizedchart','normalizedchart-viz', this)" $ "Normalized"
-    button ! class_ "tablink" ! onclick "changeTab('streamgraph', 'streamgraph-viz',this)" $ "Streamgraph"
-    button ! class_ "tablink" ! onclick "changeTab('linechart', 'linechart-viz', this)" $ "Linechart"
+    button ! class_ "tablink" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
+    button ! class_ "tablink" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
+    button ! class_ "tablink" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
+    button ! class_ "tablink" ! onclick "changeTab('linechart', this)" $ "Linechart"
 
-    H.div ! A.id "areachart-viz" ! class_ "tabviz" $ do
-      renderChart 1 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Stacked))))
-    H.div ! A.id "normalizedchart-viz" ! class_ "tabviz" $ do
-      renderChart 2 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Normalized))))
-    H.div ! A.id "streamgraph-viz" ! class_ "tabviz" $ do
-      renderChart 3 (TL.toStrict (encodeToLazyText (vegaJson (AreaChart StreamGraph))))
-    H.div ! A.id "linechart-viz" ! class_ "tabviz" $ do
-      renderChart 4 (TL.toStrict (encodeToLazyText (vegaJson LineChart)))
-
+    mapM_ (\(vid, name, conf) ->
+             H.div ! A.id name ! class_ "tabviz" $ do
+               renderChart vid (TL.toStrict (encodeToLazyText (vegaJson conf))))
+      [(1, "areachart",  AreaChart Stacked)
+      ,(2, "normalizedchart", AreaChart Normalized)
+      ,(3, "streamgraph", AreaChart StreamGraph)
+      ,(4, "linechart", LineChart)]
+      
     script $ preEscapedToHtml tablogic
       
 renderChart :: VizID -> Text -> Html

@@ -54,16 +54,23 @@ vegaResult conf = toVegaLite
     config [],
     description "Heap Profile",
     case conf of
-      LineChart -> hConcat [lineChartFull, legendDiagram]
-      AreaChart ct -> hConcat [areaChartFull ct, legendDiagram]
+      LineChart -> lineChartFull
+      AreaChart ct -> areaChartFull ct
   ]
 
-areaChartFull :: AreaChartType -> VLSpec
-areaChartFull ct = asSpec [vConcat [areaChart ct, selectionChart]]
+areaChartFull :: AreaChartType -> (VLProperty, VLSpec)
+areaChartFull ct = hConcat
+  [
+    asSpec [vConcat [areaChart ct, selectionChart]]
+  , legendDiagram
+  ]
 
-lineChartFull :: VLSpec
-lineChartFull = asSpec [vConcat [lineChart, selectionChart]]
-
+lineChartFull :: (VLProperty, VLSpec)
+lineChartFull = hConcat
+  [
+    asSpec [vConcat [lineChart, selectionChart]]
+  , legendDiagram
+  ]
 
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
 config =

@@ -1,11 +1,5 @@
-function changeTab(tabName,tabNameViz,elmnt) {
-    var i, tabcontent, tabviz,  tablinks;
-    
-    // Hide all elements with class="tabcontent" by default */
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-	tabcontent[i].style.display = "none";
-    }
+function changeTab(tabName,elmnt) {
+    var i, tabviz,  tablinks;
 
     // Hide all elements with class="tabviz" by default */
     tabviz = document.getElementsByClassName("tabviz");
@@ -21,7 +15,6 @@ function changeTab(tabName,tabNameViz,elmnt) {
 
     // Show the specific tab content
     document.getElementById(tabName).style.display = "block";
-    document.getElementById(tabNameViz).style.display = "block";
 
     // Add the specific color to the button used to open the tab content
     elmnt.style.backgroundColor = "#262626";
