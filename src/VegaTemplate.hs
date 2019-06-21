@@ -16,11 +16,15 @@ import Data.Text (Text)
 injectJSON :: Text -> Value -> BuildLabelledSpecs
 injectJSON t val = \x -> x ++ [(t,val)]
 
+injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
+injectJSONs ts = \x -> x ++ ts
+
 data ChartConfig
   = AreaChart
   | NormalizedChart
   | StreamGraph
   | LineChart
+  deriving (Eq)
   
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
@@ -39,16 +43,66 @@ vegaResult conf = toVegaLite
     VL.height 1000,
     config [],
     description "Heap Profile",
-    hConcat [asSpec [vConcat [areaChart conf
-                             , selectionChart]]
-            , legendDiagram]
+    if conf == LineChart
+    then
+      hConcat [lineChartFull, legendDiagram]
+    else
+      hConcat [areaChartFull conf, legendDiagram]
   ]
+
+areaChartFull :: ChartConfig -> VLSpec
+areaChartFull conf = asSpec [vConcat [areaChart conf, selectionChart]]
+
+lineChartFull :: VLSpec
+lineChartFull = asSpec [vConcat [lineChart, selectionChart]]
+
 
 config :: [LabelledSpec] -> (VLProperty, VLSpec)
 config =
   configure
     . configuration (View [ViewWidth 400, ViewHeight 300])
     . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
+
+-----------------------------------------------------------------------------------
+-- The Line Chart
+-----------------------------------------------------------------------------------
+
+lineChart :: VLSpec
+lineChart = asSpec [layer [linesLayer, tracesLayer]]
+
+linesLayer :: VLSpec
+linesLayer = asSpec
+  [
+    VL.width 800,
+    VL.height 700,
+    dataFromSource "heap" [],
+    VL.mark Line [],
+    encodingLineLayer [],
+    transformLineLayer
+  ]
+
+encodingLineLayer
+ = encoding
+    . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
+                  PScale [SDomain (DSelection "brush")]]
+    . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"]]
+
+transformLineLayer :: (VLProperty, VLSpec)
+transformLineLayer =
+  -- We need to get the `VLTransform` data constructor but it's not
+  -- exported
+  let (label, vs) = transform . filter (FSelection "legend") $ []
+  in (label,
+  toJSON [object ["window" .= [object ["field" .= String "y"
+                                      , "op" .= String "max"
+                                      , "as" .= String "max_y"]]
+                              , "frame" .= toJSON [Null, Null]
+                              , "groupby" .= toJSON [String "k"]]
+         , object ["calculate" .= String "datum.y / datum.max_y"
+                          , "as" .= String "norm_y"]
+         , object ["filter" .= object ["selection" .= String "legend"]]])
+
 
 -----------------------------------------------------------------------------------
 -- The Selection Chart
@@ -124,7 +178,6 @@ transformBandsLayer =
   transform
     . filter (FSelection "legend")
 
-
 -----------------------------------------------------------------------------------
 -- The traces layer:
 -----------------------------------------------------------------------------------
@@ -142,8 +195,7 @@ encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingTracesLayer =
   encoding
     . color [MString "grey"]
-    . position X [PmType Quantitative, PAxis [], PName "tx"
-                 , PScale [SDomain (DSelection "brush")]]
+    . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
     . VL.size [MNumber 2]
     . opacity [MSelectionCondition (Expr "index") [MNumber 1] [MNumber 0.5]]
     -- The "tooltips" feature is not in the current version of HVega

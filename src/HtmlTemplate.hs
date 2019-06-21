@@ -105,4 +105,3 @@ renderChart vid dat vegaSpec = do
 templateString :: (Value, Value) -> Args -> String
 templateString dat as =
   renderHtml $ template dat as
-

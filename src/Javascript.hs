@@ -26,3 +26,4 @@ stylesheet = decodeUtf8 $(embedFile "javascript/stylesheet.css")
 
 tablogic :: Text
 tablogic = decodeUtf8 $(embedFile "javascript/tablogic.js")
+
