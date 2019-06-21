@@ -101,7 +101,7 @@ encodingLineLayer
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
                   PScale [SDomain (DSelection "brush")]]
-    . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat "s"]]
+    . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
 
 transformLineLayer :: (VLProperty, VLSpec)
 transformLineLayer =
@@ -180,7 +180,10 @@ encodingBandsLayer ct  =
                  , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y"
                  , PmType Quantitative
-                 , PAxis [AxTitle "Allocation", AxFormat "s"]
+                 , PAxis $ case ct of
+                             Stacked -> [AxTitle "Allocation", AxFormat "s", AxMaxExtent 20.0, AxLabelOverlap OGreedy]
+                             Normalized -> [AxTitle "Allocation (Normalized)", AxFormat "p"]
+                             StreamGraph -> [AxTitle "Allocation (Streamgraph)", AxLabels False, AxTicks False, AxTitlePadding 10.0]
                  , PAggregate Sum
                  , PStack (case ct of
                              Stacked -> StZero
