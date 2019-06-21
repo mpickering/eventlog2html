@@ -65,19 +65,15 @@ template dat as = docTypeHtml $ do
   body $ do
     H.div ! A.id "areachart" ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
-      p $ "Area Chart"
       
     H.div ! A.id "normalizedchart" ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
-      p $ "Normalized"
       
     H.div ! A.id "streamgraph" ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
-      p $ "Streamgraph"
       
     H.div ! A.id "linechart" ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
-      p $ "Linechart"
 
     button ! class_ "tablink" ! onclick "changeTab('areachart','areachart-viz', this)" ! A.id "defaultOpen" $ "Area Chart"
     button ! class_ "tablink" ! onclick "changeTab('normalizedchart','normalizedchart-viz', this)" $ "Normalized"
@@ -85,20 +81,19 @@ template dat as = docTypeHtml $ do
     button ! class_ "tablink" ! onclick "changeTab('linechart', 'linechart-viz', this)" $ "Linechart"
 
     H.div ! A.id "areachart-viz" ! class_ "tabviz" $ do
-      renderChart 1 dat (TL.toStrict (encodeToLazyText (vegaJson AreaChart)))
+      renderChart 1 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Stacked))))
     H.div ! A.id "normalizedchart-viz" ! class_ "tabviz" $ do
-      renderChart 2 dat (TL.toStrict (encodeToLazyText (vegaJson NormalizedChart)))
+      renderChart 2 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart Normalized))))
     H.div ! A.id "streamgraph-viz" ! class_ "tabviz" $ do
-      renderChart 3 dat (TL.toStrict (encodeToLazyText (vegaJson StreamGraph)))
+      renderChart 3 dat (TL.toStrict (encodeToLazyText (vegaJson (AreaChart StreamGraph))))
     H.div ! A.id "linechart-viz" ! class_ "tabviz" $ do
       renderChart 4 dat (TL.toStrict (encodeToLazyText (vegaJson LineChart)))
 
     script $ preEscapedToHtml tablogic
-
       
 renderChart :: VizID -> (Value, Value) -> Text -> Html
 renderChart vid dat vegaSpec = do
-    H.div ! A.id (fromString $ "vis" ++ show vid) $ ""
+    H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
       (encloseScript vid dat vegaSpec)
 

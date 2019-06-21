@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 module VegaTemplate
   (
-    ChartConfig(..)
+    AreaChartType(..)
+  , ChartConfig(..)
   , vegaResult
   , vegaJson
   ) where
@@ -19,12 +20,14 @@ injectJSON t val = \x -> x ++ [(t,val)]
 injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
 injectJSONs ts = \x -> x ++ ts
 
-data ChartConfig
-  = AreaChart
-  | NormalizedChart
+data AreaChartType
+  = Stacked
+  | Normalized
   | StreamGraph
+
+data ChartConfig
+  = AreaChart AreaChartType
   | LineChart
-  deriving (Eq)
   
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
@@ -43,15 +46,13 @@ vegaResult conf = toVegaLite
     VL.height 1000,
     config [],
     description "Heap Profile",
-    if conf == LineChart
-    then
-      hConcat [lineChartFull, legendDiagram]
-    else
-      hConcat [areaChartFull conf, legendDiagram]
+    case conf of
+      LineChart -> hConcat [lineChartFull, legendDiagram]
+      AreaChart ct -> hConcat [areaChartFull ct, legendDiagram]
   ]
 
-areaChartFull :: ChartConfig -> VLSpec
-areaChartFull conf = asSpec [vConcat [areaChart conf, selectionChart]]
+areaChartFull :: AreaChartType -> VLSpec
+areaChartFull ct = asSpec [vConcat [areaChart ct, selectionChart]]
 
 lineChartFull :: VLSpec
 lineChartFull = asSpec [vConcat [lineChart, selectionChart]]
@@ -81,6 +82,7 @@ linesLayer = asSpec
     transformLineLayer
   ]
 
+encodingLineLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingLineLayer
  = encoding
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
@@ -138,26 +140,26 @@ selectionChart  = asSpec [
 -- - Bands Layer
 -----------------------------------------------------------------------------------
 
-areaChart :: ChartConfig -> VLSpec
-areaChart conf = asSpec [layer [bandsLayer conf, tracesLayer]]
+areaChart :: AreaChartType -> VLSpec
+areaChart ct = asSpec [layer [bandsLayer ct, tracesLayer]]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:
 -----------------------------------------------------------------------------------
 
-bandsLayer :: ChartConfig -> VLSpec
-bandsLayer conf  = asSpec
+bandsLayer :: AreaChartType -> VLSpec
+bandsLayer ct  = asSpec
   [
     VL.width 800,
     VL.height 700,
     dataFromSource "heap" [],
     VL.mark Area [],
-    encodingBandsLayer conf [],
+    encodingBandsLayer ct [],
     transformBandsLayer []
   ]
 
-encodingBandsLayer :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
-encodingBandsLayer conf  =
+encodingBandsLayer :: AreaChartType -> [LabelledSpec] -> (VLProperty, VLSpec)
+encodingBandsLayer ct  =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
@@ -167,11 +169,10 @@ encodingBandsLayer conf  =
                  , PmType Quantitative
                  , PAxis [AxTitle "Allocation", AxFormat "s"]
                  , PAggregate Sum
-                 , PStack (case conf of
-                             AreaChart -> StZero
-                             NormalizedChart -> StNormalize
-                             StreamGraph -> StCenter
-                             LineChart -> StZero)]
+                 , PStack (case ct of
+                             Stacked -> StZero
+                             Normalized -> StNormalize
+                             StreamGraph -> StCenter)]
 
 transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =
