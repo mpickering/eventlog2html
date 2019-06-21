@@ -3,6 +3,7 @@ module VegaTemplate
   (
     AreaChartType(..)
   , ChartConfig(..)
+  , ChartType(..)
   , vegaResult
   , vegaJson
   , vegaJsonText
@@ -28,10 +29,19 @@ data AreaChartType
   | Normalized
   | StreamGraph
 
-data ChartConfig
+data ChartType
   = AreaChart AreaChartType
   | LineChart
-  
+
+
+-- Arguments for directly outputting javascript
+data ChartConfig =
+  ChartConfig { cwidth :: Double
+              , cheight :: Double
+              , traces :: Bool
+              , chartType :: ChartType
+              }
+
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
 -- - AreaChart (on the left top)
@@ -49,26 +59,26 @@ vegaJsonText conf = toStrict (encodeToLazyText (vegaJson conf))
 vegaResult :: ChartConfig -> VegaLite
 vegaResult conf = toVegaLite
   [
-    VL.width 1200,
-    VL.height 1000,
+    VL.width (cwidth conf),
+    VL.height (cheight conf),
     config [],
     description "Heap Profile",
-    case conf of
-      LineChart -> lineChartFull
-      AreaChart ct -> areaChartFull ct
+    case chartType conf of
+      LineChart -> lineChartFull conf
+      AreaChart ct -> areaChartFull ct conf
   ]
 
-areaChartFull :: AreaChartType -> (VLProperty, VLSpec)
-areaChartFull ct = hConcat
+areaChartFull :: AreaChartType -> ChartConfig -> (VLProperty, VLSpec)
+areaChartFull ct c = hConcat
   [
-    asSpec [vConcat [areaChart ct, selectionChart]]
+    asSpec [vConcat [areaChart ct c, selectionChart c]]
   , legendDiagram
   ]
 
-lineChartFull :: (VLProperty, VLSpec)
-lineChartFull = hConcat
+lineChartFull :: ChartConfig -> (VLProperty, VLSpec)
+lineChartFull c = hConcat
   [
-    asSpec [vConcat [lineChart, selectionChart]]
+    asSpec [vConcat [lineChart c, selectionChart c]]
   , legendDiagram
   ]
 
@@ -81,14 +91,14 @@ config =
 -- The Line Chart
 -----------------------------------------------------------------------------------
 
-lineChart :: VLSpec
-lineChart = asSpec [layer [linesLayer, tracesLayer]]
+lineChart :: ChartConfig -> VLSpec
+lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer | traces c])]
 
-linesLayer :: VLSpec
-linesLayer = asSpec
+linesLayer :: ChartConfig -> VLSpec
+linesLayer c = asSpec
   [
-    VL.width 800,
-    VL.height 700,
+    VL.width (0.75 * cwidth c),
+    VL.height (0.7 * cheight c),
     dataFromSource "heap" [],
     VL.mark Line [],
     encodingLineLayer [],
@@ -137,10 +147,10 @@ brush = (selection . injectJSON "brush" (object [ "type" .= String "interval"
                                                 , "init" .= object [ "x" .= [Null, Null] ] ])) []
 -- init field is not supported and necessary for dynamic loading
 
-selectionChart :: VLSpec
-selectionChart  = asSpec [
-    VL.width 800,
-    VL.height 100,
+selectionChart :: ChartConfig -> VLSpec
+selectionChart c = asSpec [
+    VL.width (0.75 * cwidth c),
+    VL.height (0.1 * cheight c),
     dataFromSource "heap" [],
     VL.mark Area [],
     encodingSelection [],
@@ -153,18 +163,18 @@ selectionChart  = asSpec [
 -- - Bands Layer
 -----------------------------------------------------------------------------------
 
-areaChart :: AreaChartType -> VLSpec
-areaChart ct = asSpec [layer [bandsLayer ct, tracesLayer]]
+areaChart :: AreaChartType -> ChartConfig -> VLSpec
+areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer | traces c])]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:
 -----------------------------------------------------------------------------------
 
-bandsLayer :: AreaChartType -> VLSpec
-bandsLayer ct  = asSpec
+bandsLayer :: AreaChartType -> ChartConfig -> VLSpec
+bandsLayer ct c = asSpec
   [
-    VL.width 800,
-    VL.height 700,
+    VL.width (0.75 * cwidth c),
+    VL.height (0.7 * cheight c),
     dataFromSource "heap" [],
     VL.mark Area [],
     encodingBandsLayer ct [],

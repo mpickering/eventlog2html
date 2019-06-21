@@ -41,7 +41,7 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   , ".runAsync());" ]
   where
     vidt = T.pack $ show vid
-  
+
 htmlHeader :: (Value, Value) -> Args -> Html
 htmlHeader dat as =
     H.head $ do
@@ -76,24 +76,28 @@ template dat as = docTypeHtml $ do
 
     mapM_ (\(vid, name, conf) ->
              H.div ! A.id name ! class_ "tabviz" $ do
-               renderChart vid (TL.toStrict (encodeToLazyText (vegaJson conf))))
+               renderChart vid
+                (TL.toStrict (encodeToLazyText (vegaJson (htmlConf conf)))))
       [(1, "areachart",  AreaChart Stacked)
       ,(2, "normalizedchart", AreaChart Normalized)
       ,(3, "streamgraph", AreaChart StreamGraph)
       ,(4, "linechart", LineChart)]
-      
+
     script $ preEscapedToHtml tablogic
-      
+
+htmlConf :: ChartType -> ChartConfig
+htmlConf = ChartConfig 1200 1000 True
+
 renderChart :: VizID -> Text -> Html
 renderChart vid vegaSpec = do
     H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
       (encloseScript vid vegaSpec)
 
-renderChartWithJson :: (Value, Value) -> Text -> Html
-renderChartWithJson dat vegaSpec = do
-    insertJsonData dat
-    renderChart 1 vegaSpec
+renderChartWithJson :: Int -> (Value, Value) -> Text -> Html
+renderChartWithJson k dat vegaSpec = do
+    script $ insertJsonData dat
+    renderChart k vegaSpec
 
 
 templateString :: (Value, Value) -> Args -> String
