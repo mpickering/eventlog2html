@@ -10,20 +10,29 @@ env:
     # cachix
     - secure: "CC1UVHRWVQzEG7+YROJYEL/Idffp7yYGP8SoHSuEekCZHN3BIhUUXSXo7EpNgY3jER11BrUcd5Ie33Pm5Xe4SZMUHQ4pYxf8ibqbKKHumsnle0QEx8NhPjLrXjHbmuZ7jWIv+CpFklNiRLAD1q+CdQfjIE2EaDPohMaABH56fVy8qBJDSK34YGof7G+EZ/SjLgkpc5Z1YqzMZFmKFm9L4MrAjv3XH+/WJEXO8F3GEYN5nV70DCz8GLIUaTFHIRQUFghBxkot0wIdRyE0vIRLdIftML0DKjbkxbBK9Rv8OQZQLCRZb33VWQ1W1HeI6BwtSbSV1thqSJwFfWXDhQ0JA0yO1113LdMLk6ZYBwutsdeCkcI13mqXLknH65FhkZ4StR+6P9QWMHmIc4/ftdOcKplJNY257WGbsQX1QrcL3lnITsCO0VSUwDaTU4NBuSmzNuFf2FJKy1FjqSeKXkR9sxVeANgw0SL8Y2oXuFUMfZgteVJRnevxnKLamZlaCLkJ6Ty0B7uh1sQsveyMNVgevOBNWFP1T28/zbvF5+dMxJXgX48Y6HmIEE3IJ14JHIPWlbB296RlWVn4Thq2Z2E1uBIFIGZ3q8O6JDbpZb3Hathxfi84Gn+1DKddbpf11fknsmVE2ImPfme9K0URYy8cV/xRX3/pivl2kWH0xq4VEo0="
 
-script:
-- nix-env -iA cachix -f https://cachix.org/api/v1/install
-- cachix use mpickering
-- cachix push mpickering --watch-store&
-- nix-build build.nix -A eventlog2html
-- nix-build build.nix -A site -o site
+jobs:
+  include:
+    - stage: build library
+      script:
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use mpickering
+        - cachix push mpickering --watch-store&
+        - nix-build build.nix -A eventlog2html
 
-deploy:
-  provider: pages
-  skip_cleanup: true
-  github_token: $GITHUB_TOKEN
-  keep_history: true
-  target_branch: gh-pages
-  local_dir: site
-  on:
-    branch: master
+    - stage: build documentation
+      script:
+        - nix-env -iA cachix -f https://cachix.org/api/v1/install
+        - cachix use mpickering
+        - cachix push mpickering --watch-store&
+        - nix-build build.nix -A site -o site
+
+      deploy:
+        provider: pages
+        skip_cleanup: true
+        github_token: $GITHUB_TOKEN
+        keep_history: true
+        target_branch: gh-pages
+        local_dir: site
+        on:
+          branch: master
 
