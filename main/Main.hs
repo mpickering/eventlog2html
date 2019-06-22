@@ -27,37 +27,14 @@ main = do
 
 argsToOutput :: Args -> IO ()
 argsToOutput a =
-  if | test a -> doTest a
-     | json a -> doJson a
+  if | json a -> doJson a
      | otherwise -> doHtml a
-
-testMain :: (Show c, Show b) => (FilePath -> IO (a, [b],[c])) -> [FilePath] -> IO ()
-testMain c [f] = do
-  (_, fs, ts) <- c f
-  mapM_ (putStrLn . show) fs
-  mapM_ (putStrLn . show) ts
-testMain _ _ = error "One file only"
-
-doTest :: Args -> IO ()
-doTest a =
-  let chunk = if heapProfile a then H.chunk else E.chunk
-  in testMain chunk (files a)
-
-bound :: Int -> Int
-bound n
-  | n <= 0 = maxBound
-  | otherwise = n
-
-
-doOneJson :: FilePath -> Args -> IO ()
-doOneJson file a = do
-  (_, val) <- generateJson file a
-  encodeFile (file <.> "json") val
 
 doJson :: Args -> IO ()
 doJson a = do
   forM_ (files a) $ \file -> do
-    doOneJson file a
+    (_, val) <- generateJson file a
+    encodeFile (file <.> "json") val
 
 doHtml :: Args -> IO ()
 doHtml a = do
