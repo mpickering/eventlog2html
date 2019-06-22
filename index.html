@@ -69,6 +69,12 @@ res.view
 .insert("data_json_traces", data_json.traces)
 .runAsync());
 </script>
+<h2 id="faq">FAQ</h2>
+<h3 id="what-about-biographical-and-retainer-profiling">What about biographical and retainer profiling?</h3>
+<p>The eventlog doesn’t support these two profiling modes yet.</p>
+<p><code>eventlog2html</code> can still read the old <code>.hp</code> file format. Pass the <code>--heap-profile</code> flag to interpret the argument as as <code>.hp</code> file rather than an eventlog.</p>
+<h3 id="what-if-i-want-to-do-my-own-analysis-on-the-heap-profile">What if I want to do my own analysis on the heap profile?</h3>
+<p><code>eventlog2html</code> can output JSON if you pass the <code>--json</code> flag. The information is a list of rows. One entry for each heap profiling event. Remember to pass <code>--bands 0</code> if you want the whole data rather than just the 15 top allocators.</p>
 <h2 id="implementation">Implementation</h2>
 <p>The charts are implemented using the <a href="https://vega.github.io/vega-lite/"><code>vega-lite</code></a> library. If there’s a visualisation that you would like to see added or a different type of chart then feel free to open an issue.</p>
 <h2 id="development">Development</h2>
