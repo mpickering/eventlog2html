@@ -15,6 +15,7 @@ import Text.Blaze.Html.Renderer.String
 
 import Javascript
 import Args
+import Types (Header(..))
 import VegaTemplate
 
 type VizID = Int
@@ -62,12 +63,13 @@ htmlHeader dat as =
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
 
-template :: (Value, Value) -> Args -> Html
-template dat as = docTypeHtml $ do
+template :: Header -> (Value, Value) -> Args -> Html
+template header dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "tabcontent" $ do
       h1 $ "eventlog2html"
+      h3 $ toHtml $ hJob header
 
     button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
     button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
@@ -100,6 +102,6 @@ renderChartWithJson k dat vegaSpec = do
     renderChart k vegaSpec
 
 
-templateString :: (Value, Value) -> Args -> String
-templateString dat as =
-  renderHtml $ template dat as
+templateString :: Header -> (Value, Value) -> Args -> String
+templateString header dat as =
+  renderHtml $ template header dat as
