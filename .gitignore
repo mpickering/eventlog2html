@@ -13,7 +13,6 @@ docs/_cache
 *.svg
 *.hp
 *.pdf
-*.eventlog
 *.eventlog.html
 *.eventlog.json
 *.eventlog.json.traces

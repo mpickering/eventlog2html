@@ -27,7 +27,10 @@ import           Data.IORef
 
 --------------------------------------------------------------------------------
 main :: IO ()
-main = hakyll $ do
+main = do
+  -- Each chart needs a unique ID
+  globalCounter <- newIORef 0
+  hakyll $ do
     match "images/*" $ do
         route   idRoute
         compile copyFileCompiler
@@ -41,7 +44,28 @@ main = hakyll $ do
       compile $ do
         path <- getResourceFilePath
         res <- unsafeCompiler $ fullEventLogPage path
+        saveSnapshot "snippet" =<< makeItem
+                               =<< (unsafeCompiler $ eventlogSnippet globalCounter [path] exampleConf)
         makeItem res
+
+    create ["examples.html"] $ do
+        route idRoute
+        compile $ do
+            examples <- loadAllSnapshots "examples/*" "snippet"
+            let widthCtx =
+                    constField "width" (show $ cwidth exampleConf) `mappend`
+                    defaultContext
+            let examplesCtx =
+                    listField "examples" widthCtx (return examples) `mappend`
+                    constField "title" "Examples"            `mappend`
+                    defaultContext
+
+
+            makeItem ""
+                >>= loadAndApplyTemplate "templates/examples.html" examplesCtx
+                >>= loadAndApplyTemplate "templates/default.html" examplesCtx
+                >>= relativizeUrls
+
 
     match "index.md" $ do
         route $ setExtension "html"
@@ -66,10 +90,7 @@ renderEventlog p = do
 
 insertEventlogs :: IORef Int -> Block -> IO Block
 insertEventlogs c block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `elem` classes = do
-   n <- readIORef c
-   modifyIORef c (+1)
-   let cid = "viz" ++ show n
-   d <- drawEventlog (words code) n attrs
+   d <- eventlogSnippet c (words code) (chartConfig attrs)
    return (RawBlock (Format "html") d)
 insertEventlogs _ (CodeBlock (_, ["help"], _) _) = insertHelp
 insertEventlogs _ (c@(CodeBlock {})) = return $ Div ("", ["bg-light"],[]) [c]
@@ -78,16 +99,28 @@ insertEventlogs _ block = return block
 
 render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " ++ c)]
 
-drawEventlog :: [String] -> Int -> [(String, String)] -> IO String
-drawEventlog args vid attrs = do
+
+eventlogSnippet :: IORef Int -> [String] -> ChartConfig -> IO String
+eventlogSnippet c as conf = do
+   n <- readIORef c
+   modifyIORef c (+1)
+   drawEventlog as n conf
+
+drawEventlog :: [String] -> Int -> ChartConfig -> IO String
+drawEventlog args vid conf  = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo args)
   dat <- generateJson (head $ files as) as
-  return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText (chartConfig attrs))
+  return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
+
+def :: ChartConfig
+def = ChartConfig 600 500 True (AreaChart Stacked)
+
+exampleConf :: ChartConfig
+exampleConf = ChartConfig 500 300 False (AreaChart Stacked)
 
 chartConfig :: [(String, String)] -> ChartConfig
 chartConfig as = foldr go def as
   where
-    def = ChartConfig 600 500 True (AreaChart Stacked)
 
     go :: (String, String) -> ChartConfig -> ChartConfig
     go (k,v) c = case k of
