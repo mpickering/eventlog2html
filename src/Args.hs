@@ -6,8 +6,6 @@ module Args
   , Args(..)
   , Uniform(..)
   , Sort(..)
-  , KeyPlace(..)
-  , TitlePlace(..)
   ) where
 
 import Options.Applicative
@@ -16,20 +14,15 @@ import Data.Semigroup ((<>))
 
 data Uniform = None | Time | Memory | Both deriving (Eq)
 data Sort = Size | StdDev | Name
-data KeyPlace = KeyInline | KeyFile FilePath
-data TitlePlace = TitleInline | TitleFile FilePath
 
 data Args = Args
   { uniformity   :: Uniform
   , sorting      :: Sort
-  , keyPlace     :: KeyPlace
-  , titlePlace   :: TitlePlace
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
   , patterned    :: Bool
   , heapProfile  :: Bool
-  , test         :: Bool
   , includejs    :: Bool
   , json         :: Bool
   , noTraces     :: Bool
@@ -49,16 +42,6 @@ argParser = Args
          <> help "How to sort the bands.  One of: size (default), stddev, name."
          <> value Size
          <> metavar "FIELD" )
-      <*> option parseKey
-          ( long "key"
-         <> help "Whether to embed the key in the image output.  One of: inline (default), FILE.txt.  Use - for standard output and ./inline for a file named literally \"inline\"."
-         <> value KeyInline
-         <> metavar "KEY" )
-      <*> option parseTitle
-          ( long "title"
-         <> help "Whether to embed the title in the image output.  One of: inline (default), FILE.txt.  Use - for standard output and ./inline for a file named literally \"inline\"."
-         <> value TitleInline
-         <> metavar "TITLE" )
       <*> switch
           ( long "reverse"
          <> help "Reverse the order of bands." )
@@ -81,8 +64,6 @@ argParser = Args
           ( long "heap-profile"
           <> short 'p'
           <> help "Input files are .hp heap profiles.")
-      <*> switch
-          (short 't')
       <*> switch
           (long "include-js"
           <> help "Include the javascript into the generated HTML instead of fetching it from a CDN.")
@@ -116,18 +97,6 @@ parseSort = eitherReader $ \s -> case s of
   "stddev" -> Right StdDev
   "name" -> Right Name
   _ -> Left "expected one of: size, stddev, name"
-
-parseKey :: ReadM KeyPlace
-parseKey = eitherReader $ \s -> case s of
-  "inline" -> Right KeyInline
-  "" -> Left "expected one of: inline, FILE.txt"
-  f -> Right (KeyFile f)
-
-parseTitle :: ReadM TitlePlace
-parseTitle = eitherReader $ \s -> case s of
-  "inline" -> Right TitleInline
-  "" -> Left "expected one of: inline, FILE.txt"
-  f -> Right (TitleFile f)
 
 args :: IO Args
 args = execParser argsInfo
