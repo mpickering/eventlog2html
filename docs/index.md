@@ -82,6 +82,12 @@ an eventlog.
 is a list of rows. One entry for each heap profiling event. Remember to pass
 `--bands 0` if you want the whole data rather than just the 15 top allocators.
 
+### What if I want to view the heap profile offline?
+
+The `--include-js` option will embed the javascript libraries into the
+generated HTML file so no internet connection is required to browse the profile.
+This option increases the file size quite a lot so it's disabled by default.
+
 ## Implementation
 
 The charts are implemented using the [`vega-lite`](https://vega.github.io/vega-lite/) library. If there's a visualisation that you would like to see added or a
