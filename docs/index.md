@@ -66,6 +66,22 @@ This information can be hard to see in the stacked charts.
 examples/ghc.eventlog --bands 10
 ```
 
+## FAQ
+
+### What about biographical and retainer profiling?
+
+The eventlog doesn't support these two profiling modes yet.
+
+`eventlog2html` can still read the old `.hp` file format. Pass the
+`--heap-profile` flag to interpret the argument as as `.hp` file rather than
+an eventlog.
+
+### What if I want to do my own analysis on the heap profile?
+
+`eventlog2html` can output JSON if you pass the `--json` flag. The information
+is a list of rows. One entry for each heap profiling event. Remember to pass
+`--bands 0` if you want the whole data rather than just the 15 top allocators.
+
 ## Implementation
 
 The charts are implemented using the [`vega-lite`](https://vega.github.io/vega-lite/) library. If there's a visualisation that you would like to see added or a
