@@ -12,6 +12,7 @@ Description:         eventlog2html is a library for visualising eventlogs.
                      the charts can be zoomed, scrolled and filtered to give
                      a more exploratory feel to heap profile analysis.
 Homepage:            https://mpickering.github.io/eventlog2html
+Bug-reports:         https://github.com/mpickering/eventlog2html/issues
 License:             BSD3
 License-file:        LICENSE
 Author:              Matthew Pickering, David Binder, Claude Heiland-Allen
