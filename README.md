@@ -42,6 +42,48 @@ Note: The `-l-au` suffix will result in a significantly smaller eventlog
 as it will not include thread events. This makes a big difference for
 multi-threaded applications.
 
+## Building the project
 
+There are two supported ways to build the project: `cabal new-build` and `nix`.
+For development the normal `cabal new-build` workflow should work fine.
 
+There are also nix files provided which can build both the tool and documentation.
+Binary caches are populated by CI.
 
+```
+cachix use mpickering
+nix build -f . eventlog2html
+nix build -f . site
+```
+
+Using `nix` means that you can conveniently try the project using
+
+```
+nix run -f https://github.com/mpickering/eventlog2html/archive/master.tar.gz eventlog2html -c eventlog2html my-leaky-program.eventlog
+```
+
+## Fixing CI
+
+If we need a newer version of a dependency then it might be necessary to update
+the `index-state` which `haskell.nix` uses to compute the build plan.
+
+All this requires is updating the date in `build.nix` to something more recent.
+The `index-state-hashes` are updated once a day so you might have to choose a
+date from a few days ago rather than the current date.
+
+## Modifying Documentation
+
+The documentation for the project is located in the `docs` folder. It is a hakyll
+site built by the generator in the `hakyll-eventlog` folder. CI automatically
+builds and deploys changes to the documentation.
+
+Additional examples can be added by adding an eventlog to the `examples`
+subdirectory. They will automatically be added to the examples gallery.
+
+You can build the documentation using the `nix` target or using `cabal
+new-build hakyll-eventlog` and invoking the resulting executable in the `docs/`
+directory.
+
+There is a custom pandoc filter which can insert rendered eventlogs into the
+documentation. To understand how this works it's probably easiest to read the code
+or copy the existing examples.
