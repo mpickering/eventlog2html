@@ -25,7 +25,7 @@ Extra-source-files:
   javascript/vega-embed@4.2.0
   javascript/vega@5.4.0
   javascript/stylesheet.css
-  javascript/tablogic.js                                    
+  javascript/tablogic.js
 Cabal-version:       >=1.8
 Tested-With:         GHC ==8.6.4
 
