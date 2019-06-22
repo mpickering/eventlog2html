@@ -39,8 +39,12 @@ data ChartConfig =
   ChartConfig { cwidth :: Double
               , cheight :: Double
               , traces :: Bool
+              , colourScheme :: Text
               , chartType :: ChartType
               }
+
+colourProperty :: ChartConfig -> ScaleProperty
+colourProperty c = SScheme (colourScheme c) []
 
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
@@ -101,14 +105,14 @@ linesLayer c = asSpec
     VL.height (0.7 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Line [],
-    encodingLineLayer [],
+    encodingLineLayer c [],
     transformLineLayer
   ]
 
-encodingLineLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
-encodingLineLayer
+encodingLineLayer :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
+encodingLineLayer c
  = encoding
-    . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
                   PScale [SDomain (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
@@ -133,12 +137,12 @@ transformLineLayer =
 -- The Selection Chart
 -----------------------------------------------------------------------------------
 
-encodingSelection :: [LabelledSpec] -> (VLProperty, VLSpec)
-encodingSelection =
+encodingSelection :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
+encodingSelection c =
   encoding
     . order [OName "k", OmType Quantitative]
     . injectJSON "tooltip" Null
-    . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [{-AxTitle "Allocation", AxFormat "s"-}], PAggregate Sum, PStack StZero]
 
@@ -153,7 +157,7 @@ selectionChart c = asSpec [
     VL.height (0.1 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
-    encodingSelection [],
+    encodingSelection c [],
     brush
   ]
 
@@ -177,15 +181,18 @@ bandsLayer ct c = asSpec
     VL.height (0.7 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
-    encodingBandsLayer ct [],
+    encodingBandsLayer ct c [],
     transformBandsLayer []
   ]
 
-encodingBandsLayer :: AreaChartType -> [LabelledSpec] -> (VLProperty, VLSpec)
-encodingBandsLayer ct  =
+encodingBandsLayer :: AreaChartType
+                   -> ChartConfig
+                   -> [LabelledSpec]
+                   -> (VLProperty, VLSpec)
+encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
-    . color [MName "c", MmType Nominal, MScale [SScheme "category20" []], MLegend []]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y"

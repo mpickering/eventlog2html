@@ -41,7 +41,7 @@ Library
                        floatshow,
                        hvega,
                        mtl,
-                       optparse-applicative,
+                       optparse-applicative >= 0.14,
                        semigroups,
                        text,
                        ghc-events,
