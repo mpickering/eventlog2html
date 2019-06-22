@@ -92,11 +92,13 @@ renderEventlog p = do
 insertEventlogs :: IORef Int -> Block -> IO Block
 insertEventlogs c block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `elem` classes = do
    d <- eventlogSnippet c (words code) (chartConfig attrs)
-   return (RawBlock (Format "html") d)
+   return $ wrap (RawBlock (Format "html") d)
 insertEventlogs _ (CodeBlock (_, ["help"], _) _) = insertHelp
 insertEventlogs _ (c@(CodeBlock {})) = return $ Div ("", ["bg-light"],[]) [c]
 insertEventlogs _ block = return block
 
+wrap :: Block -> Block
+wrap b = Div ("", ["card", "mx-auto"],[("style", "max-width: 600px")]) [Div ("", ["card-body"],[]) [b]]
 
 render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " ++ c)]
 
