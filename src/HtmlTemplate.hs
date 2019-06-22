@@ -34,7 +34,8 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
   , ".then((res) => "
   , "res.view"
-  , ".insert(\"data_json\", data_json)"
+  , ".insert(\"data_json_samples\", data_json.samples)"
+  , ".insert(\"data_json_traces\", data_json.traces)"
   , ".runAsync());" ]
   where
     vidt = T.pack $ show vid
