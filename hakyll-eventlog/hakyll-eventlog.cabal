@@ -15,5 +15,6 @@ executable site
                   , blaze-html
                   , process
                   , split
+                  , text
   ghc-options:      -threaded
   default-language: Haskell2010

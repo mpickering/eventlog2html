@@ -77,7 +77,7 @@ template header dat as = docTypeHtml $ do
     mapM_ (\(vid, name, conf) ->
              H.div ! A.id name ! class_ "tabviz" $ do
                renderChart vid
-                (TL.toStrict (encodeToLazyText (vegaJson (htmlConf conf)))))
+                (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
       [(1, "areachart",  AreaChart Stacked)
       ,(2, "normalizedchart", AreaChart Normalized)
       ,(3, "streamgraph", AreaChart StreamGraph)
@@ -85,8 +85,8 @@ template header dat as = docTypeHtml $ do
 
     script $ preEscapedToHtml tablogic
 
-htmlConf :: ChartType -> ChartConfig
-htmlConf = ChartConfig 1200 1000 True
+htmlConf :: Args -> ChartType -> ChartConfig
+htmlConf a = ChartConfig 1200 1000 True (userColourScheme a)
 
 renderChart :: VizID -> Text -> Html
 renderChart vid vegaSpec = do

@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Args
   (
     args
@@ -10,6 +11,7 @@ module Args
   ) where
 
 import Options.Applicative
+import Data.Text (Text)
 import Data.Semigroup ((<>))
 
 data Uniform = None | Time | Memory | Both deriving (Eq)
@@ -30,6 +32,7 @@ data Args = Args
   , test         :: Bool
   , includejs    :: Bool
   , json         :: Bool
+  , userColourScheme :: Text
   , files        :: [String]
   }
 
@@ -86,6 +89,10 @@ argParser = Args
           ( long "json"
           <> short 'j'
           <> help "Output JSON")
+      <*> option str
+          ( long "colour-scheme"
+          <> value "category20b"
+          <> help "The name of the colour scheme. See the vega documentation (https://vega.github.io/vega/docs/schemes/#reference) for a complete list. Examples include \"category10\" \"dark2\" \"tableau10\". ")
       <*> some (argument str
           ( help "Eventlogs (FILE.eventlog will be converted to FILE.html)."
          <> metavar "FILES..." ))

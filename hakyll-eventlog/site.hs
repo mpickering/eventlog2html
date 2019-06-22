@@ -24,6 +24,7 @@ import           Options.Applicative
 import           Options.Applicative.Help.Types
 import           Options.Applicative.Help.Core
 import           Data.IORef
+import qualified Data.Text as T
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -113,10 +114,10 @@ drawEventlog args vid conf  = do
   return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
 
 def :: ChartConfig
-def = ChartConfig 600 500 True (AreaChart Stacked)
+def = ChartConfig 600 500 True "category20" (AreaChart Stacked)
 
 exampleConf :: ChartConfig
-exampleConf = ChartConfig 500 300 False (AreaChart Stacked)
+exampleConf = ChartConfig 500 300 False "category20" (AreaChart Stacked)
 
 chartConfig :: [(String, String)] -> ChartConfig
 chartConfig as = foldr go def as
@@ -128,6 +129,7 @@ chartConfig as = foldr go def as
                    "h"      -> c { cheight = read v }
                    "traces" -> c { traces = read v }
                    "type"   -> c { chartType = readChart v }
+                   "scheme" -> c { colourScheme = T.pack v }
 
     readChart "stack"  = AreaChart Stacked
     readChart "stream" = AreaChart StreamGraph
