@@ -1,5 +1,5 @@
 {-# LANGUAGE BangPatterns #-}
-module HeapProf where
+module HeapProf (chunk) where
 
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)

@@ -19,15 +19,13 @@ import VegaTemplate
 
 type VizID = Int
 
-insertJsonData :: (Value, Value) -> Html
-insertJsonData (dh, dt) = preEscapedToHtml $ T.unlines [
-    "data_heap = " `append` dht `append` ";"
-  , "data_traces =" `append` dtt `append` ";"
-  , "console.log(data_traces);"
-  , "console.log(data_heap);" ]
+insertJsonData :: Value -> Html
+insertJsonData dat = preEscapedToHtml $ T.unlines [
+    "data_json= " `append` dat' `append` ";"
+  , "console.log(data_json);" ]
   where
-    dht = TL.toStrict (T.decodeUtf8 (encode dh))
-    dtt = TL.toStrict (T.decodeUtf8 (encode dt))
+    dat' = TL.toStrict (T.decodeUtf8 (encode dat))
+
 
 
 encloseScript :: VizID -> Text -> Html
@@ -36,13 +34,13 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
   , ".then((res) => "
   , "res.view"
-  , ".insert(\"heap\", data_heap)"
-  , ".insert(\"traces\", data_traces)"
+  , ".insert(\"data_json_samples\", data_json.samples)"
+  , ".insert(\"data_json_traces\", data_json.traces)"
   , ".runAsync());" ]
   where
     vidt = T.pack $ show vid
 
-htmlHeader :: (Value, Value) -> Args -> Html
+htmlHeader :: Value -> Args -> Html
 htmlHeader dat as =
     H.head $ do
     H.title "Heap Profile"
@@ -62,7 +60,7 @@ htmlHeader dat as =
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
 
-template :: (Value, Value) -> Args -> Html
+template :: Value -> Args -> Html
 template dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
@@ -94,12 +92,12 @@ renderChart vid vegaSpec = do
     script ! type_ "text/javascript" $ do
       (encloseScript vid vegaSpec)
 
-renderChartWithJson :: Int -> (Value, Value) -> Text -> Html
+renderChartWithJson :: Int -> Value -> Text -> Html
 renderChartWithJson k dat vegaSpec = do
     script $ insertJsonData dat
     renderChart k vegaSpec
 
 
-templateString :: (Value, Value) -> Args -> String
+templateString :: Value -> Args -> String
 templateString dat as =
   renderHtml $ template dat as
