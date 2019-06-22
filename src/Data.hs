@@ -1,11 +1,9 @@
-{-# LANGUAGE BangPatterns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE MultiWayIf #-}
 module Data (generateJson) where
 
-import Prelude hiding (print, readFile)
-import Data.Aeson (Value, toJSON)
+import Prelude hiding (print, readFile, (++))
+import Data.Aeson (Value(..), toJSON)
 import Data.Tuple (swap)
+import Data.Vector ((++))
 
 import Args (Args(..), Sort(..))
 import Bands (bands)
@@ -15,7 +13,11 @@ import Prune (prune, cmpName, cmpSize, cmpStdDev)
 import Total (total)
 import Vega
 
-generateJson :: FilePath -> Args -> IO (Value, Value)
+concatJsonArrays :: Value -> Value -> Value
+concatJsonArrays (Array arr1) (Array arr2) = Array (arr1 ++ arr2)
+concatJsonArrays _ _ = error "Cannot concatenate two non-arrays"
+
+generateJson :: FilePath -> Args -> IO Value
 generateJson file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk
       cmp = fst $ reversing' sorting'
@@ -29,7 +31,7 @@ generateJson file a = do
   let keeps = prune cmp 0 (bound $ nBands a) totals
   let dataJson = toJSON (bandsToVega keeps (bands h keeps fs))
       dataTraces =  toJSON (tracesToVega traces)
-  return (dataJson, dataTraces)
+  return (concatJsonArrays dataJson dataTraces)
 
 bound :: Int -> Int
 bound n

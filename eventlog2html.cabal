@@ -43,6 +43,7 @@ Library
                        optparse-applicative,
                        semigroups,
                        text,
+                       vector,
                        ghc-events,
                        time,
                        hashtables,

@@ -99,7 +99,7 @@ linesLayer c = asSpec
   [
     VL.width (0.75 * cwidth c),
     VL.height (0.7 * cheight c),
-    dataFromSource "heap" [],
+    dataFromSource "data_json" [],
     VL.mark Line [],
     encodingLineLayer [],
     transformLineLayer
@@ -151,7 +151,7 @@ selectionChart :: ChartConfig -> VLSpec
 selectionChart c = asSpec [
     VL.width (0.75 * cwidth c),
     VL.height (0.1 * cheight c),
-    dataFromSource "heap" [],
+    dataFromSource "data_json" [],
     VL.mark Area [],
     encodingSelection [],
     brush
@@ -175,7 +175,7 @@ bandsLayer ct c = asSpec
   [
     VL.width (0.75 * cwidth c),
     VL.height (0.7 * cheight c),
-    dataFromSource "heap" [],
+    dataFromSource "data_json" [],
     VL.mark Area [],
     encodingBandsLayer ct [],
     transformBandsLayer []
@@ -212,7 +212,7 @@ transformBandsLayer =
 tracesLayer :: VLSpec
 tracesLayer = asSpec
   [
-    dataFromSource "traces" [],
+    dataFromSource "data_json" [],
     VL.mark Rule [],
     encodingTracesLayer [],
     selectionTracesLayer []
@@ -244,7 +244,7 @@ legendDiagram :: VLSpec
 legendDiagram  = asSpec
   [
     VL.mark Point [MStroke "transparent"],
-    dataFromSource "heap" [],
+    dataFromSource "data_json" [],
     encodingRight [],
     selectionRight []
   ]
