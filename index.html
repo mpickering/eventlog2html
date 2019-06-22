@@ -75,6 +75,8 @@ res.view
 <p><code>eventlog2html</code> can still read the old <code>.hp</code> file format. Pass the <code>--heap-profile</code> flag to interpret the argument as as <code>.hp</code> file rather than an eventlog.</p>
 <h3 id="what-if-i-want-to-do-my-own-analysis-on-the-heap-profile">What if I want to do my own analysis on the heap profile?</h3>
 <p><code>eventlog2html</code> can output JSON if you pass the <code>--json</code> flag. The information is a list of rows. One entry for each heap profiling event. Remember to pass <code>--bands 0</code> if you want the whole data rather than just the 15 top allocators.</p>
+<h3 id="what-if-i-want-to-view-the-heap-profile-offline">What if I want to view the heap profile offline?</h3>
+<p>The <code>--include-js</code> option will embed the javascript libraries into the generated HTML file so no internet connection is required to browse the profile. This option increases the file size quite a lot so it’s disabled by default.</p>
 <h2 id="implementation">Implementation</h2>
 <p>The charts are implemented using the <a href="https://vega.github.io/vega-lite/"><code>vega-lite</code></a> library. If there’s a visualisation that you would like to see added or a different type of chart then feel free to open an issue.</p>
 <h2 id="development">Development</h2>
