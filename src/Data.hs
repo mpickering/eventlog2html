@@ -1,7 +1,7 @@
 {-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
-module Data where
+module Data (generateJson) where
 
 import Prelude hiding (print, readFile)
 import Data.Aeson (Value, toJSON)
