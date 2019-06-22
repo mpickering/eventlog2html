@@ -3,7 +3,9 @@ let
   # Import the Haskell.nix library,
   haskell = import (builtins.fetchTarball https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz) { pkgs = pin; };
 
-  pkgPlan = haskell.callCabalProjectToNix {index-state = "2019-05-10T00:00:00Z"; src = ./.;};
+  pkgPlan = haskell.callCabalProjectToNix
+              { index-state = "2019-05-10T00:00:00Z"
+              ; src = pin.lib.cleanSource ./.;};
 
   # Instantiate a package set using the generated file.
   pkgSet = haskell.mkCabalProjectPkgSet {
