@@ -12,8 +12,9 @@ import qualified HeapProf as H
 import Prune (prune, cmpName, cmpSize, cmpStdDev)
 import Total (total)
 import Vega
+import Types (Header)
 
-generateJson :: FilePath -> Args -> IO Value
+generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk
       cmp = fst $ reversing' sorting'
@@ -29,10 +30,10 @@ generateJson file a = do
           "samples" .= bandsToVega keeps (bands h keeps fs)
         , "traces"  .= tracesToVega traces
         ]
-  return combinedJson
+  return (h, combinedJson)
 
 bound :: Int -> Int
 bound n
   | n <= 0 = maxBound
   | otherwise = n
- 
+

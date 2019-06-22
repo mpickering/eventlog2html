@@ -51,7 +51,7 @@ bound n
 
 doOneJson :: FilePath -> Args -> IO ()
 doOneJson file a = do
-  val <- generateJson file a
+  (_, val) <- generateJson file a
   encodeFile (file <.> "json") val
 
 doJson :: Args -> IO ()
@@ -62,8 +62,8 @@ doJson a = do
 doHtml :: Args -> IO ()
 doHtml a = do
   forM_ (files a) $ \file -> do
-    val <- generateJson file a
-    let html = templateString val a
+    (header, data_json) <- generateJson file a
+    let html = templateString header data_json a
     let filename2 = file <.> "html"
     writeFile filename2 html
     exitSuccess

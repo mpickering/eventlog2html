@@ -109,7 +109,7 @@ eventlogSnippet c as conf = do
 drawEventlog :: [String] -> Int -> ChartConfig -> IO String
 drawEventlog args vid conf  = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo args)
-  dat <- generateJson (head $ files as) as
+  (_, dat) <- generateJson (head $ files as) as
   return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
 
 def :: ChartConfig
@@ -149,6 +149,6 @@ insertHelp =
 fullEventLogPage :: FilePath -> IO String
 fullEventLogPage file = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo [file])
-  data_json <- generateJson file as
-  return $ templateString data_json as
+  (header, data_json) <- generateJson file as
+  return $ templateString header data_json as
 
