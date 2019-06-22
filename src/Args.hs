@@ -32,6 +32,7 @@ data Args = Args
   , test         :: Bool
   , includejs    :: Bool
   , json         :: Bool
+  , noTraces     :: Bool
   , userColourScheme :: Text
   , files        :: [String]
   }
@@ -89,6 +90,9 @@ argParser = Args
           ( long "json"
           <> short 'j'
           <> help "Output JSON")
+      <*> switch
+          ( long "no-traces"
+          <> help "Don't display traces on chart")
       <*> option str
           ( long "colour-scheme"
           <> value "category20b"

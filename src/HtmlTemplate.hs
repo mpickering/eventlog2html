@@ -86,7 +86,7 @@ template header dat as = docTypeHtml $ do
     script $ preEscapedToHtml tablogic
 
 htmlConf :: Args -> ChartType -> ChartConfig
-htmlConf a = ChartConfig 1200 1000 True (userColourScheme a)
+htmlConf a = ChartConfig 1200 1000 (not (noTraces a)) (userColourScheme a)
 
 renderChart :: VizID -> Text -> Html
 renderChart vid vegaSpec = do
