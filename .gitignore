@@ -6,6 +6,8 @@ dist-newstyle
 test
 result
 tags
+docs/_site
+docs/_cache
 *.hi
 *.o
 *.svg
