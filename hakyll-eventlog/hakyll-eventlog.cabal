@@ -7,7 +7,7 @@ executable site
   main-is:          site.hs
   build-depends:    base == 4.*
                   , hakyll >= 4.10
-                  , eventlog2html >= 0.9
+                  , eventlog2html
                   , pandoc-types
                   , directory
                   , filepath

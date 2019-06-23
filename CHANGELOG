@@ -1,0 +1,4 @@
+0.1, released 2019-06-23
+
+* Initial release, a complete rewrite on hp2pretty. Implemented by
+  Matthew Pickering and David Binder.
