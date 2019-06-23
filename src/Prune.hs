@@ -33,7 +33,7 @@ prune :: Compare (Text, (Double, Double)) -> Double -> Int -> Map Text (Double, 
 prune cmp tracePercent nBands ts =
   let ccTotals = sortBy cmpSizeDescending (toList ts)
       sizes = map (fst . snd) ccTotals
-      total = sum' sizes
+      total = sum sizes
       limit = if tracePercent == 0 then total
                                    else (1 - tracePercent / 100) * total
       bigs = takeWhile (< limit) . scanl (+) 0 $ sizes
@@ -41,5 +41,3 @@ prune cmp tracePercent nBands ts =
       ccs = map fst (sortBy cmp bands)
   in  fromList (reverse ccs `zip` [1 ..])
 
-sum' :: [Double] -> Double
-sum' = foldl' (+) 0
