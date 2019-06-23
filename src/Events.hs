@@ -102,6 +102,7 @@ elHeader EL{..} =
    --   dl = formatTime defaultTimeLocale "%c"
    --      . posixSecondsToUTCTime $ realToFrac start
 
-  in Header title "aaa" "" "" (length frames)
+ in Header title "aaa" "" "" (length frames + 2)
+ -- The 2 Corresponds to the additional 2 frames inserted in eventsToHP
 
 
