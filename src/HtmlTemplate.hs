@@ -46,7 +46,6 @@ htmlHeader dat as =
     H.head $ do
     H.title "Heap Profile"
     meta ! charset "UTF-8"
-    H.style $ preEscapedToHtml stylesheet
     script $ insertJsonData dat
     if includejs as
       then do
@@ -60,6 +59,8 @@ htmlHeader dat as =
         link ! rel "stylesheet" ! href "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
+    -- Include this last to overwrite some milligram styling
+    H.style $ preEscapedToHtml stylesheet
 
 template :: Header -> Value -> Args -> Html
 template header dat as = docTypeHtml $ do
