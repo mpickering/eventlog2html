@@ -47,11 +47,13 @@ htmlHeader dat as =
     H.title "Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
-    if includejs as
+    if not (noIncludejs as)
       then do
         script $ preEscapedToHtml vegaLite
         script $ preEscapedToHtml vega
         script $ preEscapedToHtml vegaEmbed
+        H.style  $ preEscapedToHtml milligram
+        H.style  $ preEscapedToHtml normalizecss
       else do
         script ! src "https://cdn.jsdelivr.net/npm/vega@5.4.0" $ ""
         script ! src "https://cdn.jsdelivr.net/npm/vega-lite@3.3.0" $ ""

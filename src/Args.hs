@@ -21,7 +21,7 @@ data Args = Args
   , nBands       :: Int
   , patterned    :: Bool
   , heapProfile  :: Bool
-  , includejs    :: Bool
+  , noIncludejs    :: Bool
   , json         :: Bool
   , noTraces     :: Bool
   , userColourScheme :: Text
@@ -58,8 +58,8 @@ argParser = Args
           <> short 'p'
           <> help "Input files are .hp heap profiles.")
       <*> switch
-          (long "include-js"
-          <> help "Include the javascript into the generated HTML instead of fetching it from a CDN.")
+          (long "no-include-js"
+          <> help "Fetch the javascript from a CDN rather than bundling it into the file.")
       <*> switch
           ( long "json"
           <> short 'j'

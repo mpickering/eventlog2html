@@ -6,6 +6,8 @@ module Javascript
   , vega
   , stylesheet
   , tablogic
+  , milligram
+  , normalizecss
   ) where
 
 import Data.Text
@@ -26,4 +28,10 @@ stylesheet = decodeUtf8 $(embedFile "javascript/stylesheet.css")
 
 tablogic :: Text
 tablogic = decodeUtf8 $(embedFile "javascript/tablogic.js")
+
+milligram :: Text
+milligram = decodeUtf8 $(embedFile "javascript/milligram.min.css")
+
+normalizecss :: Text
+normalizecss = decodeUtf8 $(embedFile "javascript/normalize.min.css")
 

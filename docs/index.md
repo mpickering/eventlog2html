@@ -82,11 +82,10 @@ an eventlog.
 is a list of rows. One entry for each heap profiling event. Remember to pass
 `--bands 0` if you want the whole data rather than just the 15 top allocators.
 
-### What if I want to view the heap profile offline?
+### Why are the html files so big?
 
-The `--include-js` option will embed the javascript libraries into the
-generated HTML file so no internet connection is required to browse the profile.
-This option increases the file size quite a lot so it's disabled by default.
+We bundle all the javascript dependencies so the heap profiles can be
+viewed offline. The `--no-include-js` option will replace the bundled dependencies with links to a CDN if you prefer a smaller file size.
 
 ## Implementation
 
