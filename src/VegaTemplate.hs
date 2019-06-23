@@ -196,6 +196,8 @@ encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
+    . injectJSON "tooltip" (toJSON [object ["field" .= String "y", "type" .= String "quantitative", "format" .= String "s", "title" .= String "Allocation"],
+                             object ["field" .= String "c", "type" .= String "nominal", "title" .= String "Type"]])
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y"
@@ -227,8 +229,7 @@ tracesLayer = asSpec
   [
     dataFromSource "data_json_traces" [],
     VL.mark Rule [],
-    encodingTracesLayer [],
-    selectionTracesLayer []
+    encodingTracesLayer []
   ]
 
 encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
@@ -237,15 +238,7 @@ encodingTracesLayer =
     . color [MString "grey"]
     . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
     . VL.size [MNumber 2]
-    . opacity [MSelectionCondition (Expr "index") [MNumber 1] [MNumber 0.5]]
-    -- The "tooltips" feature is not in the current version of HVega
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "tx", "type" .= String "quantitative"],
-                             object ["field" .= String "desc", "type" .= String "nominal"]])
-
-selectionTracesLayer ::  [LabelledSpec] -> (VLProperty, VLSpec)
-selectionTracesLayer =
-  selection
-    . VL.select "index" Single [On "mousemove", Encodings [ChX], Nearest True]
+    . tooltip [TName "desc", TmType Nominal]
 
 -----------------------------------------------------------------------------------
 -- The legend
