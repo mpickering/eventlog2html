@@ -196,8 +196,8 @@ encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "x", "type" .= String "quantitative"],
-                             object ["field" .= String "c", "type" .= String "nominal"]])
+    . injectJSON "tooltip" (toJSON [object ["field" .= String "x", "type" .= String "quantitative", "title" .= String "Time"],
+                             object ["field" .= String "c", "type" .= String "nominal", "title" .= String "Type"]])
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y"
@@ -239,8 +239,8 @@ encodingTracesLayer =
     . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
     . VL.size [MNumber 2]
     -- The "tooltips" feature is not in the current version of HVega
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "tx", "type" .= String "quantitative"],
-                             object ["field" .= String "desc", "type" .= String "nominal"]])
+    . injectJSON "tooltip" (toJSON [object ["field" .= String "tx", "type" .= String "quantitative", "title" .= String "Time"],
+                             object ["field" .= String "desc", "type" .= String "nominal", "title" .= String "Event"]])
 
 -----------------------------------------------------------------------------------
 -- The legend
