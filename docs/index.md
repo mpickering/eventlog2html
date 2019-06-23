@@ -20,7 +20,7 @@ bands to display at once.
 
 ## How to use
 
-`eventlog2html` is released on [hackage](https://hackage.haskell.org/package/eventlog2html) can we be installed like any normal Haskell executable.
+`eventlog2html` is released on [hackage](https://hackage.haskell.org/package/eventlog2html) and can be installed like any normal Haskell executable.
 
 In order to use `eventlog2html` you first need an eventlog with heap profiling
 samples.
