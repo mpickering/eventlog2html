@@ -34,5 +34,5 @@ jobs:
         target_branch: gh-pages
         local_dir: site
         on:
-          branch: master
+          tags: true
 
