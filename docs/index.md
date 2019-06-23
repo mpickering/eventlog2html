@@ -2,8 +2,8 @@
 title: eventlog2html
 ---
 
-eventlog2html is a tool to visualise eventlogs. In particular, it creates charts
-for the heap profiling events in an eventlog.
+`eventlog2html` is a tool for creating interactive visualisations of eventlogs. In particular, it creates
+interactive charts from the heap profiling events.
 
 ```{.eventlog traces=False }
 examples/ghc.eventlog --bands 10
@@ -18,8 +18,9 @@ selection can be scrolled and zoomed. The legend is interactive, click on the
 toggles to select individual bands to display and shift-click to select multiple
 bands to display at once.
 
-
 ## How to use
+
+`eventlog2html` is released on [hackage](https://hackage.haskell.org/package/eventlog2html) can we be installed like any normal Haskell executable.
 
 In order to use `eventlog2html` you first need an eventlog with heap profiling
 samples.
