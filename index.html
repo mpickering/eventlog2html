@@ -41,7 +41,7 @@ res.view
 <p>The default view is a stacked area chart which shows the cumulative memory usage of a program over time with a band for each type of allocation. This is similar to the chart produced by <code>hp2ps</code> and <code>hp2pretty</code>.</p>
 <p>This chart is interactive. An area can be selected on the viewfinder, the selection can be scrolled and zoomed. The legend is interactive, click on the toggles to select individual bands to display and shift-click to select multiple bands to display at once.</p>
 <h2 id="how-to-use">How to use</h2>
-<p><code>eventlog2html</code> is released on <a href="https://hackage.haskell.org/package/eventlog2html">hackage</a> can we be installed like any normal Haskell executable.</p>
+<p><code>eventlog2html</code> is released on <a href="https://hackage.haskell.org/package/eventlog2html">hackage</a> and can be installed like any normal Haskell executable.</p>
 <p>In order to use <code>eventlog2html</code> you first need an eventlog with heap profiling samples.</p>
 <p>Compile your program with <code>-prof</code>. In a cabal project, the easiest way to do this is to set <code>profiling: True</code> in the <code>cabal.project</code> file.</p>
 <p>Then, run your program with the normal profiling flags with an additional <code>-l</code> flag. This will tell GHC to also emit the eventlog.</p>
