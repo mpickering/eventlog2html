@@ -19,7 +19,6 @@ data Args = Args
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
-  , patterned    :: Bool
   , heapProfile  :: Bool
   , noIncludejs    :: Bool
   , json         :: Bool
@@ -50,9 +49,6 @@ argParser = Args
          <> value 15
          <> showDefault
          <> metavar "COUNT" )
-      <*> switch
-          ( long "pattern"
-         <> help "Use patterns instead of solid colours to fill bands." )
       <*> switch
           ( long "heap-profile"
           <> short 'p'
