@@ -3,13 +3,13 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
-module Events(chunk) where
+module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 
-import Types
+import Eventlog.Types
 import Data.List
 import Data.Function
 import Data.Word

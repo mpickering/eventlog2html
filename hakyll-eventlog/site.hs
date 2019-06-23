@@ -15,10 +15,10 @@ import           System.IO           (hPutStrLn, stderr)
 import           System.Process
 import           Text.Pandoc.Generic
 import           Text.Pandoc.JSON
-import           Data
-import           Args
-import           VegaTemplate
-import           HtmlTemplate
+import           Eventlog.Data
+import           Eventlog.Args
+import           Eventlog.VegaTemplate
+import           Eventlog.HtmlTemplate
 import           Text.Blaze.Html.Renderer.String
 import           Options.Applicative
 import           Options.Applicative.Help.Types

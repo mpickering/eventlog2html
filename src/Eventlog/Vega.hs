@@ -2,14 +2,14 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Vega (bandsToVega, tracesToVega) where
+module Eventlog.Vega (bandsToVega, tracesToVega) where
 
 import Data.Array.Base ((!), bounds)
 import Data.Array.Unboxed (UArray)
 import Data.Map (Map,  foldrWithKey)
 import Prelude hiding (lookup, lines, words, length)
 import Data.Text (Text)
-import Types
+import Eventlog.Types
 import Data.Aeson hiding (Series)
 import GHC.Generics
 

@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Args
+module Eventlog.Args
   (
     args
   , argsInfo

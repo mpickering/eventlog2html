@@ -1,4 +1,4 @@
-module Types where
+module Eventlog.Types where
 
 import Data.Text (Text)
 

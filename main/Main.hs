@@ -8,16 +8,16 @@ import Data.Aeson (encodeFile, Value, toJSON)
 import System.FilePath
 import System.Exit
 
-import Args (args, Args(..), Sort(..))
-import Bands (bands)
-import qualified Events as E
-import qualified HeapProf as H
-import HtmlTemplate
-import Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Total (total)
-import Data
-import Vega
-import VegaTemplate
+import Eventlog.Args (args, Args(..), Sort(..))
+import Eventlog.Bands (bands)
+import qualified Eventlog.Events as E
+import qualified Eventlog.HeapProf as H
+import Eventlog.HtmlTemplate
+import Eventlog.Prune (prune, cmpName, cmpSize, cmpStdDev)
+import Eventlog.Total (total)
+import Eventlog.Data
+import Eventlog.Vega
+import Eventlog.VegaTemplate
 
 main :: IO ()
 main = do

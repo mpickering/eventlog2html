@@ -1,5 +1,5 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Javascript
+module Eventlog.Javascript
   (
     vegaLite
   , vegaEmbed

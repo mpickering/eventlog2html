@@ -1,4 +1,4 @@
-module Prune
+module Eventlog.Prune
   ( prune
   , Compare
   , cmpName

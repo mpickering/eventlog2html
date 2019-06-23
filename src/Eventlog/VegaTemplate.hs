@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module VegaTemplate
+module Eventlog.VegaTemplate
   (
     AreaChartType(..)
   , ChartConfig(..)

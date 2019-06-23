@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module HtmlTemplate where
+module Eventlog.HtmlTemplate where
 
 import Data.Aeson (Value, encode)
 import Data.Aeson.Text (encodeToLazyText)
@@ -13,10 +13,10 @@ import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.String
 
-import Javascript
-import Args
-import Types (Header(..))
-import VegaTemplate
+import Eventlog.Javascript
+import Eventlog.Args
+import Eventlog.Types (Header(..))
+import Eventlog.VegaTemplate
 
 type VizID = Int
 

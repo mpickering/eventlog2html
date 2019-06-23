@@ -1,12 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
-module HeapProf (chunk) where
+module Eventlog.HeapProf (chunk) where
 
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)
 import Data.Text.IO (readFile)
 import Data.Attoparsec.Text (parseOnly, double)
 
-import Types
+import Eventlog.Types
 
 chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
 chunk f = do

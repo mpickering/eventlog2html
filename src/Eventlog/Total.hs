@@ -1,12 +1,12 @@
 {-# LANGUAGE BangPatterns #-}
-module Total (total) where
+module Eventlog.Total (total) where
 
 import Control.Monad.State.Strict (State(), execState, get, put, modify)
 import Data.Map (Map, empty, lookup, insert, alter)
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text)
 
-import Types
+import Eventlog.Types
 
 
 data Parse =

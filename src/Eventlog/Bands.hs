@@ -2,7 +2,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Bands (bands, series, bandsToSeries) where
+module Eventlog.Bands (bands, series, bandsToSeries) where
 
 import Control.Monad (forM_)
 import Control.Monad.ST (runST)
@@ -12,7 +12,7 @@ import Data.Array.Unboxed (UArray)
 import Data.Map (Map, lookup, size, foldrWithKey)
 import Prelude hiding (lookup, lines, words, length)
 import Data.Text (Text)
-import Types
+import Eventlog.Types
 import Data.HashTable.ST.Basic hiding (lookup)
 import Data.Aeson hiding (Series)
 import GHC.Generics
