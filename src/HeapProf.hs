@@ -8,13 +8,17 @@ import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
 
-chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
+myLength :: [a] -> Int
+myLength [] = 0
+myLength (_:xs) = 1 + myLength xs
+
+chunk :: FilePath -> IO (Header, [Frame], [Trace])
 chunk f = do
   (ph, fs) <- chunkT <$> readFile f
   -- Heap profiles do not support traces
   return (ph, fs, [])
 
-chunkT :: Text -> (PartialHeader, [Frame])
+chunkT :: Text -> (Header, [Frame])
 chunkT s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls
@@ -22,7 +26,7 @@ chunkT s =
         zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
       fs = chunkSamples ss
   in  (
-        Header job date smpU valU
+        Header job date smpU valU (myLength fs)
       ,  fs
       )
 

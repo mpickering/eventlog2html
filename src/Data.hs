@@ -30,8 +30,8 @@ generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk
       cmp = selectComparison a
-  (ph, fs, traces) <- chunk file
-  let (h, totals) = total ph fs
+  (h, fs, traces) <- chunk file
+  let totals = total fs
   let keeps = prune cmp 0 (bound $ nBands a) totals
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)

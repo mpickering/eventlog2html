@@ -20,13 +20,11 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ symbols = empty, totals = empty, count = 0 }
 
-total :: PartialHeader -> [Frame] -> (Header, Map Text (Double, Double))
-total ph fs =
+total :: [Frame] -> Map Text (Double, Double)
+total fs =
   let parse1 = flip execState parse0 . mapM_ parseFrame $ fs
-  in  (
-       ph (count parse1)
-      , fmap (stddev $ fromIntegral (count parse1)) (totals parse1)
-      )
+  in fmap (stddev $ fromIntegral (count parse1)) (totals parse1)
+
 
 stddev :: Double -> (Double, Double) -> (Double, Double)
 stddev s0 (s1, s2) = (s1, sqrt (s0 * s2 - s1 * s1) / s0)

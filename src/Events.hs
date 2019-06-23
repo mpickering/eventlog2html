@@ -19,14 +19,14 @@ import Data.Word
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
-chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
+chunk :: FilePath -> IO (Header, [Frame], [Trace])
 chunk f = eventlogToHP . either error id =<< readEventLogFromFile f
 
-eventlogToHP :: EventLog -> IO (PartialHeader, [Frame], [Trace])
+eventlogToHP :: EventLog -> IO (Header, [Frame], [Trace])
 eventlogToHP (EventLog _h e) = do
   eventsToHP e
 
-eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
+eventsToHP :: Data -> IO (Header, [Frame], [Trace])
 eventsToHP (Data es) = do
   let
       el@EL{..} = foldEvents es
@@ -96,12 +96,12 @@ updateLast :: Word64 -> EL -> EL
 updateLast t el = el { end = t }
 
 
-elHeader :: EL -> PartialHeader
+elHeader :: EL -> Header
 elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
    --   dl = formatTime defaultTimeLocale "%c"
    --      . posixSecondsToUTCTime $ realToFrac start
 
-  in Header title "aaa" "" ""
+  in Header title "aaa" "" "" (length frames)
 
 
