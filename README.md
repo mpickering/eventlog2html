@@ -9,7 +9,7 @@ interactive charts for the heap profiling information included in the
 eventlog.
 
 The [complete documentation](https://mpickering.github.io/eventlog2html/) contain
-[interactive](https://mpickering.github.io/eventlog2html/examples/ghc.eventlog.html) [examples](https://mpickering.github.io/eventlog2html/examples/hie.eventlog.html) and complete usage information.
+[interactive](https://mpickering.github.io/eventlog2html/examples/ghc.eventlog.html) [examples](https://mpickering.github.io/eventlog2html/examples/eventlog2html.eventlog.html) and complete usage information.
 
 ## How to use
 
