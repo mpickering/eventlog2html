@@ -8,15 +8,9 @@ import Data.Aeson (encodeFile, Value, toJSON)
 import System.FilePath
 import System.Exit
 
-import Args (args, Args(..), Sort(..))
-import Bands (bands)
-import qualified Events as E
-import qualified HeapProf as H
+import Args (args, Args(..))
 import HtmlTemplate
-import Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Total (total)
 import Data
-import Vega
 import VegaTemplate
 
 main :: IO ()

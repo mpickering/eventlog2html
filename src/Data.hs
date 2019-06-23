@@ -10,7 +10,7 @@ import Args (Args(..), Sort(..))
 import Bands (bands)
 import qualified Events as E
 import qualified HeapProf as H
-import Prune (prune, Compare, cmpName, cmpSize, cmpStdDev)
+import Prune (prune, Compare, cmpNameAscending, cmpSizeAscending, cmpStdDevAscending)
 import Total (total)
 import Vega
 import Types (Header)
@@ -21,10 +21,10 @@ selectComparison :: Args -> Compare (Text, (Double, Double))
 selectComparison a =
   let
     sorting' = case sorting a of
-                 Name -> cmpName
-                 Size -> cmpSize
-                 StdDev -> cmpStdDev
-  in if reversing a then snd sorting' else fst sorting'
+                 Name -> cmpNameAscending
+                 Size -> cmpSizeAscending
+                 StdDev -> cmpStdDevAscending
+  in if reversing a then flip sorting' else sorting'
 
 generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
