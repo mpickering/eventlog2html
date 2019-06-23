@@ -4,7 +4,6 @@ module Args
     args
   , argsInfo
   , Args(..)
-  , Uniform(..)
   , Sort(..)
   ) where
 
@@ -12,12 +11,11 @@ import Options.Applicative
 import Data.Text (Text)
 import Data.Semigroup ((<>))
 
-data Uniform = None | Time | Memory | Both deriving (Eq)
 data Sort = Size | StdDev | Name
 
 data Args = Args
-  { uniformity   :: Uniform
-  , sorting      :: Sort
+  {
+    sorting      :: Sort
   , reversing    :: Bool
   , tracePercent :: Double
   , nBands       :: Int
@@ -32,12 +30,7 @@ data Args = Args
 
 argParser :: Parser Args
 argParser = Args
-      <$> option parseUniform
-          ( long "uniform-scale"
-         <> help "Whether to use a uniform scale for all outputs.  One of: none (default), time, memory, both."
-         <> value None
-         <> metavar "AXES" )
-      <*> option parseSort
+      <$> option parseSort
           ( long "sort"
          <> help "How to sort the bands.  One of: size (default), stddev, name."
          <> value Size
@@ -81,15 +74,6 @@ argParser = Args
       <*> some (argument str
           ( help "Eventlogs (FILE.eventlog will be converted to FILE.html)."
          <> metavar "FILES..." ))
-
-
-parseUniform :: ReadM Uniform
-parseUniform = eitherReader $ \s -> case s of
-  "none" -> Right None
-  "time" -> Right Time
-  "memory" -> Right Memory
-  "both" -> Right Both
-  _ -> Left "expected one of: none, time, memory, both"
 
 parseSort :: ReadM Sort
 parseSort = eitherReader $ \s -> case s of
