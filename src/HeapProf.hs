@@ -2,15 +2,12 @@
 module HeapProf (chunk) where
 
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
+import qualified Prelude
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)
 import Data.Text.IO (readFile)
 import Data.Attoparsec.Text (parseOnly, double)
 
 import Types
-
-myLength :: [a] -> Int
-myLength [] = 0
-myLength (_:xs) = 1 + myLength xs
 
 chunk :: FilePath -> IO (Header, [Frame], [Trace])
 chunk f = do
@@ -26,7 +23,7 @@ chunkT s =
         zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
       fs = chunkSamples ss
   in  (
-        Header job date smpU valU (myLength fs)
+        Header job date smpU valU (Prelude.length fs)
       ,  fs
       )
 
