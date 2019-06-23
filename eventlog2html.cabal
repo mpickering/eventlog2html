@@ -1,5 +1,5 @@
 Name:                eventlog2html
-Version:             0.9
+Version:             0.1
 Synopsis:            Visualise an eventlog
 Description:         eventlog2html is a library for visualising eventlogs.
                      At the moment, the intended use is to visualise eventlogs
@@ -26,31 +26,34 @@ Extra-source-files:
   javascript/vega@5.4.0
   javascript/stylesheet.css
   javascript/tablogic.js
-Cabal-version:       >=1.8
+cabal-version: 1.18
+extra-doc-files: README.md
+                 CHANGELOG
 Tested-With:         GHC ==8.6.4
 
 Library
-  Build-depends:       base >= 4 && < 5,
-                       array,
-                       attoparsec,
-                       blaze-html,
-                       bytestring,
-                       containers >= 0.5,
-                       filepath,
-                       file-embed,
-                       floatshow,
-                       hvega,
-                       mtl,
-                       optparse-applicative >= 0.14,
-                       semigroups,
-                       text,
-                       ghc-events,
-                       time,
-                       hashtables,
-                       aeson,
-                       filepath
+  Build-depends:
+    aeson                >= 1.4.3 && < 1.5,
+    attoparsec           >= 0.13.2 && < 0.14,
+    array                >= 0.5.3 && < 0.6,
+    base                 >= 4 && < 5,
+    bytestring           >= 0.10.8 && < 0.11,
+    containers           >= 0.6.0 && < 0.7,
+    text                 >= 1.2.3 && < 1.3,
+    time                 >= 1.8.0 && < 1.9,
+    blaze-html           >= 0.9.1 && < 0.10,
+    file-embed           >= 0.0.11 && < 0.1,
+    filepath             >= 1.4.2 && < 1.5,
+    floatshow            >= 0.2.4 && < 0.3,
+    ghc-events           >= 0.9.0 && < 0.10,
+    hashtables           >= 1.2.3 && < 1.3,
+    hvega                >= 0.2.0 && < 0.3,
+    mtl                  >= 2.2.2 && < 2.3,
+    optparse-applicative >= 0.14.3 && < 0.15,
+    semigroups           >= 0.19 && < 0.20
 
   GHC-options:         -Wall
+  default-language:    Haskell2010
   HS-source-dirs:      src
   exposed-modules:     Args
                        Data
@@ -66,9 +69,15 @@ Library
                        VegaTemplate
 
 Executable eventlog2html
+  default-language:    Haskell2010
   HS-source-dirs:      main
   Main-is:             Main.hs
-  build-depends: base >= 4 && < 5, eventlog2html, aeson, filepath, text
+  build-depends:
+      base >= 4 && < 5,
+      eventlog2html,
+      aeson                >= 1.4.3 && < 1.5,
+      text                 >= 1.2.3 && < 1.3,
+      filepath             >= 1.4.2 && < 1.5
 
 
 Source-repository head
