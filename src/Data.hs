@@ -2,7 +2,7 @@
 module Data (generateJson) where
 
 import Prelude hiding (print, readFile)
-import Data.Aeson (Value(..), toJSON, (.=), object)
+import Data.Aeson (Value(..), (.=), object)
 import Data.Tuple (swap)
 
 import Args (Args(..), Sort(..))

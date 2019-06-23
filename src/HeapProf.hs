@@ -26,9 +26,6 @@ chunkT s =
       ,  fs
       )
 
-stddev :: Double -> (Double, Double) -> (Double, Double)
-stddev s0 (s1, s2) = (s1, sqrt (s0 * s2 - s1 * s1) / s0)
-
 header :: Text -> Text -> Text
 header name h =
   if name `isPrefixOf` h
