@@ -3,6 +3,7 @@
 [Interactive Documentation](https://mpickering.github.io/eventlog2html/)
 
 [![Build Status](https://travis-ci.org/mpickering/eventlog2html.svg?branch=master)](https://travis-ci.org/mpickering/eventlog2html)
+![Hackage](https://img.shields.io/hackage/v/eventlog2html.svg)
 
 `eventlog2html` is a tool to visualise eventlogs. In particular, it creates
 interactive charts for the heap profiling information included in the
