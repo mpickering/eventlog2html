@@ -54,7 +54,7 @@ main = do
         compile $ do
             examples <- loadAllSnapshots "examples/*" "snippet"
             let widthCtx =
-                    constField "width" (show $ (cwidth exampleConf + 50)) `mappend`
+                    constField "width" (show $ (cwidth exampleConf + 60)) `mappend`
                     defaultContext
             let examplesCtx =
                     listField "examples" widthCtx (return examples) `mappend`
