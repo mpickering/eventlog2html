@@ -239,8 +239,7 @@ encodingTracesLayer =
     . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
     . VL.size [MNumber 2]
     -- The "tooltips" feature is not in the current version of HVega
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "tx", "type" .= String "quantitative", "title" .= String "Time", "format" .= String ".3f"],
-                             object ["field" .= String "desc", "type" .= String "nominal", "title" .= String "Event"]])
+    . injectJSON "tooltip" (toJSON [object ["field" .= String "desc", "type" .= String "nominal", "title" .= String "Event"]])
 
 -----------------------------------------------------------------------------------
 -- The legend
