@@ -196,7 +196,7 @@ encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "x", "type" .= String "quantitative", "title" .= String "Time", "format" .= String ".3f"],
+    . injectJSON "tooltip" (toJSON [object ["field" .= String "y", "type" .= String "quantitative", "format" .= String "s", "title" .= String "Allocation"],
                              object ["field" .= String "c", "type" .= String "nominal", "title" .= String "Type"]])
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
