@@ -63,20 +63,20 @@ htmlHeader dat as =
     H.style $ preEscapedToHtml stylesheet
 
 template :: Header -> Value -> Args -> Html
-template header dat as = docTypeHtml $ do
+template header' dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "tabcontent" $ do
       h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
-      code $ toHtml $ hJob header
+      code $ toHtml $ hJob header'
 
     button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
     button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
     button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
     button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
 
-    mapM_ (\(vid, name, conf) ->
-             H.div ! A.id name ! class_ "tabviz" $ do
+    mapM_ (\(vid, chartname, conf) ->
+             H.div ! A.id chartname ! class_ "tabviz" $ do
                renderChart vid
                 (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
       [(1, "areachart",  AreaChart Stacked)
@@ -87,7 +87,7 @@ template header dat as = docTypeHtml $ do
     script $ preEscapedToHtml tablogic
 
 htmlConf :: Args -> ChartType -> ChartConfig
-htmlConf a = ChartConfig 1200 1000 (not (noTraces a)) (userColourScheme a)
+htmlConf as = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as)
 
 renderChart :: VizID -> Text -> Html
 renderChart vid vegaSpec = do
@@ -102,5 +102,5 @@ renderChartWithJson k dat vegaSpec = do
 
 
 templateString :: Header -> Value -> Args -> String
-templateString header dat as =
-  renderHtml $ template header dat as
+templateString header' dat as =
+  renderHtml $ template header' dat as

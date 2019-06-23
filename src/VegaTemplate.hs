@@ -21,8 +21,8 @@ import Data.Text.Lazy (toStrict)
 injectJSON :: Text -> Value -> BuildLabelledSpecs
 injectJSON t val = \x -> x ++ [(t,val)]
 
-injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
-injectJSONs ts = \x -> x ++ ts
+-- injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
+-- injectJSONs ts = \x -> x ++ ts
 
 data AreaChartType
   = Stacked

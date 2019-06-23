@@ -2,7 +2,6 @@
 module Total (total) where
 
 import Control.Monad.State.Strict (State(), execState, get, put, modify)
-import Data.List (foldl')
 import Data.Map (Map, empty, lookup, insert, alter)
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text)
@@ -34,7 +33,7 @@ stddev s0 (s1, s2) = (s1, sqrt (s0 * s2 - s1 * s1) / s0)
 
 parseFrame :: Frame -> State Parse ()
 parseFrame (Frame _time ls) = do
-  samples <- mapM inserter ls
+  _ <- mapM inserter ls
   modify $ \p -> p{ count = count p + 1 }
 
 inserter :: Sample -> State Parse Double
