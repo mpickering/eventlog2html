@@ -61,15 +61,18 @@ vegaJsonText :: ChartConfig -> Text
 vegaJsonText conf = toStrict (encodeToLazyText (vegaJson conf))
 
 vegaResult :: ChartConfig -> VegaLite
-vegaResult conf = toVegaLite
+vegaResult conf = toVegaLite $
+  -- Subtract 100 from the width for the fixed size label allocation.
+  let c' = conf { cwidth = cwidth conf - 130 }
+  in
   [
     VL.width (cwidth conf),
     VL.height (cheight conf),
     config [],
     description "Heap Profile",
     case chartType conf of
-      LineChart -> lineChartFull conf
-      AreaChart ct -> areaChartFull ct conf
+      LineChart -> lineChartFull c'
+      AreaChart ct -> areaChartFull ct c'
   ]
 
 areaChartFull :: AreaChartType -> ChartConfig -> (VLProperty, VLSpec)
@@ -101,7 +104,7 @@ lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer | traces c])]
 linesLayer :: ChartConfig -> VLSpec
 linesLayer c = asSpec
   [
-    VL.width (0.75 * cwidth c),
+    VL.width (0.9 * cwidth c),
     VL.height (0.7 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Line [],
@@ -153,7 +156,7 @@ brush = (selection . injectJSON "brush" (object [ "type" .= String "interval"
 
 selectionChart :: ChartConfig -> VLSpec
 selectionChart c = asSpec [
-    VL.width (0.75 * cwidth c),
+    VL.width (0.9 * cwidth c),
     VL.height (0.1 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
@@ -177,7 +180,7 @@ areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer | traces c])]
 bandsLayer :: AreaChartType -> ChartConfig -> VLSpec
 bandsLayer ct c = asSpec
   [
-    VL.width (0.75 * cwidth c),
+    VL.width (0.9 * cwidth c),
     VL.height (0.7 * cheight c),
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
@@ -200,7 +203,10 @@ encodingBandsLayer ct c =
     . position Y [PName "y"
                  , PmType Quantitative
                  , PAxis $ case ct of
-                             Stacked -> [AxTitle "Allocation", AxFormat "s", AxMaxExtent 20.0, AxLabelOverlap OGreedy]
+                             Stacked -> [AxTitle "Allocation"
+                                        , AxFormat "s"
+                                        , AxTitlePadding 15.0
+                                        , AxMaxExtent 15.0]
                              Normalized -> [AxTitle "Allocation (Normalized)", AxFormat "p"]
                              StreamGraph -> [AxTitle "Allocation (Streamgraph)", AxLabels False, AxTicks False, AxTitlePadding 10.0]
                  , PAggregate Sum
@@ -266,7 +272,12 @@ encodingRight =
                     ])
   . position Y [PName "c"
                , PmType Nominal
-               , PAxis [AxOrient SRight, AxDomain False, AxTicks False, AxGrid False]
+               , PAxis [ AxOrient SRight
+                       , AxDomain False
+                       , AxTicks False
+                       , AxGrid False
+                       , AxMinExtent 100
+                       , AxMaxExtent 100]
                , PSort [(ByField "k"), Descending]]
 
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
