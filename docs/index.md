@@ -39,9 +39,14 @@ In the current directory a file `my-leaky-program.eventlog` will be produced.
 This is what you need to pass to `eventlog2html` to generate the profiling
 graphs.
 
-Note: The `-l-au` suffix will result in a significantly smaller eventlog
+
+<div class="alert alert-info" role="alert">
+
+The `-l-au` suffix will result in a significantly smaller eventlog
 as it will not include thread events. This makes a big difference for
 multi-threaded applications.
+
+</div>
 
 ### Adding markers
 
