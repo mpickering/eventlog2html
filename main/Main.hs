@@ -38,7 +38,7 @@ doOneJson a fin fout = do
 
 doJson :: Args -> IO ()
 doJson a@((files &&& outputFile) -> (fs, Nothing)) =
-  forM_ (files a) $ \file -> doOneJson a file (file <.> "json")
+  forM_ fs $ \file -> doOneJson a file (file <.> "json")
 doJson a@((files &&& outputFile) -> ([fin], Just fout)) =
   doOneJson a fin fout
 doJson _ =
@@ -52,7 +52,7 @@ doOneHtml a fin fout = do
 
 doHtml :: Args -> IO ()
 doHtml a@((files &&& outputFile) -> (fs, Nothing)) =
-  forM_ (files a) $ \file -> doOneHtml a file (file <.> "html")
+  forM_ fs $ \file -> doOneHtml a file (file <.> "html")
 doHtml a@((files &&& outputFile) -> ([fin], Just fout)) =
   doOneHtml a fin fout
 doHtml _ =
