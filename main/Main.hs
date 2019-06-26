@@ -1,10 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
-{-# LANGUAGE ViewPatterns #-}
 module Main (main) where
 
 import Control.Monad
-import Control.Arrow ((&&&))
 import Data.Aeson (encodeFile, Value, toJSON)
 import System.FilePath
 import System.Exit
@@ -27,34 +25,23 @@ main = do
   argsToOutput a
 
 argsToOutput :: Args -> IO ()
-argsToOutput a =
-  if | json a -> doJson a
-     | otherwise -> doHtml a
-
+argsToOutput a@Args{files = files, outputFile = Nothing} =
+  if | json a    -> forM_ fs $ \file -> doOneJson a file (file <.> "json")
+     | otherwise -> forM_ fs $ \file -> doOneHtml a file (file <.> "html")
+argsToOutput a@Args{files = [fin], outputFile = Just fout} =
+  if | json a    -> doOneJson a fin fout
+     | otherwise -> doOneHtml a fin fout
+argsToOutput _ =
+  die "When the -o option is specified, exactly one eventlog file has to be passed."
+  
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
   (_, val) <- generateJson fin a
   encodeFile fout val
-
-doJson :: Args -> IO ()
-doJson a@((files &&& outputFile) -> (fs, Nothing)) =
-  forM_ fs $ \file -> doOneJson a file (file <.> "json")
-doJson a@((files &&& outputFile) -> ([fin], Just fout)) =
-  doOneJson a fin fout
-doJson _ =
-  die "When the -o option is specified, exactly one eventlog file has to be passed."
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   (header, data_json) <- generateJson fin a
   let html = templateString header data_json a
   writeFile fout html
-
-doHtml :: Args -> IO ()
-doHtml a@((files &&& outputFile) -> (fs, Nothing)) =
-  forM_ fs $ \file -> doOneHtml a file (file <.> "html")
-doHtml a@((files &&& outputFile) -> ([fin], Just fout)) =
-  doOneHtml a fin fout
-doHtml _ =
-  die "When the -o option is specified, exactly one eventlog file has to be passed."
 
