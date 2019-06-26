@@ -26,8 +26,8 @@ main = do
 
 argsToOutput :: Args -> IO ()
 argsToOutput a@Args{files = files, outputFile = Nothing} =
-  if | json a    -> forM_ fs $ \file -> doOneJson a file (file <.> "json")
-     | otherwise -> forM_ fs $ \file -> doOneHtml a file (file <.> "html")
+  if | json a    -> forM_ files $ \file -> doOneJson a file (file <.> "json")
+     | otherwise -> forM_ files $ \file -> doOneHtml a file (file <.> "html")
 argsToOutput a@Args{files = [fin], outputFile = Just fout} =
   if | json a    -> doOneJson a fin fout
      | otherwise -> doOneHtml a fin fout
