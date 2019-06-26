@@ -1,4 +1,3 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
 module Main (main) where
@@ -26,21 +25,23 @@ main = do
   argsToOutput a
 
 argsToOutput :: Args -> IO ()
-argsToOutput a =
-  if | json a -> doJson a
-     | otherwise -> doHtml a
+argsToOutput a@Args{files = files, outputFile = Nothing} =
+  if | json a    -> forM_ files $ \file -> doOneJson a file (file <.> "json")
+     | otherwise -> forM_ files $ \file -> doOneHtml a file (file <.> "html")
+argsToOutput a@Args{files = [fin], outputFile = Just fout} =
+  if | json a    -> doOneJson a fin fout
+     | otherwise -> doOneHtml a fin fout
+argsToOutput _ =
+  die "When the -o option is specified, exactly one eventlog file has to be passed."
+  
+doOneJson :: Args -> FilePath -> FilePath -> IO ()
+doOneJson a fin fout = do
+  (_, val) <- generateJson fin a
+  encodeFile fout val
 
-doJson :: Args -> IO ()
-doJson a = do
-  forM_ (files a) $ \file -> do
-    (_, val) <- generateJson file a
-    encodeFile (file <.> "json") val
+doOneHtml :: Args -> FilePath -> FilePath -> IO ()
+doOneHtml a fin fout = do
+  (header, data_json) <- generateJson fin a
+  let html = templateString header data_json a
+  writeFile fout html
 
-doHtml :: Args -> IO ()
-doHtml a = do
-  forM_ (files a) $ \file -> do
-    (header, data_json) <- generateJson file a
-    let html = templateString header data_json a
-    let filename2 = file <.> "html"
-    writeFile filename2 html
-    exitSuccess

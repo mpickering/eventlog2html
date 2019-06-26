@@ -10,6 +10,7 @@ module Eventlog.Args
 import Options.Applicative
 import Data.Text (Text)
 import Data.Semigroup ((<>))
+import Control.Applicative (optional)
 
 data Sort = Size | StdDev | Name
 
@@ -24,6 +25,7 @@ data Args = Args
   , json         :: Bool
   , noTraces     :: Bool
   , userColourScheme :: Text
+  , outputFile :: Maybe String
   , files        :: [String]
   }
 
@@ -67,6 +69,10 @@ argParser = Args
           ( long "colour-scheme"
           <> value "category20b"
           <> help "The name of the colour scheme. See the vega documentation (https://vega.github.io/vega/docs/schemes/#reference) for a complete list. Examples include \"category10\" \"dark2\" \"tableau10\". ")
+      <*> (optional $ option str
+          (short 'o'
+          <> help "Write the output to the given filename."
+          <> metavar "OUTFILE"))
       <*> some (argument str
           ( help "Eventlogs (FILE.eventlog will be converted to FILE.html)."
          <> metavar "FILES..." ))
