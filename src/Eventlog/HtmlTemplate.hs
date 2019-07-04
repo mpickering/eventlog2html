@@ -71,6 +71,9 @@ template header' dat as = docTypeHtml $ do
     H.div ! class_ "tabcontent" $ do
       h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
       code $ toHtml $ hJob header'
+      br
+      "Eventlog created at :"
+      code $ toHtml $ hDate header'
 
     button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
     button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
