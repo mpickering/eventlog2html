@@ -68,23 +68,37 @@ template :: Header -> Value -> Args -> Html
 template header' dat as = docTypeHtml $ do
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
-    H.div ! class_ "tabcontent" $ do
-      h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
-      code $ toHtml $ hJob header'
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
 
-    button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
-    button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
-    button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
-    button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        "Options: "
+        code $ toHtml $ hJob header'
 
-    mapM_ (\(vid, chartname, conf) ->
-             H.div ! A.id chartname ! class_ "tabviz" $ do
-               renderChart vid
-                (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
-      [(1, "areachart",  AreaChart Stacked)
-      ,(2, "normalizedchart", AreaChart Normalized)
-      ,(3, "streamgraph", AreaChart StreamGraph)
-      ,(4, "linechart", LineChart)]
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        "Created at: "
+        code $ toHtml $ hDate header'
+
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
+        button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
+        button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
+        button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
+
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        mapM_ (\(vid, chartname, conf) ->
+                  H.div ! A.id chartname ! class_ "tabviz" $ do
+                    renderChart vid
+                      (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
+          [(1, "areachart",  AreaChart Stacked)
+          ,(2, "normalizedchart", AreaChart Normalized)
+          ,(3, "streamgraph", AreaChart StreamGraph)
+          ,(4, "linechart", LineChart)]
 
     script $ preEscapedToHtml tablogic
 

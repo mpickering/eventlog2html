@@ -2,6 +2,7 @@ unreleased
 
 * Added the commandline option '-o OUTFILE' which writes the output to
   the given filename.
+* Show the time the eventlog was created in the generated HTML output.
 
 0.1, released 2019-06-23
 

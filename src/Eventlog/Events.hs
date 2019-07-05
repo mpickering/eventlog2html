@@ -13,8 +13,8 @@ import Eventlog.Types
 import Data.List
 import Data.Function
 import Data.Word
---import Data.Time
---import Data.Time.Clock.POSIX(posixSecondsToUTCTime)
+import Data.Time
+import Data.Time.Clock.POSIX
 
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
@@ -39,6 +39,7 @@ normalise fs = map (\(t, ss) -> Frame (fromNano t) ss) fs
 
 data EL = EL
   { pargs :: Maybe [String]
+  , clocktimeSec :: Word64
   , samples :: Maybe (Word64, [Sample])
   , frames :: [(Word64, [Sample])]
   , traces :: [Trace]
@@ -46,7 +47,15 @@ data EL = EL
   , end :: Word64 } deriving Show
 
 initEL :: Word64 -> EL
-initEL t = EL Nothing Nothing [] [] t 0
+initEL t = EL
+  { pargs = Nothing
+  , clocktimeSec = 0
+  , samples = Nothing
+  , frames = []
+  , traces = []
+  , start = t
+  , end = 0
+  }
 
 foldEvents :: [Event] -> EL
 foldEvents (e:es) =
@@ -67,9 +76,11 @@ folder el (Event t e _) = el &
       --HeapProfSampleCostCentre {} -> True
       HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
       ProgramArgs _ as -> addArgs as
+      WallClockTime _ s _ -> addClocktime s
       _ -> id
 
-
+addClocktime :: Word64 -> EL -> EL
+addClocktime s el = el { clocktimeSec = s }
 
 addArgs :: [String] -> EL -> EL
 addArgs as el = el { pargs = Just as }
@@ -95,13 +106,17 @@ addSample s el = el { samples = go <$> (samples el) }
 updateLast :: Word64 -> EL -> EL
 updateLast t el = el { end = t }
 
+formatDate :: Word64 -> T.Text
+formatDate sec =
+  let posixTime :: POSIXTime
+      posixTime = realToFrac sec
+  in
+    T.pack $ formatTime defaultTimeLocale "%Y-%m-%d, %H:%M %Z" (posixSecondsToUTCTime posixTime)
 
 elHeader :: EL -> PartialHeader
 elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
-   --   dl = formatTime defaultTimeLocale "%c"
-   --      . posixSecondsToUTCTime $ realToFrac start
-
-  in Header title "aaa" "" ""
+      date = formatDate clocktimeSec
+  in Header title date "" ""
 
 
