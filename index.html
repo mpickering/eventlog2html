@@ -49,7 +49,9 @@ res.view
 <pre><code>my-leaky-program +RTS -hy -l-au</code></pre>
 </div>
 <p>In the current directory a file <code>my-leaky-program.eventlog</code> will be produced. This is what you need to pass to <code>eventlog2html</code> to generate the profiling graphs.</p>
-<p>Note: The <code>-l-au</code> suffix will result in a significantly smaller eventlog as it will not include thread events. This makes a big difference for multi-threaded applications.</p>
+<div class="alert alert-info" role="alert">
+<p>The <code>-l-au</code> suffix will result in a significantly smaller eventlog as it will not include thread events. This makes a big difference for multi-threaded applications.</p>
+</div>
 <h3 id="adding-markers">Adding markers</h3>
 <p>An advantage of using the eventlog is that other events can be correlated with heap allocations. Strings emitted using <a href="http://hackage.haskell.org/package/base-4.12.0.0/docs/Debug-Trace.html#v:traceEvent"><code>traceEvent</code></a> are displayed on the chart as a verticle gray line. Hovering near the line will display the name of the event which is nearest to the cursor.</p>
 <div class="card mx-auto" style="max-width: 600px">
@@ -116,6 +118,7 @@ Available options:
                            (https://vega.github.io/vega/docs/schemes/#reference)
                            for a complete list. Examples include &quot;category10&quot;
                            &quot;dark2&quot; &quot;tableau10&quot;.
+  -o OUTFILE               Write the output to the given filename.
   FILES...                 Eventlogs (FILE.eventlog will be converted to
                            FILE.html).
   -h,--help                Show this help text</code></pre>
