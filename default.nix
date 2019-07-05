@@ -1,7 +1,7 @@
 let
   pin = import ((import ./nix/sources.nix).nixpkgs) {} ;
   # Import the Haskell.nix library,
-  haskell = import (builtins.fetchTarball https://github.com/input-output-hk/haskell.nix/archive/master.tar.gz) { pkgs = pin; };
+  haskell = import ((import ./nix/sources.nix)."haskell.nix") { pkgs = pin; };
 
   pkgPlan = haskell.callCabalProjectToNix
               { index-state = "2019-05-10T00:00:00Z"
