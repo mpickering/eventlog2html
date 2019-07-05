@@ -1,5 +1,5 @@
 Name:                eventlog2html
-Version:             0.1.0
+Version:             0.2.0
 Synopsis:            Visualise an eventlog
 Description:         eventlog2html is a library for visualising eventlogs.
                      At the moment, the intended use is to visualise eventlogs
