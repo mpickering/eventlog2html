@@ -14,6 +14,7 @@ import Eventlog.Total (total)
 import Eventlog.Vega
 import Eventlog.Types (Header)
 
+
 generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk
