@@ -276,7 +276,7 @@ encodingRight =
                        , AxGrid False
                        , AxMinExtent 100
                        , AxMaxExtent 100]
-               , PSort [(ByField "k"), Descending]]
+               , PSort [(ByFieldOp "k" Mean), Descending]]
 
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =
