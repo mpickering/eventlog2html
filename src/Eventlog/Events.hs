@@ -3,11 +3,14 @@
 {-# LANGUAGE PatternGuards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE StrictData #-}
 module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
+import Data.Text (Text)
 
 import Eventlog.Types
 import Data.List
@@ -15,6 +18,9 @@ import Data.Function
 import Data.Word
 import Data.Time
 import Data.Time.Clock.POSIX
+import qualified Data.Map as Map
+import Data.Vector.Unboxed (Vector, (!?))
+import Data.Maybe
 
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
@@ -38,13 +44,19 @@ normalise :: [(Word64, [Sample])] -> [Frame]
 normalise fs = map (\(t, ss) -> Frame (fromNano t) ss) fs
 
 data EL = EL
-  { pargs :: Maybe [String]
-  , clocktimeSec :: Word64
-  , samples :: Maybe (Word64, [Sample])
-  , frames :: [(Word64, [Sample])]
-  , traces :: [Trace]
-  , start :: Word64
-  , end :: Word64 } deriving Show
+  { pargs :: !(Maybe [String])
+  , ccMap :: !(Map.Map Word32 CostCentre)
+  , clocktimeSec :: !Word64
+  , samples :: !(Maybe (Word64, [Sample]))
+  , frames :: ![(Word64, [Sample])]
+  , traces :: ![Trace]
+  , start :: !Word64
+  , end :: !Word64 } deriving Show
+
+data CostCentre = CC { cid :: Word32
+                     , label :: Text
+                     , modul :: Text
+                     , loc :: Text } deriving Show
 
 initEL :: Word64 -> EL
 initEL t = EL
@@ -55,6 +67,7 @@ initEL t = EL
   , traces = []
   , start = t
   , end = 0
+  , ccMap = Map.empty
   }
 
 foldEvents :: [Event] -> EL
@@ -71,13 +84,25 @@ folder el (Event t e _) = el &
       Message s -> addTrace (Trace (fromNano t) (T.pack s))
       UserMessage s -> addTrace (Trace (fromNano t) (T.pack s))
       HeapProfBegin {} -> addFrame t
-      --HeapProfCostCentre {} -> False
+      HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
-      --HeapProfSampleCostCentre {} -> True
+      HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
       ProgramArgs _ as -> addArgs as
       WallClockTime _ s _ -> addClocktime s
       _ -> id
+
+addCostCentre :: Word32 -> CostCentre -> EL -> EL
+addCostCentre s cc el = el { ccMap = Map.insert s cc (ccMap el) }
+
+addCCSample :: Word64 -> Word8 -> Vector Word32 -> EL -> EL
+addCCSample res _sd st el =
+  fromMaybe (addSample (Sample "NONE" (fromIntegral res)) el) $ do
+  cid <- st !? 0
+  CC{label, modul} <- Map.lookup cid (ccMap el)
+  let fmtl = modul <> "." <> label
+  return $ addSample (Sample fmtl (fromIntegral res)) el
+
 
 addClocktime :: Word64 -> EL -> EL
 addClocktime s el = el { clocktimeSec = s }
