@@ -110,14 +110,13 @@ addIdent s el = el { ident = parseIdent s }
 parseIdent :: String -> Maybe (Version, String)
 parseIdent s = listToMaybe $ flip readP_to_S s $ do
   void $ string "GHC-"
-  [v1, v2, v3] <- replicateM 3 (digit <* optional (char '.'))
+  [v1, v2, v3] <- replicateM 3 (intP <* optional (char '.'))
   skipSpaces
   return (makeVersion [v1,v2,v3])
-
   where
-    digit = read . singleton <$> satisfy isDigit
-
-    singleton x = [x]
+    intP = do
+      x <- munch1 isDigit
+      return $ read x
 
 
 addCostCentre :: Word32 -> CostCentre -> EL -> EL
