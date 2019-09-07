@@ -10,7 +10,6 @@ import Eventlog.Bands (bands)
 import qualified Eventlog.Events as E
 import qualified Eventlog.HeapProf as H
 import Eventlog.Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Eventlog.Total (total)
 import Eventlog.Vega
 import Eventlog.Types (Header)
 
@@ -23,9 +22,7 @@ generateJson file a = do
         Size -> cmpSize
         StdDev -> cmpStdDev
       reversing' = if reversing a then swap else id
-  (ph, fs, traces) <- chunk file
-  let (counts, totals) = total fs
-  let h = ph counts
+  (h,totals, fs, traces) <- chunk file
   let keeps = prune cmp 0 (bound $ nBands a) totals
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)

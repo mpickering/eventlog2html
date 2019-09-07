@@ -11,8 +11,10 @@ import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 import Data.Text (Text)
+import Data.Map (Map)
 
 import Eventlog.Types
+import Eventlog.Total
 import Data.List
 import Data.Function
 import Data.Word
@@ -25,8 +27,12 @@ import Data.Maybe
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
-chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
-chunk f = eventlogToHP . either error id =<< readEventLogFromFile f
+chunk :: FilePath -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
+chunk f = do
+  el <- either error id <$> readEventLogFromFile f
+  (ph, frames, traces) <- eventlogToHP el
+  let (counts, totals) = total frames
+  return $ (ph counts, totals, frames, traces)
 
 eventlogToHP :: EventLog -> IO (PartialHeader, [Frame], [Trace])
 eventlogToHP (EventLog _h e) = do

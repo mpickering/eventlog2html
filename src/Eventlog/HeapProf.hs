@@ -5,14 +5,17 @@ import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)
 import Data.Text.IO (readFile)
 import Data.Attoparsec.Text (parseOnly, double)
+import Data.Map (Map)
 
+import Eventlog.Total
 import Eventlog.Types
 
-chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
+chunk :: FilePath -> IO (Header, Map Text (Double, Double), [Frame], [Trace])
 chunk f = do
   (ph, fs) <- chunkT <$> readFile f
+  let (counts, totals) = total fs
   -- Heap profiles do not support traces
-  return (ph, fs, [])
+  return (ph counts, totals, fs, [])
 
 chunkT :: Text -> (PartialHeader, [Frame])
 chunkT s =
