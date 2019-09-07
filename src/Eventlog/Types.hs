@@ -11,8 +11,6 @@ data Header =
   , hCount       :: Int
   }
 
-type PartialHeader = Int -> Header
-
 data Sample = Sample Text Double deriving Show
 
 data Frame = Frame Double [Sample] deriving Show
