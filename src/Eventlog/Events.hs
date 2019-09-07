@@ -21,6 +21,10 @@ import Data.Time.Clock.POSIX
 import qualified Data.Map as Map
 import Data.Vector.Unboxed (Vector, (!?))
 import Data.Maybe
+import Data.Version
+import Text.ParserCombinators.ReadP
+import Control.Monad
+import Data.Char
 
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
@@ -43,8 +47,10 @@ eventsToHP (Data es) = do
 normalise :: [(Word64, [Sample])] -> [Frame]
 normalise fs = map (\(t, ss) -> Frame (fromNano t) ss) fs
 
+
 data EL = EL
   { pargs :: !(Maybe [String])
+  , ident :: Maybe (Version, String)
   , ccMap :: !(Map.Map Word32 CostCentre)
   , clocktimeSec :: !Word64
   , samples :: !(Maybe (Word64, [Sample]))
@@ -61,6 +67,7 @@ data CostCentre = CC { cid :: Word32
 initEL :: Word64 -> EL
 initEL t = EL
   { pargs = Nothing
+  , ident = Nothing
   , clocktimeSec = 0
   , samples = Nothing
   , frames = []
@@ -81,6 +88,7 @@ folder el (Event t e _) = el &
   updateLast t .
     case e of
       -- Traces
+      RtsIdentifier _ ident -> addIdent ident
       Message s -> addTrace (Trace (fromNano t) (T.pack s))
       UserMessage s -> addTrace (Trace (fromNano t) (T.pack s))
       HeapProfBegin {} -> addFrame t
@@ -91,6 +99,22 @@ folder el (Event t e _) = el &
       ProgramArgs _ as -> addArgs as
       WallClockTime _ s _ -> addClocktime s
       _ -> id
+
+addIdent :: String -> EL -> EL
+addIdent s el = el { ident = parseIdent s }
+
+parseIdent :: String -> Maybe (Version, String)
+parseIdent s = listToMaybe $ flip readP_to_S s $ do
+  void $ string "GHC-"
+  [v1, v2, v3] <- replicateM 3 (digit <* optional (char '.'))
+  skipSpaces
+  return (makeVersion [v1,v2,v3])
+
+  where
+    digit = read . singleton <$> satisfy isDigit
+
+    singleton x = [x]
+
 
 addCostCentre :: Word32 -> CostCentre -> EL -> EL
 addCostCentre s cc el = el { ccMap = Map.insert s cc (ccMap el) }
