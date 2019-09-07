@@ -17,7 +17,7 @@ chunk f = do
   -- Heap profiles do not support traces
   return (ph counts, totals, fs, [])
 
-chunkT :: Text -> (PartialHeader, [Frame])
+chunkT :: Text -> (Int -> Header, [Frame])
 chunkT s =
   let ls = lines s
       (hs, ss) = splitAt 4 ls

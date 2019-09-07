@@ -24,19 +24,17 @@ import qualified Data.Map as Map
 import Data.Vector.Unboxed (Vector, (!?))
 import Data.Maybe
 
+type PartialHeader = Int -> Header
+
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
 chunk :: FilePath -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
 chunk f = do
-  el <- either error id <$> readEventLogFromFile f
-  (ph, frames, traces) <- eventlogToHP el
+  (EventLog _ e) <- either error id <$> readEventLogFromFile f
+  (ph, frames, traces) <- eventsToHP e
   let (counts, totals) = total frames
   return $ (ph counts, totals, frames, traces)
-
-eventlogToHP :: EventLog -> IO (PartialHeader, [Frame], [Trace])
-eventlogToHP (EventLog _h e) = do
-  eventsToHP e
 
 eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
 eventsToHP (Data es) = do
