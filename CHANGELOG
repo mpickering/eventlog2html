@@ -1,5 +1,6 @@
 unreleased
 
+* Moved to version 0.4 of HVega.
 * HeapProfCostCentre and HeapProfSampleCostCentre Events are included  in the generated output.
 
 0.2, released 2019-07-05
