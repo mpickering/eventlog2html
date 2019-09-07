@@ -3,13 +3,13 @@ let
   # Import the Haskell.nix library,
   haskell = import ((import ./nix/sources.nix)."haskell.nix") { pkgs = pin; };
 
-  pkgPlan = haskell.callCabalProjectToNix
+  pkgPlan = haskell.importAndFilterProject (haskell.callCabalProjectToNix
               { index-state = "2019-09-05T00:00:00Z"
-              ; src = pin.lib.cleanSource ./.;};
+              ; src = pin.lib.cleanSource ./.;});
 
   # Instantiate a package set using the generated file.
   pkgSet = haskell.mkCabalProjectPkgSet {
-    plan-pkgs = import pkgPlan.projectNix;
+    plan-pkgs = pkgPlan.pkgs;
     pkg-def-extras = [];
     modules = [];
   };
