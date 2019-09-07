@@ -24,7 +24,8 @@ generateJson file a = do
         StdDev -> cmpStdDev
       reversing' = if reversing a then swap else id
   (ph, fs, traces) <- chunk file
-  let (h, totals) = total ph fs
+  let (counts, totals) = total fs
+  let h = ph counts
   let keeps = prune cmp 0 (bound $ nBands a) totals
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)

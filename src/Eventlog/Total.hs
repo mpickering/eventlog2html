@@ -19,11 +19,11 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ symbols = empty, totals = empty, count = 0 }
 
-total :: PartialHeader -> [Frame] -> (Header, Map Text (Double, Double))
-total ph fs =
+total :: [Frame] -> (Int, Map Text (Double, Double))
+total fs =
   let parse1 = flip execState parse0 . mapM_ parseFrame $ fs
   in  (
-       ph (count parse1)
+       count parse1
       , fmap (stddev $ fromIntegral (count parse1)) (totals parse1)
       )
 
