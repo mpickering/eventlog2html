@@ -21,9 +21,6 @@ import Data.Text.Lazy (toStrict)
 injectJSON :: Text -> Value -> BuildLabelledSpecs
 injectJSON t val = \x -> x ++ [(t,val)]
 
--- injectJSONs :: [(Text, Value)] -> BuildLabelledSpecs
--- injectJSONs ts = \x -> x ++ ts
-
 data AreaChartType
   = Stacked
   | Normalized
@@ -109,7 +106,7 @@ linesLayer c = asSpec
     dataFromSource "data_json_samples" [],
     VL.mark Line [],
     encodingLineLayer c [],
-    transformLineLayer
+    transformLineLayer []
   ]
 
 encodingLineLayer :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
@@ -120,21 +117,12 @@ encodingLineLayer c
                   PScale [SDomain (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
 
-transformLineLayer :: (VLProperty, VLSpec)
+transformLineLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformLineLayer =
-  -- We need to get the `VLTransform` data constructor but it's not
-  -- exported
-  let (label, _vs) = transform . filter (FSelection "legend") $ []
-  in (label,
-  toJSON [object ["window" .= [object ["field" .= String "y"
-                                      , "op" .= String "max"
-                                      , "as" .= String "max_y"]]
-                              , "frame" .= toJSON [Null, Null]
-                              , "groupby" .= toJSON [String "k"]]
-         , object ["calculate" .= String "datum.y / datum.max_y"
-                          , "as" .= String "norm_y"]
-         , object ["filter" .= object ["selection" .= String "legend"]]])
-
+  transform
+  . window [([WField "y", WAggregateOp Max], "max_y")] [WFrame Nothing Nothing, WGroupBy ["k"]]
+  . calculateAs "datum.y / datum.max_y" "norm_y"
+  . filter (FSelection "legend")
 
 -----------------------------------------------------------------------------------
 -- The Selection Chart
@@ -196,8 +184,10 @@ encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
-    . injectJSON "tooltip" (toJSON [object ["field" .= String "y", "type" .= String "quantitative", "format" .= String "s", "title" .= String "Allocation"],
-                             object ["field" .= String "c", "type" .= String "nominal", "title" .= String "Type"]])
+    . tooltips
+        [ [TName "y", TmType Quantitative, TFormat "s", TTitle "Allocation"]
+        , [TName "c", TmType Nominal, TTitle "Type"]
+        ]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
     . position Y [PName "y"
@@ -259,15 +249,10 @@ encodingRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 encodingRight =
   encoding
   . injectJSON "tooltip" Null
-  . injectJSON "color" (object [
-                    ("value", String "lightgray")
-                    , ("condition", object [
-                                           ("aggregate", String "min")
-                                           ,("field", String "c")
-                                           ,("legend", Null)
-                                           ,("selection", String "legend")
-                                           ,("type", String "nominal")])
-                    ])
+  . color
+     [
+       MSelectionCondition (SelectionName "legend") [MName "c", MmType Nominal, MAggregate Min, MLegend []] [MString "lightgray"]
+     ]
   . position Y [PName "c"
                , PmType Nominal
                , PAxis [ AxOrient SRight
@@ -276,7 +261,7 @@ encodingRight =
                        , AxGrid False
                        , AxMinExtent 100
                        , AxMaxExtent 100]
-               , PSort [(ByField "k"), Descending]]
+               , PSort [(ByFieldOp "k" Mean), Descending]]
 
 selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
 selectionRight =

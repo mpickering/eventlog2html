@@ -11,8 +11,10 @@ import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 import Data.Text (Text)
+import Data.Map (Map)
 
 import Eventlog.Types
+import Eventlog.Total
 import Data.List
 import Data.Function
 import Data.Word
@@ -26,15 +28,17 @@ import Text.ParserCombinators.ReadP
 import Control.Monad
 import Data.Char
 
+type PartialHeader = Int -> Header
+
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
-chunk :: FilePath -> IO (PartialHeader, [Frame], [Trace])
-chunk f = eventlogToHP . either error id =<< readEventLogFromFile f
-
-eventlogToHP :: EventLog -> IO (PartialHeader, [Frame], [Trace])
-eventlogToHP (EventLog _h e) = do
-  eventsToHP e
+chunk :: FilePath -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
+chunk f = do
+  (EventLog _ e) <- either error id <$> readEventLogFromFile f
+  (ph, frames, traces) <- eventsToHP e
+  let (counts, totals) = total frames
+  return $ (ph counts, totals, frames, traces)
 
 checkGHCVersion :: EL -> Maybe String
 checkGHCVersion EL { ident = Just (version,_)}  | version <= makeVersion [8,4,4]  =
