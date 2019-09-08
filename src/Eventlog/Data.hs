@@ -15,7 +15,7 @@ import Eventlog.Types (Header)
 
 generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
-  let chunk = if heapProfile a then H.chunk else E.chunk
+  let chunk = if heapProfile a then H.chunk else E.chunk a
       cmp = fst $ reversing' sorting'
       sorting' = case sorting a of
         Name -> cmpName
@@ -24,10 +24,9 @@ generateJson file a = do
       reversing' = if reversing a then swap else id
   (h,totals, fs, traces) <- chunk file
   let keeps = prune cmp 0 (bound $ nBands a) totals
-      filtered_traces = if noTraces a then [] else traces
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)
-        , "traces"  .= tracesToVega filtered_traces
+        , "traces"  .= tracesToVega traces
         ]
   return (h, combinedJson)
 
