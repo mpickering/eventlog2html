@@ -27,6 +27,7 @@ import Data.Version
 import Text.ParserCombinators.ReadP
 import Control.Monad
 import Data.Char
+import System.IO
 
 type PartialHeader = Int -> Header
 
@@ -41,17 +42,18 @@ chunk f = do
   return $ (ph counts, totals, frames, traces)
 
 checkGHCVersion :: EL -> Maybe String
-checkGHCVersion EL { ident = Just (version,_)}  | version <= makeVersion [8,4,4]  =
-                                                  Just $ "Warning: The eventlog has been generated with GHC version "
-                                                  ++ show version
-                                                  ++ ", which does not support profiling events in the eventlog."
-checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}| version > makeVersion [8,4,4] &&
-                                                                   version <= makeVersion [8,9,0] &&
-                                                                   ("-hr" `elem` args ||
-                                                                    "-hb" `elem` args) =
-                                                                   Just $ "Warning: The eventlog has been generated with GHC version"
-                                                                   ++ show version
-                                                                   ++ ", which does not support biographical or retainer profiling."
+checkGHCVersion EL { ident = Just (version,_)}
+  | version <= makeVersion [8,4,4]  =
+      Just $ "Warning: The eventlog has been generated with GHC version "
+           ++ show version
+           ++ ", which does not support profiling events in the eventlog."
+checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
+  | version > makeVersion [8,4,4] &&
+    version <= makeVersion [8,9,0] &&
+    ("-hr" `elem` args || "-hb" `elem` args) =
+     Just $ "Warning: The eventlog has been generated with GHC version"
+            ++ show version
+            ++ ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
 
@@ -61,7 +63,7 @@ eventsToHP (Data es) = do
       el@EL{..} = foldEvents es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
-  maybe (return ()) putStrLn (checkGHCVersion el)
+  mapM_ (hPutStrLn stderr) (checkGHCVersion el)
   return $ (elHeader el, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [(Word64, [Sample])] -> [Frame]
