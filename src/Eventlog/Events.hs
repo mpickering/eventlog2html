@@ -40,6 +40,21 @@ chunk f = do
   let (counts, totals) = total frames
   return $ (ph counts, totals, frames, traces)
 
+checkGHCVersion :: EL -> Maybe String
+checkGHCVersion EL { ident = Just (version,_)}  | version <= makeVersion [8,4,4]  =
+                                                  Just $ "Warning: The eventlog has been generated with GHC version "
+                                                  ++ show version
+                                                  ++ ", which does not support profiling events in the eventlog."
+checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}| version > makeVersion [8,4,4] &&
+                                                                   version <= makeVersion [8,9,0] &&
+                                                                   ("-hr" `elem` args ||
+                                                                    "-hb" `elem` args) =
+                                                                   Just $ "The eventlog has been generated with GHC version"
+                                                                   ++ show version
+                                                                   ++ ", which does not support biographical or retainer profiling."
+checkGHCVersion _ = Nothing
+
+
 eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
 eventsToHP (Data es) = do
   let
