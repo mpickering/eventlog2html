@@ -25,7 +25,7 @@ data Args = Args
   , json         :: Bool
   , noTraces     :: Bool
   , userColourScheme :: Text
-  , filter :: Maybe String
+  , filterStr :: Maybe String
   , outputFile :: Maybe String
   , files        :: [String]
   }
