@@ -5,7 +5,7 @@ module Eventlog.Data (generateJson) where
 import Prelude hiding (print, readFile)
 import Data.Aeson (Value(..), (.=), object)
 import Data.Tuple (swap)
-import Data.Text (isInfixOf, pack)
+import Data.Text (Text, isInfixOf, pack)
 
 import Eventlog.Args (Args(..), Sort(..))
 import Eventlog.Bands (bands)
@@ -15,10 +15,11 @@ import Eventlog.Prune (prune, cmpName, cmpSize, cmpStdDev)
 import Eventlog.Vega
 import Eventlog.Types (Header, Trace(..))
 
-filterTraces :: String -> [Trace] -> [Trace]
-filterTraces str = filter prop
+filterTraces :: [Text] -> [Trace] -> [Trace]
+filterTraces [] = id
+filterTraces txts = filter prop
   where
-    prop (Trace _ trc) = pack str `isInfixOf` trc
+    prop (Trace _ trc) = any (flip isInfixOf trc) txts
   
 generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a@(Args { filterStr }) = do
@@ -33,7 +34,7 @@ generateJson file a@(Args { filterStr }) = do
   let keeps = prune cmp 0 (bound $ nBands a) totals
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)
-        , "traces"  .= tracesToVega (maybe id filterTraces filterStr traces)
+        , "traces"  .= tracesToVega (filterTraces (pack <$> filterStr) traces)
         ]
   return (h, combinedJson)
 
