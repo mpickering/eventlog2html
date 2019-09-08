@@ -49,7 +49,7 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}| version > mak
                                                                    version <= makeVersion [8,9,0] &&
                                                                    ("-hr" `elem` args ||
                                                                     "-hb" `elem` args) =
-                                                                   Just $ "The eventlog has been generated with GHC version"
+                                                                   Just $ "Warning: The eventlog has been generated with GHC version"
                                                                    ++ show version
                                                                    ++ ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
@@ -61,6 +61,7 @@ eventsToHP (Data es) = do
       el@EL{..} = foldEvents es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
+  maybe (return ()) putStrLn (checkGHCVersion el)
   return $ (elHeader el, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [(Word64, [Sample])] -> [Frame]
