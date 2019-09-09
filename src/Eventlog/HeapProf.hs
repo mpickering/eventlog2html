@@ -10,12 +10,12 @@ import Data.Map (Map)
 import Eventlog.Total
 import Eventlog.Types
 
-chunk :: FilePath -> IO (Header, Map Text (Double, Double), [Frame], [Trace])
+chunk :: FilePath -> IO ProfData
 chunk f = do
   (ph, fs) <- chunkT <$> readFile f
   let (counts, totals) = total fs
   -- Heap profiles do not support traces
-  return (ph counts, totals, fs, [])
+  return (ProfData (ph counts) totals fs [])
 
 chunkT :: Text -> (Int -> Header, [Frame])
 chunkT s =
