@@ -96,7 +96,7 @@ config =
 -----------------------------------------------------------------------------------
 
 lineChart :: ChartConfig -> VLSpec
-lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer])]
+lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer | traces c])]
 
 linesLayer :: ChartConfig -> VLSpec
 linesLayer c = asSpec
@@ -159,7 +159,7 @@ selectionChart c = asSpec [
 -----------------------------------------------------------------------------------
 
 areaChart :: AreaChartType -> ChartConfig -> VLSpec
-areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer])]
+areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer | traces c])]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:
