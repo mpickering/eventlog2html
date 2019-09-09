@@ -30,12 +30,12 @@ cmpSizeAscending = comparing (fst . snd)
 cmpSizeDescending = flip cmpSizeAscending
 
 prune :: Args -> Double -> Map Text (Double, Double) -> Map Text Int
-prune args tracePercent ts =
+prune args percent ts =
   let ccTotals = sortBy cmpSizeDescending (toList ts)
       sizes = map (fst . snd) ccTotals
       total = sum' sizes
-      limit = if tracePercent == 0 then total
-                                   else (1 - tracePercent / 100) * total
+      limit = if percent == 0 then total
+                                   else (1 - percent / 100) * total
       bigs = takeWhile (< limit) . scanl (+) 0 $ sizes
       bands = zipWith const ccTotals $ take (bound $ nBands args) bigs
       ccs = map fst (sortBy (getComparison args) bands)
