@@ -15,6 +15,7 @@ import Data.Map (Map)
 
 import Eventlog.Types
 import Eventlog.Total
+import Eventlog.Args (Args(..))
 import Data.List
 import Data.Function
 import Data.Word
@@ -34,10 +35,10 @@ type PartialHeader = Int -> Header
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
-chunk :: FilePath -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
-chunk f = do
+chunk :: FilePath -> Args -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
+chunk f a = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, frames, traces) <- eventsToHP e
+  (ph, frames, traces) <- eventsToHP a e
   let (counts, totals) = total frames
   return $ (ph counts, totals, frames, traces)
 
@@ -57,10 +58,10 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
 checkGHCVersion _ = Nothing
 
 
-eventsToHP :: Data -> IO (PartialHeader, [Frame], [Trace])
-eventsToHP (Data es) = do
+eventsToHP :: Args -> Data -> IO (PartialHeader, [Frame], [Trace])
+eventsToHP a (Data es) = do
   let
-      el@EL{..} = foldEvents es
+      el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
   mapM_ (hPutStrLn stderr) (checkGHCVersion el)
@@ -99,20 +100,20 @@ initEL t = EL
   , ccMap = Map.empty
   }
 
-foldEvents :: [Event] -> EL
-foldEvents (e:es) =
-  let res = foldl' folder  (initEL (evTime e)) (e:es)
+foldEvents :: Args -> [Event] -> EL
+foldEvents a (e:es) =
+  let res = foldl' (folder a)  (initEL (evTime e)) (e:es)
   in addFrame 0 res
-foldEvents [] = error "Empty event log"
+foldEvents _ [] = error "Empty event log"
 
-folder :: EL -> Event -> EL
-folder el (Event t e _) = el &
+folder :: Args -> EL -> Event -> EL
+folder a el (Event t e _) = el &
   updateLast t .
     case e of
       -- Traces
       RtsIdentifier _ ident -> addIdent ident
-      Message s -> addTrace (Trace (fromNano t) (T.pack s))
-      UserMessage s -> addTrace (Trace (fromNano t) (T.pack s))
+      Message s -> addTrace a (Trace (fromNano t) (T.pack s))
+      UserMessage s -> addTrace a (Trace (fromNano t) (T.pack s))
       HeapProfBegin {} -> addFrame t
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
@@ -155,8 +156,17 @@ addClocktime s el = el { clocktimeSec = s }
 addArgs :: [String] -> EL -> EL
 addArgs as el = el { pargs = Just as }
 
-addTrace :: Trace -> EL -> EL
-addTrace t el = el { traces = t : traces el }
+filterTrace :: [Text] -> [Text] -> Trace -> Bool
+filterTrace []       []       _             = True
+filterTrace []       excludes (Trace _ trc) = all (not . flip T.isInfixOf trc) excludes
+filterTrace includes []       (Trace _ trc) = any (flip T.isInfixOf trc) includes
+filterTrace includes excludes (Trace _ trc) = any (flip T.isInfixOf trc) includes || all (not . flip T.isInfixOf trc) excludes
+
+addTrace :: Args -> Trace -> EL -> EL
+addTrace a t el | prop t    = el { traces = t : traces el }
+                | otherwise = el
+  where
+    prop = filterTrace (includeStr a) (excludeStr a)
 
 addFrame :: Word64 -> EL -> EL
 addFrame t el =

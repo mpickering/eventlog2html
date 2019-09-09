@@ -25,7 +25,8 @@ data Args = Args
   , json         :: Bool
   , noTraces     :: Bool
   , userColourScheme :: Text
-  , filterStr :: [String]
+  , includeStr :: [Text]
+  , excludeStr :: [Text]
   , outputFile :: Maybe String
   , files        :: [String]
   }
@@ -76,6 +77,13 @@ argParser = Args
           <> help ("Specify the traces which should be included in the output. Only traces which contain SUBSTRING "
                     ++ "in their name will be included. Multiple different traces can be included "
                     ++ "with \"-i foo -i bar\".")
+          <> metavar "SUBSTRING"))
+      <*> many (option str
+          (short 'x'
+          <> long "exclude"
+          <> help ("Specify the traces which should be excluded in the output. All traces which contain SUBSTRING "
+                    ++ "in their name will be excluded. Multiple different traces can be excluded "
+                    ++ "with \"-x foo -x bar\".")
           <> metavar "SUBSTRING"))
       <*> (optional $ option str
           (short 'o'
