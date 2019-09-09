@@ -35,7 +35,6 @@ data ChartType
 data ChartConfig =
   ChartConfig { cwidth :: Double
               , cheight :: Double
-              , traces :: Bool
               , colourScheme :: Text
               , chartType :: ChartType
               }
@@ -96,7 +95,7 @@ config =
 -----------------------------------------------------------------------------------
 
 lineChart :: ChartConfig -> VLSpec
-lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer | traces c])]
+lineChart c = asSpec [layer ([linesLayer c] ++ [tracesLayer])]
 
 linesLayer :: ChartConfig -> VLSpec
 linesLayer c = asSpec
@@ -159,7 +158,7 @@ selectionChart c = asSpec [
 -----------------------------------------------------------------------------------
 
 areaChart :: AreaChartType -> ChartConfig -> VLSpec
-areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer | traces c])]
+areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer])]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:

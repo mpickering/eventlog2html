@@ -163,8 +163,9 @@ filterTrace includes []       (Trace _ trc) = any (flip T.isInfixOf trc) include
 filterTrace includes excludes (Trace _ trc) = any (flip T.isInfixOf trc) includes || all (not . flip T.isInfixOf trc) excludes
 
 addTrace :: Args -> Trace -> EL -> EL
-addTrace a t el | prop t    = el { traces = t : traces el }
-                | otherwise = el
+addTrace a t el | noTraces a = el
+                | prop t     = el { traces = t : traces el }
+                | otherwise  = el
   where
     prop = filterTrace (includeStr a) (excludeStr a)
 
