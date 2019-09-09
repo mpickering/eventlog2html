@@ -88,6 +88,17 @@ an eventlog.
 is a list of rows. One entry for each heap profiling event. Remember to pass
 `--bands 0` if you want the whole data rather than just the 15 top allocators.
 
+### How can I filter the number of traces?
+
+There are three options for controlling the display of traces on the chart.
+
+* `--no-traces` will remove all traces from the chart.
+* `-i SUBSTRING` will keep traces which contain the given substring.
+* `-x SUBSTRING` will remove traces which contain a given substring.
+
+If a trace matches both an `-i` and an `-x` option then it is included in the
+chart.
+
 ### Why are the html files so big?
 
 We bundle all the javascript dependencies so the heap profiles can be

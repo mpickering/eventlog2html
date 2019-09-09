@@ -25,6 +25,8 @@ data Args = Args
   , json         :: Bool
   , noTraces     :: Bool
   , userColourScheme :: Text
+  , includeStr :: [Text]
+  , excludeStr :: [Text]
   , outputFile :: Maybe String
   , files        :: [String]
   }
@@ -69,6 +71,20 @@ argParser = Args
           ( long "colour-scheme"
           <> value "category20b"
           <> help "The name of the colour scheme. See the vega documentation (https://vega.github.io/vega/docs/schemes/#reference) for a complete list. Examples include \"category10\" \"dark2\" \"tableau10\". ")
+      <*> many (option str
+          (short 'i'
+          <> long "include"
+          <> help ("Specify the traces which should be included in the output. Only traces which contain SUBSTRING "
+                    ++ "in their name will be included. Multiple different traces can be included "
+                    ++ "with \"-i foo -i bar\".")
+          <> metavar "SUBSTRING"))
+      <*> many (option str
+          (short 'x'
+          <> long "exclude"
+          <> help ("Specify the traces which should be excluded in the output. All traces which contain SUBSTRING "
+                    ++ "in their name will be excluded. Multiple different traces can be excluded "
+                    ++ "with \"-x foo -x bar\".")
+          <> metavar "SUBSTRING"))
       <*> (optional $ option str
           (short 'o'
           <> help "Write the output to the given filename."

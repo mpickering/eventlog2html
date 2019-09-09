@@ -14,7 +14,7 @@ import Eventlog.Types (Header)
 
 generateJson :: FilePath -> Args -> IO (Header, Value)
 generateJson file a = do
-  let chunk = if heapProfile a then H.chunk else E.chunk
+  let chunk = if heapProfile a then H.chunk else E.chunk a
   (h,totals, fs, traces) <- chunk file
   let keeps = prune a 0 totals
   let combinedJson = object [
