@@ -24,9 +24,10 @@ generateJson file a = do
       reversing' = if reversing a then swap else id
   (h,totals, fs, traces) <- chunk file
   let keeps = prune cmp 0 (bound $ nBands a) totals
+      filtered_traces = if noTraces a then [] else traces
   let combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)
-        , "traces"  .= tracesToVega traces
+        , "traces"  .= tracesToVega filtered_traces
         ]
   return (h, combinedJson)
 
