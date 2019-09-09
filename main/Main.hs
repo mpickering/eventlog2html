@@ -29,7 +29,7 @@ argsToOutput a@Args{files = [fin], outputFile = Just fout} =
      | otherwise -> doOneHtml a fin fout
 argsToOutput _ =
   die "When the -o option is specified, exactly one eventlog file has to be passed."
-  
+
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
   (_, val) <- generateJson fin a
