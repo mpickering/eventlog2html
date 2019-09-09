@@ -35,6 +35,7 @@ data ChartType
 data ChartConfig =
   ChartConfig { cwidth :: Double
               , cheight :: Double
+              , traces :: Bool
               , colourScheme :: Text
               , chartType :: ChartType
               }
