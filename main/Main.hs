@@ -7,13 +7,9 @@ import Data.Aeson (encodeFile, Value, toJSON)
 import System.FilePath
 import System.Exit
 
-import Eventlog.Args (args, Args(..), Sort(..))
+import Eventlog.Args (args, Args(..))
 import Eventlog.Bands (bands)
-import qualified Eventlog.Events as E
-import qualified Eventlog.HeapProf as H
 import Eventlog.HtmlTemplate
-import Eventlog.Prune (prune, cmpName, cmpSize, cmpStdDev)
-import Eventlog.Total (total)
 import Eventlog.Data
 import Eventlog.Vega
 import Eventlog.VegaTemplate
