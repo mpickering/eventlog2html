@@ -6,6 +6,7 @@ import Control.Monad
 import Data.Aeson (encodeFile, Value, toJSON)
 import System.FilePath
 import System.Exit
+import System.IO
 
 import Eventlog.Args (args, Args(..))
 import Eventlog.Bands (bands)
@@ -13,6 +14,7 @@ import Eventlog.HtmlTemplate
 import Eventlog.Data
 import Eventlog.Vega
 import Eventlog.VegaTemplate
+import Eventlog.Types
 
 main :: IO ()
 main = do
@@ -37,7 +39,14 @@ doOneJson a fin fout = do
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
-  (header, data_json) <- generateJson fin a
+  (header, data_json) <- generateJsonValidate checkTraces fin a
   let html = templateString header data_json a
   writeFile fout html
+  where
+    checkTraces :: ProfData -> IO ()
+    checkTraces (ProfData _ _ _ ts) =
+      if length ts > 1000
+        then hPutStrLn stderr
+              "More than 1000 traces, consider reducing using -i or -x"
+        else return ()
 

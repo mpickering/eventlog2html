@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Eventlog.Data (generateJson) where
+module Eventlog.Data (generateJson, generateJsonValidate ) where
 
 import Prelude hiding (print, readFile)
 import Data.Aeson (Value(..), (.=), object)
@@ -10,16 +10,20 @@ import qualified Eventlog.Events as E
 import qualified Eventlog.HeapProf as H
 import Eventlog.Prune (prune)
 import Eventlog.Vega
-import Eventlog.Types (Header)
+import Eventlog.Types (Header, ProfData(..))
 
-generateJson :: FilePath -> Args -> IO (Header, Value)
-generateJson file a = do
+generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value)
+generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
-  (h,totals, fs, traces) <- chunk file
+  dat@(ProfData h totals fs traces) <- chunk file
+  validate dat
   let keeps = prune a 0 totals
-  let combinedJson = object [
+      combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)
         , "traces"  .= tracesToVega traces
         ]
   return (h, combinedJson)
+
+generateJson :: FilePath -> Args -> IO (Header, Value)
+generateJson = generateJsonValidate (const (return ()))
 

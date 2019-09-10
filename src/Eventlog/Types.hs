@@ -1,6 +1,7 @@
 module Eventlog.Types where
 
 import Data.Text (Text)
+import Data.Map (Map)
 
 data Header =
   Header
@@ -17,3 +18,5 @@ data Frame = Frame Double [Sample] deriving Show
 
 -- | A trace we also want to show on the graph
 data Trace = Trace Double Text deriving Show
+
+data ProfData = ProfData Header (Map Text (Double, Double)) [Frame] [Trace]

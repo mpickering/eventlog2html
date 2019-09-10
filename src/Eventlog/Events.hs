@@ -11,7 +11,6 @@ import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 import Data.Text (Text)
-import Data.Map (Map)
 
 import Eventlog.Types
 import Eventlog.Total
@@ -35,12 +34,12 @@ type PartialHeader = Int -> Header
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
 
-chunk :: Args -> FilePath -> IO (Header,Map Text (Double, Double), [Frame], [Trace])
+chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
   (ph, frames, traces) <- eventsToHP a e
   let (counts, totals) = total frames
-  return $ (ph counts, totals, frames, traces)
+  return $ (ProfData (ph counts) totals frames traces)
 
 checkGHCVersion :: EL -> Maybe String
 checkGHCVersion EL { ident = Just (version,_)}
