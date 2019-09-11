@@ -111,8 +111,7 @@ folder a el (Event t e _) = el &
     case e of
       -- Traces
       RtsIdentifier _ ident -> addIdent ident
-      Message s -> addTrace a (Trace (fromNano t) (T.pack s))
-      UserMessage s -> addTrace a (Trace (fromNano t) (T.pack s))
+      UserMarker s -> addTrace a (Trace (fromNano t) (T.pack s))
       HeapProfBegin {} -> addFrame t
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
