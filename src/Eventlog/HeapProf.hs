@@ -5,7 +5,6 @@ import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)
 import Data.Text.IO (readFile)
 import Data.Attoparsec.Text (parseOnly, double)
-import Data.Map (Map)
 
 import Eventlog.Total
 import Eventlog.Types
