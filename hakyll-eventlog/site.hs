@@ -153,6 +153,9 @@ insertHelp =
 fullEventLogPage :: FilePath -> IO String
 fullEventLogPage file = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo [file])
-  (header, data_json) <- generateJson file as
-  return $ templateString header data_json as
+  -- The examples have been generated with "traceEvent" instead of "traceMarker",
+  -- so we have to explicitly include these traces.
+  let as' = as { traceEvents = True }
+  (header, data_json) <- generateJson file as'
+  return $ templateString header data_json as'
 
