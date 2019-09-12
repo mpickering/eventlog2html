@@ -2,7 +2,7 @@
 module Eventlog.Total (total) where
 
 import Control.Monad.State.Strict (State(), execState, get, put, modify)
-import Data.Map (Map, empty, lookup, insert, alter)
+import Data.Map (Map, empty, alter)
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text)
 
@@ -11,13 +11,12 @@ import Eventlog.Types
 
 data Parse =
   Parse
-  { symbols   :: !(Map Text Text) -- intern symbols to save RAM
-  , totals    :: !(Map Text (Double, Double)) -- compute running totass and total of squares
+  { totals    :: !(Map Text (Double, Double)) -- compute running totass and total of squares
   , count     :: !Int                         -- number of frames
   }
 
 parse0 :: Parse
-parse0 = Parse{ symbols = empty, totals = empty, count = 0 }
+parse0 = Parse{ totals = empty, count = 0 }
 
 total :: [Frame] -> (Int, Map Text (Double, Double))
 total fs =
@@ -39,13 +38,7 @@ parseFrame (Frame _time ls) = do
 inserter :: Sample -> State Parse Double
 inserter (Sample k v) = do
   p <- get
-  k' <- case lookup k (symbols p) of
-    Nothing -> do
-      put $! p{ symbols = insert k k (symbols p) }
-      return k
-    Just kk -> return kk
-  p' <- get
-  put $! p'{ totals = alter (accum  v) k' (totals p') }
+  put $! p { totals = alter (accum  v) k (totals p) }
   return $! v
 
 accum :: Double -> Maybe (Double, Double) -> Maybe (Double, Double)

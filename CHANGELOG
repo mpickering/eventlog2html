@@ -1,5 +1,6 @@
 unreleased
 
+* Removed "trace PERCENT" option, which had no effect in the code.
 * Added warning about eventlogs with a lot of traces.
 * Added option to filter the traces which should be included in the
   generated output.
