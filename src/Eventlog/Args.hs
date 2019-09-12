@@ -24,6 +24,8 @@ data Args = Args
   , noIncludejs    :: Bool
   , json         :: Bool
   , noTraces     :: Bool
+  , traceEvents  :: Bool -- ^ By default, only traceMarkers are included.
+                         -- This option enables the inclusion of traceEvents.
   , userColourScheme :: Text
   , includeStr :: [Text]
   , excludeStr :: [Text]
@@ -67,6 +69,11 @@ argParser = Args
       <*> switch
           ( long "no-traces"
           <> help "Don't display traces on chart")
+      <*> switch
+          ( long "include-trace-events"
+          <> help ("Enables the inclusion of traceEvents, which should only be used for high-frequency events. "
+                    ++ "For low frequency events, use traceMarkers instead.")
+          <> showDefault)
       <*> option str
           ( long "colour-scheme"
           <> value "category20b"
