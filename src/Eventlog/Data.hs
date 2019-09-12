@@ -17,7 +17,7 @@ generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
   dat@(ProfData h totals fs traces) <- chunk file
   validate dat
-  let keeps = prune a 0 totals
+  let keeps = prune a totals
       combinedJson = object [
           "samples" .= bandsToVega keeps (bands h keeps fs)
         , "traces"  .= tracesToVega traces

@@ -18,7 +18,6 @@ data Args = Args
   {
     sorting      :: Sort
   , reversing    :: Bool
-  , tracePercent :: Double
   , nBands       :: Int
   , heapProfile  :: Bool
   , noIncludejs    :: Bool
@@ -41,12 +40,6 @@ argParser = Args
       <*> switch
           ( long "reverse"
          <> help "Reverse the order of bands." )
-      <*> option auto
-          ( long "trace"
-         <> help "Percentage of trace elements to combine."
-         <> value 1
-         <> showDefault
-         <> metavar "PERCENT" )
       <*> option auto
           ( long "bands"
          <> help "Maximum number of bands to draw (0 for unlimited)."
