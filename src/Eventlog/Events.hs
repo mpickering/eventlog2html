@@ -110,16 +110,22 @@ folder a el (Event t e _) = el &
   updateLast t .
     case e of
       -- Traces
+      -- Messages and UserMessages correspond to high-frequency "traceEvent" or "traceEventIO" events from Debug.Trace and
+      -- are only included if "--include-trace-events" has been specified.
+      -- For low-frequency events "traceMarker" or "traceMarkerIO" should be used, which generate "UserMarker" events.
+      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
+      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
+      UserMarker s -> addTrace a (Trace (fromNano t) (T.pack s))
+      -- Information about the program
       RtsIdentifier _ ident -> addIdent ident
-      Message s -> addTrace a (Trace (fromNano t) (T.pack s))
-      UserMessage s -> addTrace a (Trace (fromNano t) (T.pack s))
+      ProgramArgs _ as -> addArgs as
+      WallClockTime _ s _ -> addClocktime s
+      -- Profiling Events
       HeapProfBegin {} -> addFrame t
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
-      ProgramArgs _ as -> addArgs as
-      WallClockTime _ s _ -> addClocktime s
       _ -> id
 
 addIdent :: String -> EL -> EL
