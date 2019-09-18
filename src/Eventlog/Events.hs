@@ -66,8 +66,8 @@ eventsToHP a (Data es) = do
   mapM_ (hPutStrLn stderr) (checkGHCVersion el)
   return $ (elHeader el, fir : reverse (las: normalise frames) , traces)
 
-normalise :: [(Word64, [Sample])] -> [Frame]
-normalise fs = map (\(t, ss) -> Frame (fromNano t) ss) fs
+normalise :: [FrameEL] -> [Frame]
+normalise fs = map (\(FrameEL t ss) -> Frame (fromNano t) ss) fs
 
 
 data EL = EL
@@ -75,11 +75,13 @@ data EL = EL
   , ident :: Maybe (Version, String)
   , ccMap :: !(Map.Map Word32 CostCentre)
   , clocktimeSec :: !Word64
-  , samples :: !(Maybe (Word64, [Sample]))
-  , frames :: ![(Word64, [Sample])]
+  , samples :: !(Maybe FrameEL)
+  , frames :: ![FrameEL]
   , traces :: ![Trace]
   , start :: !Word64
   , end :: !Word64 } deriving Show
+
+data FrameEL = FrameEL Word64 [Sample] deriving Show
 
 data CostCentre = CC { cid :: Word32
                      , label :: Text
@@ -192,18 +194,18 @@ addTrace a t el | noTraces a = el
 
 addFrame :: Word64 -> EL -> EL
 addFrame t el =
-  el { samples = Just (t, [])
+  el { samples = Just (FrameEL t [])
      , frames = sampleToFrames (samples el) (frames el) }
 
-sampleToFrames :: Maybe (Word64, [Sample]) -> [(Word64, [Sample])]
-                                           -> [(Word64, [Sample])]
-sampleToFrames (Just (t, ss)) fs = (t, (reverse ss)) : fs
+sampleToFrames :: Maybe FrameEL -> [FrameEL]
+                                -> [FrameEL]
+sampleToFrames (Just (FrameEL t ss)) fs = FrameEL t (reverse ss) : fs
 sampleToFrames Nothing fs = fs
 
 addSample :: Sample -> EL -> EL
 addSample s el = el { samples = go <$> (samples el) }
   where
-    go (t, ss) = (t, (s:ss))
+    go (FrameEL t ss) = FrameEL t (s:ss)
 
 updateLast :: Word64 -> EL -> EL
 updateLast t el = el { end = t }
