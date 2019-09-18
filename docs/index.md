@@ -76,7 +76,7 @@ examples/ghc.eventlog --bands 10 --include-trace-events
 
 ### What about biographical and retainer profiling?
 
-The eventlog doesn't support these two profiling modes yet.
+The eventlog will start supporting these two profiling modes in GHC 8.10.
 
 `eventlog2html` can still read the old `.hp` file format. Pass the
 `--heap-profile` flag to interpret the argument as as `.hp` file rather than
