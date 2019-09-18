@@ -64,8 +64,9 @@ argParser = Args
           <> help "Don't display traces on chart")
       <*> switch
           ( long "include-trace-events"
-          <> help ("Enables the inclusion of traceEvents, which should only be used for high-frequency events. "
-                    ++ "For low frequency events, use traceMarkers instead.")
+          <> help ("Enables the inclusion of traces emitted using `traceEvent`"
+                   ++ ", which should only be used for high-frequency events. "
+                   ++ "For low frequency events, use `traceMarker` instead.")
           <> showDefault)
       <*> option str
           ( long "colour-scheme"

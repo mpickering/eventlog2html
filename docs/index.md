@@ -56,7 +56,7 @@ chart as a verticle gray line. Hovering near the line will display the name of
 the event which is nearest to the cursor.
 
 ```{.eventlog traces=True }
-examples/ghc.eventlog --bands 10
+examples/ghc.eventlog --bands 10 --include-trace-events
 ```
 
 ### Normalised Line Chart
@@ -69,7 +69,7 @@ being used. A constant line means a constant amount of memory is being used.
 This information can be hard to see in the stacked charts.
 
 ```{.eventlog type=line}
-examples/ghc.eventlog --bands 10
+examples/ghc.eventlog --bands 10 --include-trace-events
 ```
 
 ## FAQ
