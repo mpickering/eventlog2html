@@ -126,6 +126,7 @@ folder a el (Event t e _) = el &
       HeapProfBegin {} -> addFrame t
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
+      HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
       _ -> id
