@@ -12,10 +12,10 @@ import Eventlog.Args (Args(..), Sort(..))
 type Compare a = a -> a -> Ordering
 
 getComparison :: Args -> Compare (Text, (Double, Double))
-getComparison Args { sorting = Size,   reversing = True }  = cmpSizeDescending
-getComparison Args { sorting = Size,   reversing = False } = cmpSizeAscending
-getComparison Args { sorting = StdDev, reversing = True }  = cmpStdDevDescending
-getComparison Args { sorting = StdDev, reversing = False } = cmpStdDevAscending
+getComparison Args { sorting = Size,   reversing = False }  = cmpSizeDescending
+getComparison Args { sorting = Size,   reversing = True } = cmpSizeAscending
+getComparison Args { sorting = StdDev, reversing = False }  = cmpStdDevDescending
+getComparison Args { sorting = StdDev, reversing = True } = cmpStdDevAscending
 getComparison Args { sorting = Name,   reversing = True }  = cmpNameDescending
 getComparison Args { sorting = Name,   reversing = False } = cmpNameAscending
 
