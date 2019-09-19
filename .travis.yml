@@ -17,14 +17,14 @@ jobs:
         - nix-env -iA cachix -f https://cachix.org/api/v1/install
         - cachix use mpickering
         - cachix push mpickering --watch-store&
-        - nix-build -A eventlog2html
+        - nix-build -A eventlog2html --arg ci true
 
     - stage: build documentation
       script:
         - nix-env -iA cachix -f https://cachix.org/api/v1/install
         - cachix use mpickering
         - cachix push mpickering --watch-store&
-        - nix-build -A site -o site
+        - nix-build -A site --arg ci true -o site
 
       deploy:
         provider: pages

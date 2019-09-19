@@ -1,3 +1,4 @@
+{ci ? false }:
 let
   pin = import ((import ./nix/sources.nix).nixpkgs) {} ;
   # Import the Haskell.nix library,
@@ -7,11 +8,14 @@ let
               { index-state = "2019-09-05T00:00:00Z"
               ; src = pin.lib.cleanSource ./.;});
 
+
+  ciOptions = [ { packages.eventlog2html.configureFlags = [ "--ghc-option=-Werror" ]; } ];
+
   # Instantiate a package set using the generated file.
   pkgSet = haskell.mkCabalProjectPkgSet {
     plan-pkgs = pkgPlan.pkgs;
     pkg-def-extras = [];
-    modules = [];
+    modules = if ci then ciOptions else [];
   };
 
 
