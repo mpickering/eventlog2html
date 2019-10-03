@@ -151,7 +151,7 @@ addCostCentre s cc el = el { ccMap = Map.insert s cc (ccMap el) }
 
 addCCSample :: Word64 -> Word8 -> Vector Word32 -> EL -> EL
 addCCSample res _sd st el =
-  fromMaybe (addSample (Sample "NONE" (fromIntegral res)) el) $ do
+  fromMaybe (addSample (Sample "MAIN" (fromIntegral res)) el) $ do
   cid <- st !? 0
   CC{label, modul} <- Map.lookup cid (ccMap el)
   let fmtl = modul <> "." <> label
