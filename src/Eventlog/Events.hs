@@ -21,13 +21,14 @@ import Data.Word
 import Data.Time
 import Data.Time.Clock.POSIX
 import qualified Data.Map as Map
-import Data.Vector.Unboxed (Vector, (!?))
+import Data.Vector.Unboxed (Vector, (!?), toList)
 import Data.Maybe
 import Data.Version
 import Text.ParserCombinators.ReadP
 import Control.Monad
 import Data.Char
 import System.IO
+import qualified Data.Trie.Map as Trie
 
 type PartialHeader = Int -> Header
 
@@ -74,6 +75,7 @@ data EL = EL
   { pargs :: !(Maybe [String])
   , ident :: Maybe (Version, String)
   , ccMap :: !(Map.Map Word32 CostCentre)
+  , ccsMap :: CCSMap
   , clocktimeSec :: !Word64
   , samples :: !(Maybe FrameEL)
   , frames :: ![FrameEL]
@@ -82,6 +84,24 @@ data EL = EL
   , end :: !Word64 } deriving Show
 
 data FrameEL = FrameEL Word64 [Sample] deriving Show
+
+data CCSMap = CCSMap (Trie.TMap Word32 CCStack) Int deriving Show
+
+data CCStack = CCStack { ccsId :: Int, ccsName :: Text } deriving Show
+
+getCCSId :: EL -> Vector Word32 -> (CCStack, EL)
+getCCSId el@EL { ccsMap = (CCSMap trie uniq), ccMap = ccMap } k  =
+  let kl = toList k
+  in case Trie.lookup kl trie of
+        Just n -> (n, el)
+        Nothing ->
+          let new_stack = CCStack uniq name
+          in (new_stack, el { ccsMap = CCSMap (Trie.insert kl new_stack trie) (uniq + 1) })
+  where
+    name = fromMaybe "MAIN" $ do
+             cid <- (k !? 0)
+             CC{label, modul} <- Map.lookup cid ccMap
+             return $ modul <> "." <> label
 
 data CostCentre = CC { cid :: Word32
                      , label :: Text
@@ -99,6 +119,7 @@ initEL t = EL
   , start = t
   , end = 0
   , ccMap = Map.empty
+  , ccsMap =  CCSMap Trie.empty 0
   }
 
 foldEvents :: Args -> [Event] -> EL
@@ -151,11 +172,10 @@ addCostCentre s cc el = el { ccMap = Map.insert s cc (ccMap el) }
 
 addCCSample :: Word64 -> Word8 -> Vector Word32 -> EL -> EL
 addCCSample res _sd st el =
-  fromMaybe (addSample (Sample "MAIN" (fromIntegral res)) el) $ do
-  cid <- st !? 0
-  CC{label, modul} <- Map.lookup cid (ccMap el)
-  let fmtl = modul <> "." <> label
-  return $ addSample (Sample fmtl (fromIntegral res)) el
+  let (CCStack stack_id tid, el') = getCCSId el st
+      -- TODO: Can do better than this by differentiating normal samples form stack samples
+      sample_string = (T.pack $ "(" ++ show stack_id ++ ") ") <> tid
+  in addSample (Sample sample_string (fromIntegral res)) el'
 
 
 addClocktime :: Word64 -> EL -> EL
