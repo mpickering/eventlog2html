@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Eventlog.Data (generateJson, generateJsonValidate ) where
 
-import Prelude hiding (print, readFile)
+import Prelude hiding (readFile)
 import Data.Aeson (Value(..), (.=), object)
 
 import Eventlog.Args (Args(..))
