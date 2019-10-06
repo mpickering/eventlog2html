@@ -77,6 +77,7 @@ data EL = EL
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
   , ccMap :: !(Map.Map Word32 CostCentre)
+  , bucketMap :: !(Map.Map Bucket BucketInfo)
   , ccsMap :: CCSMap
   , clocktimeSec :: !Word64
   , samples :: !(Maybe FrameEL)
@@ -124,6 +125,7 @@ initEL = EL
   , end = 0
   , ccMap = Map.empty
   , ccsMap =  CCSMap Trie.empty 0
+  , bucketMap = Map.empty
   }
 
 foldEvents :: Args -> [Event] -> EL
@@ -152,7 +154,7 @@ folder a el (Event t e _) = el &
       HeapProfSampleBegin {} -> addFrame t
       HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
-      HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
+      HeapProfSampleString _hid res k -> addSample (Sample (Bucket k) (fromIntegral res))
       _ -> id
 
 
@@ -182,7 +184,7 @@ addCCSample res _sd st el =
   let (CCStack stack_id tid, el') = getCCSId el st
       -- TODO: Can do better than this by differentiating normal samples form stack samples
       sample_string = (T.pack $ "(" ++ show stack_id ++ ") ") <> tid
-  in addSample (Sample sample_string (fromIntegral res)) el'
+  in addSample (Sample (Bucket sample_string) (fromIntegral res)) el'
 
 
 addClocktime :: Word64 -> EL -> EL

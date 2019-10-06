@@ -2,16 +2,16 @@ module Eventlog.Prune
   ( prune
   ) where
 
-import Data.Text (Text)
 import Data.List (sortBy)
 import Data.Ord (comparing)
 import Data.Map.Strict (Map, toList, fromList)
+import Eventlog.Types
 
 import Eventlog.Args (Args(..), Sort(..))
 
 type Compare a = a -> a -> Ordering
 
-getComparison :: Args -> Compare (Text, (Double, Double))
+getComparison :: Args -> Compare (Bucket, (Double, Double))
 getComparison Args { sorting = Size,   reversing = False }  = cmpSizeDescending
 getComparison Args { sorting = Size,   reversing = True } = cmpSizeAscending
 getComparison Args { sorting = StdDev, reversing = False }  = cmpStdDevDescending
@@ -21,7 +21,7 @@ getComparison Args { sorting = Name,   reversing = False } = cmpNameAscending
 
 cmpNameAscending, cmpNameDescending,
   cmpStdDevAscending, cmpStdDevDescending,
-  cmpSizeAscending, cmpSizeDescending :: Compare (Text, (Double, Double))
+  cmpSizeAscending, cmpSizeDescending :: Compare (Bucket, (Double, Double))
 cmpNameAscending = comparing fst
 cmpNameDescending = flip cmpNameAscending
 cmpStdDevAscending = comparing (snd . snd)
@@ -29,7 +29,7 @@ cmpStdDevDescending = flip cmpStdDevAscending
 cmpSizeAscending = comparing (fst . snd)
 cmpSizeDescending = flip cmpSizeAscending
 
-prune :: Args -> Map Text (Double, Double) -> Map Text Int
+prune :: Args -> Map Bucket (Double, Double) -> Map Bucket Int
 prune args ts =
   let ccTotals = sortBy cmpSizeDescending (toList ts)
       sizes = map (fst . snd) ccTotals

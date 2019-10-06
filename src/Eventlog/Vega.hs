@@ -16,16 +16,16 @@ import GHC.Generics
 data VegaEntry = VegaEntry { x :: Double, y :: Double, k :: Int, c :: Text }
   deriving (Show, ToJSON, Generic)
 
-bandsToVega :: Map Text Int
+bandsToVega :: Map Bucket Int
             -> (UArray Int Double, UArray (Int, Int) Double)
             -> [VegaEntry]
 bandsToVega ks (ts, vs) =
   let (t1, tn) = bounds ts
-      go key v rs = go_1 ++ rs
+      go (Bucket key) v rs = go_1 ++ rs
         where
           go_1 :: [VegaEntry]
           go_1 = flip map [t1 .. tn] $ \t -> VegaEntry (ts ! t) (vs ! (v, t)) v key
-  in foldrWithKey go (go "OTHER" 0 []) ks
+  in foldrWithKey go (go (Bucket "OTHER") 0 []) ks
 
 data VegaTrace = VegaTrace { tx :: Double, desc :: Text }
   deriving (Show, ToJSON, Generic)
