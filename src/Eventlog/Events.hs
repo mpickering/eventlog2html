@@ -29,6 +29,8 @@ import Control.Monad
 import Data.Char
 import System.IO
 import qualified Data.Trie.Map as Trie
+import Data.Map.Merge.Lazy
+import Data.Functor.Identity
 
 type PartialHeader = Int -> Header
 
@@ -38,9 +40,20 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, frames, traces) <- eventsToHP a e
+  (ph, bucket_map, frames, traces) <- eventsToHP a e
   let (counts, totals) = total frames
-  return $ (ProfData (ph counts) totals frames traces)
+      -- If both keys are present, combine
+      combine = zipWithAMatched (\_ (t, mt) (tot, sd) -> Identity $ BucketInfo t mt tot sd)
+      -- If total is missing, something bad has happened
+      combineMissingTotal :: Bucket -> (Text, Maybe Text) -> Identity BucketInfo
+      combineMissingTotal k = error ("Missing total for: " ++ show k)
+
+      -- This case happens when we are not in CC mode
+      combineMissingDesc :: Bucket -> (Double, Double) -> Identity BucketInfo
+      combineMissingDesc (Bucket t) (tot, sd) = Identity (BucketInfo t Nothing tot sd)
+
+      binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
+  return $ (ProfData (ph counts) binfo frames traces)
 
 checkGHCVersion :: EL -> Maybe String
 checkGHCVersion EL { ident = Just (version,_)}
@@ -57,19 +70,19 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             ++ ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-
-eventsToHP :: Args -> Data -> IO (PartialHeader, [Frame], [Trace])
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, [Frame], [Trace])
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
   mapM_ (hPutStrLn stderr) (checkGHCVersion el)
-  return $ (elHeader el, fir : reverse (las: normalise frames) , traces)
+  return $ (elHeader el, elBucketMap el, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [FrameEL] -> [Frame]
 normalise fs = map (\(FrameEL t ss) -> Frame (fromNano t) ss) fs
 
+type BucketMap = Map.Map Bucket (Text, Maybe Text)
 
 data EL = EL
   { pargs :: !(Maybe [String])
@@ -77,7 +90,9 @@ data EL = EL
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
   , ccMap :: !(Map.Map Word32 CostCentre)
-  , bucketMap :: !(Map.Map Bucket BucketInfo)
+  -- At the moment bucketMap and CCS map are quite similar, cost centre profiling
+  -- is the only mode to populate the bucket map
+  , bucketMap :: BucketMap
   , ccsMap :: CCSMap
   , clocktimeSec :: !Word64
   , samples :: !(Maybe FrameEL)
@@ -264,3 +279,8 @@ ppHeapProfileType (Just HeapProfBreakdownRetainer) = "Retainer profiling (implie
 ppHeapProfileType (Just HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (Just HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
 ppHeapProfileType Nothing = "<Not available>"
+
+elBucketMap :: EL -> BucketMap
+elBucketMap = bucketMap
+
+

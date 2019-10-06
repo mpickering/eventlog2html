@@ -27,6 +27,8 @@ newtype Bucket = Bucket Text
 
 data BucketInfo = BucketInfo { shortDescription :: Text -- For the legend and hover
                              , longDescription :: Maybe Text -- Displayed beneath the graph
+                             , bucketTotal :: Double
+                             , bucketStddev :: Double
                              } deriving Show
 
 data Sample = Sample Bucket Double deriving Show
@@ -36,4 +38,7 @@ data Frame = Frame Double [Sample] deriving Show
 -- | A trace we also want to show on the graph
 data Trace = Trace Double Text deriving Show
 
-data ProfData = ProfData Header (Map Bucket (Double, Double)) [Frame] [Trace] deriving Show
+data ProfData = ProfData { profHeader :: Header
+                         , profTotals ::  (Map Bucket BucketInfo)
+                         , profFrames :: [Frame]
+                         , profTraces :: [Trace] } deriving Show

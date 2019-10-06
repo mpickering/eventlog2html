@@ -10,7 +10,7 @@ import Eventlog.Types
 
 data Parse =
   Parse
-  { totals    :: !(Map Bucket (Double, Double)) -- compute running totass and total of squares
+  { totals    :: !(Map Bucket (Double, Double)) -- compute running totals and total of squares
   , count     :: !Int                         -- number of frames
   }
 
