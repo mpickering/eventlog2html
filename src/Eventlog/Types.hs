@@ -6,6 +6,7 @@ import Data.Text (Text)
 import Data.Map (Map)
 import Data.Aeson
 import Data.Hashable
+import Data.Word
 
 data Header =
   Header
@@ -26,10 +27,15 @@ newtype Bucket = Bucket Text
 
 
 data BucketInfo = BucketInfo { shortDescription :: Text -- For the legend and hover
-                             , longDescription :: Maybe Text -- Displayed beneath the graph
+                             , longDescription :: Maybe [Word32]
                              , bucketTotal :: Double
                              , bucketStddev :: Double
                              } deriving Show
+
+data CostCentre = CC { cid :: Word32
+                     , label :: Text
+                     , modul :: Text
+                     , loc :: Text } deriving Show
 
 data Sample = Sample Bucket Double deriving Show
 
@@ -40,5 +46,6 @@ data Trace = Trace Double Text deriving Show
 
 data ProfData = ProfData { profHeader :: Header
                          , profTotals ::  (Map Bucket BucketInfo)
+                         , profCCMap  :: Map Word32 CostCentre
                          , profFrames :: [Frame]
                          , profTraces :: [Trace] } deriving Show

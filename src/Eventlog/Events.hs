@@ -5,6 +5,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE CPP #-}
 module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)
@@ -29,8 +30,10 @@ import Control.Monad
 import Data.Char
 import System.IO
 import qualified Data.Trie.Map as Trie
+import qualified Data.Trie.Map.Internal as TrieI
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
+import Data.Aeson
 
 type PartialHeader = Int -> Header
 
@@ -40,12 +43,12 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, bucket_map, frames, traces) <- eventsToHP a e
+  (ph, bucket_map, ccMap, frames, traces) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
       combine = zipWithAMatched (\_ (t, mt) (tot, sd) -> Identity $ BucketInfo t mt tot sd)
       -- If total is missing, something bad has happened
-      combineMissingTotal :: Bucket -> (Text, Maybe Text) -> Identity BucketInfo
+      combineMissingTotal :: Bucket -> (Text, Maybe [Word32]) -> Identity BucketInfo
       combineMissingTotal k = error ("Missing total for: " ++ show k)
 
       -- This case happens when we are not in CC mode
@@ -53,7 +56,7 @@ chunk a f = do
       combineMissingDesc (Bucket t) (tot, sd) = Identity (BucketInfo t Nothing tot sd)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
-  return $ (ProfData (ph counts) binfo frames traces)
+  return $ (ProfData (ph counts) binfo ccMap frames traces)
 
 checkGHCVersion :: EL -> Maybe String
 checkGHCVersion EL { ident = Just (version,_)}
@@ -70,19 +73,19 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             ++ ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, [Frame], [Trace])
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace])
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
   mapM_ (hPutStrLn stderr) (checkGHCVersion el)
-  return $ (elHeader el, elBucketMap el, fir : reverse (las: normalise frames) , traces)
+  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [FrameEL] -> [Frame]
 normalise fs = map (\(FrameEL t ss) -> Frame (fromNano t) ss) fs
 
-type BucketMap = Map.Map Bucket (Text, Maybe Text)
+type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 
 data EL = EL
   { pargs :: !(Maybe [String])
@@ -105,6 +108,7 @@ data FrameEL = FrameEL Word64 [Sample] deriving Show
 
 data CCSMap = CCSMap (Trie.TMap Word32 CCStack) Int deriving Show
 
+
 data CCStack = CCStack { ccsId :: Int, ccsName :: Text } deriving Show
 
 getCCSId :: EL -> Vector Word32 -> (CCStack, EL)
@@ -114,17 +118,25 @@ getCCSId el@EL { ccsMap = (CCSMap trie uniq), ccMap = ccMap } k  =
         Just n -> (n, el)
         Nothing ->
           let new_stack = CCStack uniq name
-          in (new_stack, el { ccsMap = CCSMap (Trie.insert kl new_stack trie) (uniq + 1) })
+
+              sid = T.pack $ "(" ++ show uniq ++ ") "
+              short_bucket_info = sid <> name
+              long_bucket_info = names
+              bucket_info = (short_bucket_info, Just kl)
+              bucket_key = Bucket (T.pack (show uniq))
+          in (new_stack, el { ccsMap = CCSMap (Trie.insert kl new_stack trie) (uniq + 1)
+                            , bucketMap = Map.insert bucket_key bucket_info (bucketMap el) })
   where
     name = fromMaybe "MAIN" $ do
              cid <- (k !? 0)
-             CC{label, modul} <- Map.lookup cid ccMap
-             return $ modul <> "." <> label
+             CC{label} <- Map.lookup cid ccMap
+             return $ label
 
-data CostCentre = CC { cid :: Word32
-                     , label :: Text
-                     , modul :: Text
-                     , loc :: Text } deriving Show
+    names :: Text
+    names = fromMaybe "MAIN" $ do
+              cc_names <- mapM (flip Map.lookup ccMap) (toList k)
+              return $ T.intercalate "/" (map label cc_names)
+
 
 initEL :: EL
 initEL = EL
@@ -190,15 +202,14 @@ parseIdent s = listToMaybe $ flip readP_to_S s $ do
       x <- munch1 isDigit
       return $ read x
 
-
 addCostCentre :: Word32 -> CostCentre -> EL -> EL
 addCostCentre s cc el = el { ccMap = Map.insert s cc (ccMap el) }
 
 addCCSample :: Word64 -> Word8 -> Vector Word32 -> EL -> EL
 addCCSample res _sd st el =
-  let (CCStack stack_id tid, el') = getCCSId el st
+  let (CCStack stack_id _tid, el') = getCCSId el st
       -- TODO: Can do better than this by differentiating normal samples form stack samples
-      sample_string = (T.pack $ "(" ++ show stack_id ++ ") ") <> tid
+      sample_string = T.pack (show stack_id)
   in addSample (Sample (Bucket sample_string) (fromIntegral res)) el'
 
 

@@ -31,17 +31,17 @@ argsToOutput _ =
 
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
-  (_, val) <- generateJson fin a
+  (_, val, _) <- generateJson fin a
   encodeFile fout val
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
-  (header, data_json) <- generateJsonValidate checkTraces fin a
-  let html = templateString header data_json a
+  (header, data_json, descs) <- generateJsonValidate checkTraces fin a
+  let html = templateString header data_json descs a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()
-    checkTraces (ProfData _ _ _ ts) =
+    checkTraces (ProfData _ _ _ _ ts) =
       if length ts > 1000
         then hPutStrLn stderr
               "More than 1000 traces, consider reducing using -i or -x"

@@ -61,6 +61,7 @@ Library
   HS-source-dirs:      src
   exposed-modules:     Eventlog.Args
                        Eventlog.Data
+                       Eventlog.Trie
                        Eventlog.Javascript
                        Eventlog.Types
                        Eventlog.Total

@@ -19,6 +19,7 @@ import Eventlog.Types (Header(..))
 import Eventlog.VegaTemplate
 import Paths_eventlog2html
 import Data.Version
+import Control.Monad
 
 type VizID = Int
 
@@ -66,8 +67,8 @@ htmlHeader dat as =
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
 
-template :: Header -> Value -> Args -> Html
-template header' dat as = docTypeHtml $ do
+template :: Header -> Value -> [(Text, Text)] -> Args -> Html
+template header' dat descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
@@ -113,6 +114,14 @@ template header' dat as = docTypeHtml $ do
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
 
+    let row (s,d) = H.tr $ do
+                     H.td (toHtml s)
+                     H.td $ (H.div ! class_ "hoverflow" $ (toHtml d))
+    when (not (null descs)) $ do
+      h4 ! onclick "toggleDescription(this)" $ "▶ Detailed Band Descriptions"
+      H.div ! A.id "description" ! class_ "row" $ do
+        H.table ! class_ "hoverflow" $ mapM_ row descs
+
     script $ preEscapedToHtml tablogic
 
 htmlConf :: Args -> ChartType -> ChartConfig
@@ -130,6 +139,6 @@ renderChartWithJson k dat vegaSpec = do
     renderChart k vegaSpec
 
 
-templateString :: Header -> Value -> Args -> String
-templateString header' dat as =
-  renderHtml $ template header' dat as
+templateString :: Header -> Value -> Value -> Args -> String
+templateString header' dat descs as =
+  renderHtml $ template header' dat descs as

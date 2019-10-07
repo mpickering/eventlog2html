@@ -21,3 +21,13 @@ table, caption, tbody, tfoot, thead, tr, th, td {
     vertical-align: baseline;
     background: transparent;
 }
+
+.hoverflow {
+  overflow: auto;
+  width: 900px;
+  white-space: nowrap;
+}
+
+#description{
+  visibility: hidden;
+}
