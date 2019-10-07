@@ -250,6 +250,15 @@ elHeader :: EL -> PartialHeader
 elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
       date = formatDate clocktimeSec
-  in Header title date "" ""
+      profileType = ppHeapProfileType heapProfileType
+  in Header title date profileType "" ""
 
-
+ppHeapProfileType :: Maybe HeapProfBreakdown -> Text
+ppHeapProfileType (Just HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
+ppHeapProfileType (Just HeapProfBreakdownModule) = "Profiling by module (implied by -hm)"
+ppHeapProfileType (Just HeapProfBreakdownClosureDescr) = "Profiling by closure description (implied by -hd)"
+ppHeapProfileType (Just HeapProfBreakdownTypeDescr) = "Profiling by type (implied by -hy)"
+ppHeapProfileType (Just HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
+ppHeapProfileType (Just HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
+ppHeapProfileType (Just HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
+ppHeapProfileType Nothing = "<Not available>"

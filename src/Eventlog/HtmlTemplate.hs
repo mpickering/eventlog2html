@@ -84,6 +84,11 @@ template header' dat as = docTypeHtml $ do
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
+        "Type of profile: "
+        code $ toHtml $ hHeapProfileType header'
+
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
         button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
         button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
