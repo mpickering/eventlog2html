@@ -73,6 +73,8 @@ normalise fs = map (\(FrameEL t ss) -> Frame (fromNano t) ss) fs
 data EL = EL
   { pargs :: !(Maybe [String])
   , ident :: Maybe (Version, String)
+  , samplingRate :: !(Maybe Word64)
+  , heapProfileType :: !(Maybe HeapProfBreakdown)
   , ccMap :: !(Map.Map Word32 CostCentre)
   , clocktimeSec :: !Word64
   , samples :: !(Maybe FrameEL)
@@ -92,6 +94,8 @@ initEL :: Word64 -> EL
 initEL t = EL
   { pargs = Nothing
   , ident = Nothing
+  , samplingRate = Nothing
+  , heapProfileType = Nothing
   , clocktimeSec = 0
   , samples = Nothing
   , frames = []
@@ -123,13 +127,17 @@ folder a el (Event t e _) = el &
       ProgramArgs _ as -> addArgs as
       WallClockTime _ s _ -> addClocktime s
       -- Profiling Events
-      HeapProfBegin {} -> addFrame t
+      HeapProfBegin { heapProfSamplingPeriod, heapProfBreakdown } -> addHeapProfBegin heapProfSamplingPeriod heapProfBreakdown
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
       HeapProfSampleBegin {} -> addFrame t
       HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample k (fromIntegral res))
       _ -> id
+
+
+addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
+addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
 
 addIdent :: String -> EL -> EL
 addIdent s el = el { ident = parseIdent s }
