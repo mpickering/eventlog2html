@@ -8,6 +8,7 @@ data Header =
   { hJob         :: Text
   , hDate        :: Text
   , hHeapProfileType :: Text
+  , hSamplingRate :: Text
   , hSampleUnit  :: Text
   , hValueUnit   :: Text
   , hCount       :: Int

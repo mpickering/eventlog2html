@@ -231,7 +231,8 @@ elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
       date = formatDate clocktimeSec
       profileType = ppHeapProfileType heapProfileType
-  in Header title date profileType "" ""
+      ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
+  in Header title date profileType ppSamplingRate "" ""
 
 ppHeapProfileType :: Maybe HeapProfBreakdown -> Text
 ppHeapProfileType (Just HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
