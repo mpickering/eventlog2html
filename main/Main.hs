@@ -19,6 +19,7 @@ main = do
   when (null (files a)) exitSuccess
   argsToOutput a
 
+
 argsToOutput :: Args -> IO ()
 argsToOutput a@Args{files = files', outputFile = Nothing} =
   if | json a    -> forM_ files' $ \file -> doOneJson a file (file <.> "json")

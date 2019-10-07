@@ -30,6 +30,13 @@ insertJsonData dat = preEscapedToHtml $ T.unlines [
   where
     dat' = TL.toStrict (T.decodeUtf8 (encode dat))
 
+insertJsonDesc :: Value -> Html
+insertJsonDesc dat = preEscapedToHtml $ T.unlines [
+    "desc_json= " `append` dat' `append` ";"
+  , "console.log(desc_json);" ]
+  where
+    dat' = TL.toStrict (T.decodeUtf8 (encode dat))
+
 
 
 encloseScript :: VizID -> Text -> Html
@@ -44,12 +51,13 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   where
     vidt = T.pack $ show vid
 
-htmlHeader :: Value -> Args -> Html
-htmlHeader dat as =
+htmlHeader :: Value -> Value -> Args -> Html
+htmlHeader dat desc as =
     H.head $ do
     H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
+    script $ insertJsonDesc desc
     if not (noIncludejs as)
       then do
         script $ preEscapedToHtml vegaLite
@@ -67,10 +75,10 @@ htmlHeader dat as =
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
 
-template :: Header -> Value -> [(Text, Text)] -> Args -> Html
+template :: Header -> Value -> Value -> Args -> Html
 template header' dat descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader dat as
+  htmlHeader dat descs as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -113,16 +121,11 @@ template header' dat descs as = docTypeHtml $ do
           ,(2, "normalizedchart", AreaChart Normalized)
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
-
-    let row (s,d) = H.tr $ do
-                     H.td (toHtml s)
-                     H.td $ (H.div ! class_ "hoverflow" $ (toHtml d))
-    when (not (null descs)) $ do
-      h4 ! onclick "toggleDescription(this)" $ "▶ Detailed Band Descriptions"
-      H.div ! A.id "description" ! class_ "row" $ do
-        H.table ! class_ "hoverflow" $ mapM_ row descs
-
+    H.div ! class_ "row" $
+      H.div ! class_ "column" $ do
+        renderChart 5 treevega
     script $ preEscapedToHtml tablogic
+
 
 htmlConf :: Args -> ChartType -> ChartConfig
 htmlConf as = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as)

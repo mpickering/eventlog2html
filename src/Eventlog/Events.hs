@@ -113,7 +113,7 @@ data CCStack = CCStack { ccsId :: Int, ccsName :: Text } deriving Show
 
 getCCSId :: EL -> Vector Word32 -> (CCStack, EL)
 getCCSId el@EL { ccsMap = (CCSMap trie uniq), ccMap = ccMap } k  =
-  let kl = toList k
+  let kl = reverse $ toList k
   in case Trie.lookup kl trie of
         Just n -> (n, el)
         Nothing ->

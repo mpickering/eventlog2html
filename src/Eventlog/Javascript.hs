@@ -8,6 +8,7 @@ module Eventlog.Javascript
   , tablogic
   , milligram
   , normalizecss
+  , treevega
   ) where
 
 import Data.Text
@@ -34,4 +35,7 @@ milligram = decodeUtf8 $(embedFile "javascript/milligram.min.css")
 
 normalizecss :: Text
 normalizecss = decodeUtf8 $(embedFile "javascript/normalize.min.css")
+
+treevega :: Text
+treevega = decodeUtf8 $(embedFile "javascript/ccmap.vg")
 
