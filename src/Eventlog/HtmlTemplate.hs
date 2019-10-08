@@ -51,6 +51,7 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   where
     vidt = T.pack $ show vid
 
+
 htmlHeader :: Value -> Value -> Args -> Html
 htmlHeader dat desc as =
     H.head $ do
@@ -74,6 +75,7 @@ htmlHeader dat desc as =
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
+
 
 template :: Header -> Value -> Value -> Args -> Html
 template header' dat descs as = docTypeHtml $ do
@@ -110,6 +112,7 @@ template header' dat descs as = docTypeHtml $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
         button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
         button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
+        button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -121,9 +124,9 @@ template header' dat descs as = docTypeHtml $ do
           ,(2, "normalizedchart", AreaChart Normalized)
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
-    H.div ! class_ "row" $
-      H.div ! class_ "column" $ do
-        renderChart 5 treevega
+
+        H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
+          renderChart 5 treevega
     script $ preEscapedToHtml tablogic
 
 
