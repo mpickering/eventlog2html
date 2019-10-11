@@ -1,4 +1,4 @@
-0.5, unreleased
+0.5, released 2019-10-11
 
 * Add some more metainformation to the header (sample mode and sample interval)
 * Fix empty sample at start of eventlog
