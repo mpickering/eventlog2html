@@ -2,6 +2,7 @@
 
 * Support for biographical and retaining profiling modes if using
 at least GHC-8.10.
+* Fix cost centre profiles to match the output of hp2pretty
 
 0.4, released 2019-09-18
 
