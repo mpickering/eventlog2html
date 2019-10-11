@@ -1,5 +1,7 @@
 0.5, unreleased
 
+* Add some more metainformation to the header (sample mode and sample interval)
+* Fix empty sample at start of eventlog
 * Support for biographical and retaining profiling modes if using
 at least GHC-8.10.
 * Fix cost centre profiles to match the output of hp2pretty
