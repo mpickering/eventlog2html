@@ -11,11 +11,9 @@ import qualified Eventlog.Events as E
 import qualified Eventlog.HeapProf as H
 import Eventlog.Prune (prune)
 import Eventlog.Vega
-import Eventlog.Types (Header, ProfData(..), BucketInfo(..))
-import Data.Text (Text)
+import Eventlog.Types (Header, ProfData(..))
 import Data.List
 import Data.Ord
-import Data.Word
 import Eventlog.Trie
 
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Value)

@@ -30,10 +30,8 @@ import Control.Monad
 import Data.Char
 import System.IO
 import qualified Data.Trie.Map as Trie
-import qualified Data.Trie.Map.Internal as TrieI
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
-import Data.Aeson
 
 type PartialHeader = Int -> Header
 
@@ -121,7 +119,6 @@ getCCSId el@EL { ccsMap = (CCSMap trie uniq), ccMap = ccMap } k  =
 
               sid = T.pack $ "(" ++ show uniq ++ ") "
               short_bucket_info = sid <> name
-              long_bucket_info = names
               bucket_info = (short_bucket_info, Just kl)
               bucket_key = Bucket (T.pack (show uniq))
           in (new_stack, el { ccsMap = CCSMap (Trie.insert kl new_stack trie) (uniq + 1)
@@ -131,11 +128,6 @@ getCCSId el@EL { ccsMap = (CCSMap trie uniq), ccMap = ccMap } k  =
              cid <- (k !? 0)
              CC{label} <- Map.lookup cid ccMap
              return $ label
-
-    names :: Text
-    names = fromMaybe "MAIN" $ do
-              cc_names <- mapM (flip Map.lookup ccMap) (toList k)
-              return $ T.intercalate "/" (map label cc_names)
 
 
 initEL :: EL
