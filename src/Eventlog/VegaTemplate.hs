@@ -38,6 +38,7 @@ data ChartConfig =
               , traces :: Bool
               , colourScheme :: Text
               , chartType :: ChartType
+              , fixedYAxisExtent :: Maybe Double
               }
 
 colourProperty :: ChartConfig -> ScaleProperty
@@ -190,7 +191,7 @@ encodingBandsLayer ct c =
         ]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
                  , PScale [SDomain (DSelection "brush")]]
-    . position Y [PName "y"
+    . position Y ([PName "y"
                  , PmType Quantitative
                  , PAxis $ case ct of
                              Stacked -> [AxTitle "Allocation"
@@ -204,6 +205,8 @@ encodingBandsLayer ct c =
                              Stacked -> StZero
                              Normalized -> StNormalize
                              StreamGraph -> StCenter)]
+                 ++
+                  [PScale [SDomain (DNumbers [0,  extent])] | Just extent <- [fixedYAxisExtent c]] )
 
 transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =

@@ -26,6 +26,7 @@ data Args = Args
   , traceEvents  :: Bool -- ^ By default, only traceMarkers are included.
                          -- This option enables the inclusion of traceEvents.
   , userColourScheme :: Text
+  , fixedYAxis :: Maybe Int
   , includeStr :: [Text]
   , excludeStr :: [Text]
   , outputFile :: Maybe String
@@ -72,6 +73,10 @@ argParser = Args
           ( long "colour-scheme"
           <> value "category20b"
           <> help "The name of the colour scheme. See the vega documentation (https://vega.github.io/vega/docs/schemes/#reference) for a complete list. Examples include \"category10\" \"dark2\" \"tableau10\". ")
+      <*> option (Just <$> auto)
+          ( long "y-axis"
+          <> value Nothing
+          <> help "Fixed value for the maximum extent of the y-axis in bytes. This option is useful for comparing profiles together.")
       <*> many (option str
           (short 'i'
           <> long "include"
