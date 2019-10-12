@@ -28,8 +28,8 @@ generateJsonValidate validate file a = do
           "samples" .= bandsToVega keeps (bands h (Map.map fst keeps) fs)
         , "traces"  .= tracesToVega traces
         ]
-      mdescs = map (((,) <$> shortDescription <*> longDescription) . snd)
-                $ sortBy (flip (comparing fst)) $ map snd $ Map.toList keeps
+      mdescs =
+        sortBy (flip (comparing (fst . snd))) $ Map.toList keeps
       descs = outputTree ccMap mdescs
   return (h, combinedJson, descs)
 

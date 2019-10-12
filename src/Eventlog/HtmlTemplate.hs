@@ -37,8 +37,6 @@ insertJsonDesc dat = preEscapedToHtml $ T.unlines [
   where
     dat' = TL.toStrict (T.decodeUtf8 (encode dat))
 
-
-
 encloseScript :: VizID -> Text -> Html
 encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
@@ -50,7 +48,6 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   , ".runAsync());" ]
   where
     vidt = T.pack $ show vid
-
 
 htmlHeader :: Value -> Value -> Args -> Html
 htmlHeader dat desc as =
