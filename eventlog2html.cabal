@@ -26,6 +26,7 @@ Extra-source-files:
   javascript/vega@5.4.0
   javascript/stylesheet.css
   javascript/tablogic.js
+  javascript/ccmap.vg
   javascript/milligram.min.css
   javascript/normalize.min.css
 cabal-version: 1.18
