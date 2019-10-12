@@ -46,7 +46,7 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
 htmlHeader :: Value -> Args -> Html
 htmlHeader dat as =
     H.head $ do
-    H.title "Heap Profile"
+    H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
     if not (noIncludejs as)
