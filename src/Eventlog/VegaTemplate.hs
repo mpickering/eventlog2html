@@ -104,7 +104,7 @@ linesLayer c = asSpec
     VL.width (0.9 * cwidth c),
     VL.height (0.7 * cheight c),
     dataFromSource "data_json_samples" [],
-    VL.mark Line [],
+    VL.mark Line [MPoint (PMMarker [])],
     encodingLineLayer c [],
     transformLineLayer []
   ]
