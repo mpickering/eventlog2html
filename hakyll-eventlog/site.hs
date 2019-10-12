@@ -116,10 +116,10 @@ drawEventlog args vid conf  = do
   return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
 
 def :: ChartConfig
-def = ChartConfig 600 500 True "category20" (AreaChart Stacked)
+def = ChartConfig 600 500 True "category20" (AreaChart Stacked) Nothing
 
 exampleConf :: ChartConfig
-exampleConf = ChartConfig 500 300 False "category20" (AreaChart Stacked)
+exampleConf = ChartConfig 500 300 False "category20" (AreaChart Stacked) Nothing
 
 chartConfig :: [(String, String)] -> ChartConfig
 chartConfig as = foldr go def as
