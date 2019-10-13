@@ -70,6 +70,7 @@ Library
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate
+  other-modules:       Paths_eventlog2html
 
 Executable eventlog2html
   GHC-options:         -Wall

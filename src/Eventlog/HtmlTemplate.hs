@@ -17,6 +17,8 @@ import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..))
 import Eventlog.VegaTemplate
+import Paths_eventlog2html
+import Data.Version
 
 type VizID = Int
 
@@ -44,7 +46,7 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
 htmlHeader :: Value -> Args -> Html
 htmlHeader dat as =
     H.head $ do
-    H.title "Heap Profile"
+    H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
     if not (noIncludejs as)
@@ -66,6 +68,7 @@ htmlHeader dat as =
 
 template :: Header -> Value -> Args -> Html
 template header' dat as = docTypeHtml $ do
+  H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
