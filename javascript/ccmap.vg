@@ -46,7 +46,7 @@
       "type": "ordinal",
       "domain": { "fields": [{"data": "tree", "field": "c"}
                             ,{"data": "tree", "field": "c"}], "sort": true},
-      "range": {"scheme": "category20b"}
+      "range": {"scheme": colour_scheme}
     }
   ],
 

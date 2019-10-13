@@ -37,6 +37,12 @@ insertJsonDesc dat = preEscapedToHtml $ T.unlines [
   where
     dat' = TL.toStrict (T.decodeUtf8 (encode dat))
 
+-- Dynamically bound in ccs tree
+insertColourScheme :: Text -> Html
+insertColourScheme scheme = preEscapedToHtml $ T.unlines [
+    "colour_scheme= \"" `append` scheme `append` "\";"
+  , "console.log(colour_scheme);" ]
+
 encloseScript :: VizID -> Text -> Html
 encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
@@ -56,6 +62,7 @@ htmlHeader dat desc as =
     meta ! charset "UTF-8"
     script $ insertJsonData dat
     script $ insertJsonDesc desc
+    script $ insertColourScheme (userColourScheme as)
     if not (noIncludejs as)
       then do
         script $ preEscapedToHtml vegaLite
