@@ -2,6 +2,7 @@
 
 * Add `--y-axis` option to allow the user to specify the extent of the y-axis.
   This is useful when comparing two different profiles together.
+* Line chart now displays points for each sample so it's easier to see where to hover.
 
 0.5, released 2019-10-11
 
