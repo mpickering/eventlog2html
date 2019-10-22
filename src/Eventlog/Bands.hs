@@ -11,14 +11,13 @@ import Data.Array.ST (writeArray, readArray, newArray)
 import Data.Array.Unboxed (UArray)
 import Data.Map (Map, lookup, size, foldrWithKey)
 import Prelude hiding (lookup, lines, words, length)
-import Data.Text (Text)
 import Eventlog.Types
 import Data.HashTable.ST.Basic hiding (lookup)
 import Data.Aeson hiding (Series)
 import GHC.Generics
 import Data.Set (Set, notMember)
 
-bands :: Header -> Map Text Int -> [Frame] -> (UArray Int Double, UArray (Int, Int) Double)
+bands :: Header -> Map Bucket Int -> [Frame] -> (UArray Int Double, UArray (Int, Int) Double)
 bands h bs frames = runST $ do
   times <- newArray (1, hCount h) 0
   vals  <- newArray ((-1,1), (size bs, hCount h)) 0
@@ -32,7 +31,7 @@ bands h bs frames = runST $ do
   vals'  <- unsafeFreezeSTUArray vals
   return (times', vals')
 
-bandsToSeries :: Map Text Int -> (UArray Int Double, UArray (Int, Int) Double)
+bandsToSeries :: Map Bucket Int -> (UArray Int Double, UArray (Int, Int) Double)
               -> [Series]
 bandsToSeries ks (ts, vs) =
   let (t1, tn) = bounds ts
@@ -40,12 +39,12 @@ bandsToSeries ks (ts, vs) =
         where
           go_1 :: [(Double, Double)]
           go_1 = flip map [t1 .. tn] $ \t -> (ts ! t, vs ! (v, t))
-  in foldrWithKey go (go "OTHER" 0 []) ks
+  in foldrWithKey go (go (Bucket "OTHER") 0 []) ks
 
-data Series = Series { key :: Text, values :: [(Double, Double)] }
+data Series = Series { key :: Bucket, values :: [(Double, Double)] }
   deriving (Show, ToJSON, Generic)
 
-series :: Set Text -> [Frame] ->  [Series]
+series :: Set Bucket -> [Frame] ->  [Series]
 series ks fs = runST $ do
   m <- new
   forM_ (reverse fs) $ \(Frame t s) ->

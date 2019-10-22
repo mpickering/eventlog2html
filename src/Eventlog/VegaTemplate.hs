@@ -30,7 +30,6 @@ data ChartType
   = AreaChart AreaChartType
   | LineChart
 
-
 -- Arguments for directly outputting javascript
 data ChartConfig =
   ChartConfig { cwidth :: Double
@@ -251,7 +250,7 @@ encodingRight =
   . injectJSON "tooltip" Null
   . color
      [
-       MSelectionCondition (SelectionName "legend") [MName "c", MmType Nominal, MAggregate Min, MLegend []] [MString "lightgray"]
+       MSelectionCondition (SelectionName "legend") [MName "c", MmType Nominal, MLegend []] [MString "lightgray"]
      ]
   . position Y [PName "c"
                , PmType Nominal

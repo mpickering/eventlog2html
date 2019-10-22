@@ -15,10 +15,12 @@ import Text.Blaze.Html.Renderer.String
 
 import Eventlog.Javascript
 import Eventlog.Args
-import Eventlog.Types (Header(..))
+import Eventlog.Types (Header(..), HeapProfBreakdown(..))
 import Eventlog.VegaTemplate
 import Paths_eventlog2html
 import Data.Version
+import Control.Monad
+import Data.Maybe
 
 type VizID = Int
 
@@ -29,7 +31,18 @@ insertJsonData dat = preEscapedToHtml $ T.unlines [
   where
     dat' = TL.toStrict (T.decodeUtf8 (encode dat))
 
+insertJsonDesc :: Value -> Html
+insertJsonDesc dat = preEscapedToHtml $ T.unlines [
+    "desc_json= " `append` dat' `append` ";"
+  , "console.log(desc_json);" ]
+  where
+    dat' = TL.toStrict (T.decodeUtf8 (encode dat))
 
+-- Dynamically bound in ccs tree
+insertColourScheme :: Text -> Html
+insertColourScheme scheme = preEscapedToHtml $ T.unlines [
+    "colour_scheme= \"" `append` scheme `append` "\";"
+  , "console.log(colour_scheme);" ]
 
 encloseScript :: VizID -> Text -> Html
 encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
@@ -43,12 +56,14 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   where
     vidt = T.pack $ show vid
 
-htmlHeader :: Value -> Args -> Html
-htmlHeader dat as =
+htmlHeader :: Value -> Maybe Value -> Args -> Html
+htmlHeader dat desc as =
     H.head $ do
     H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
+    maybe (return ()) (script . insertJsonDesc) desc
+    script $ insertColourScheme (userColourScheme as)
     if not (noIncludejs as)
       then do
         script $ preEscapedToHtml vegaLite
@@ -66,10 +81,11 @@ htmlHeader dat as =
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
 
-template :: Header -> Value -> Args -> Html
-template header' dat as = docTypeHtml $ do
+
+template :: Header -> Value -> Maybe Value -> Args -> Html
+template header' dat descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader dat as
+  htmlHeader dat descs as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -85,10 +101,11 @@ template header' dat as = docTypeHtml $ do
         "Created at: "
         code $ toHtml $ hDate header'
 
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Type of profile: "
-        code $ toHtml $ hHeapProfileType header'
+    forM_ (hHeapProfileType header') $ \prof_type -> do
+      H.div ! class_ "row" $ do
+        H.div ! class_ "column" $ do
+          "Type of profile: "
+          code $ toHtml $ ppHeapProfileType prof_type
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -101,6 +118,8 @@ template header' dat as = docTypeHtml $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
         button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
         button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
+        when (isJust descs) $ do
+          button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -113,7 +132,11 @@ template header' dat as = docTypeHtml $ do
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
 
+        when (isJust descs) $ do
+          H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
+            renderChart 5 treevega
     script $ preEscapedToHtml tablogic
+
 
 htmlConf :: Args -> ChartType -> ChartConfig
 htmlConf as = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as)
@@ -130,6 +153,15 @@ renderChartWithJson k dat vegaSpec = do
     renderChart k vegaSpec
 
 
-templateString :: Header -> Value -> Args -> String
-templateString header' dat as =
-  renderHtml $ template header' dat as
+templateString :: Header -> Value -> Maybe Value -> Args -> String
+templateString header' dat descs as =
+  renderHtml $ template header' dat descs as
+
+ppHeapProfileType :: HeapProfBreakdown -> Text
+ppHeapProfileType (HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
+ppHeapProfileType (HeapProfBreakdownModule) = "Profiling by module (implied by -hm)"
+ppHeapProfileType (HeapProfBreakdownClosureDescr) = "Profiling by closure description (implied by -hd)"
+ppHeapProfileType (HeapProfBreakdownTypeDescr) = "Profiling by type (implied by -hy)"
+ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
+ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
+ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"

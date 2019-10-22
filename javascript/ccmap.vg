@@ -1,0 +1,102 @@
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "width": 1000,
+  "height": 600,
+  "padding": 5,
+
+  "signals": [
+  ],
+
+  "data": [
+    {
+      "name": "tree",
+      "values": desc_json,
+      "transform": [
+        {
+          "type": "stratify",
+          "key": "id",
+          "parentKey": "parent"
+        },
+        {
+          "type": "tree",
+          "method": "tidy",
+          "size": [{"signal": "width - 100"}, {"signal": "height"}],
+          "separation": false,
+          "as": ["x", "y", "depth", "children"]
+        }
+      ]
+    },
+    {
+      "name": "links",
+      "source": "tree",
+      "transform": [
+        { "type": "treelinks" },
+        {
+          "type": "linkpath",
+          "orient": "vertical",
+          "shape": "diagonal"
+        }
+      ]
+    }
+  ],
+
+  "scales": [
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": { "fields": [{"data": "tree", "field": "c"}
+                            ,{"data": "tree", "field": "c"}], "sort": true},
+      "range": {"scheme": colour_scheme}
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "path",
+      "from": {"data": "links"},
+      "encode": {
+        "update": {
+          "path": {"field": "path"},
+          "stroke": {"value": "#ccc"}
+        }
+      }
+    },
+    {
+      "type": "symbol",
+      "from": {"data": "tree"},
+      "encode": {
+        "enter": {
+          "size": {"value": 500},
+          "stroke": {"value": "black"},
+          "tooltip": {"signal": "datum.name"}
+        },
+        "update": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "fill": {"scale": "color", "field": "c"}
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": {"data": "tree"},
+      "encode": {
+        "enter": {
+          "text": {"field": "ccs"},
+          "fontSize": {"value": 9},
+          "baseline": {"value": "middle"}
+        },
+        "update": {
+          "x": {"field": "x"},
+          "y": {"field": "y"},
+          "angle": {"signal": "datum.children ? 0 : 0"},
+          "dy": {"signal": "datum.children ? 0 : 0"},
+          "dx": {"signal": "datum.children ? 0 : 0"},
+          "align": {"signal": "datum.children ? 'center' : 'center'"},
+          "opacity": 0
+        }
+      }
+    }
+  ]
+}
+

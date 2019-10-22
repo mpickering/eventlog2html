@@ -5,6 +5,7 @@ import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Data.Text (Text, lines, init, drop, length, isPrefixOf, unpack, words, pack)
 import Data.Text.IO (readFile)
 import Data.Attoparsec.Text (parseOnly, double)
+import qualified Data.Map as Map
 
 import Eventlog.Total
 import Eventlog.Types
@@ -13,8 +14,10 @@ chunk :: FilePath -> IO ProfData
 chunk f = do
   (ph, fs) <- chunkT <$> readFile f
   let (counts, totals) = total fs
+      -- Heap profiles don't contain any other information than the simple bucket name
+      binfo = Map.mapWithKey (\(Bucket k) (t,s) -> BucketInfo k Nothing t s ) totals
   -- Heap profiles do not support traces
-  return (ProfData (ph counts) totals fs [])
+  return (ProfData (ph counts) binfo mempty fs [])
 
 chunkT :: Text -> (Int -> Header, [Frame])
 chunkT s =
@@ -24,7 +27,7 @@ chunkT s =
         zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
       fs = chunkSamples ss
   in  (
-        Header job date (pack "") (pack "") smpU valU
+        Header job date Nothing (pack "") smpU valU
       ,  fs
       )
 
@@ -54,7 +57,7 @@ parseSample :: Text -> Sample
 parseSample s =
   let [k,vs] = words s
       !v = readDouble vs
-  in (Sample k v)
+  in (Sample (Bucket k) v)
 
 
 sampleTime :: Text -> Text -> Double

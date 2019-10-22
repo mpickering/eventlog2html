@@ -4,21 +4,20 @@ module Eventlog.Total (total) where
 import Control.Monad.State.Strict (State(), execState, get, put, modify)
 import Data.Map (Map, empty, alter)
 import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
-import Data.Text (Text)
 
 import Eventlog.Types
 
 
 data Parse =
   Parse
-  { totals    :: !(Map Text (Double, Double)) -- compute running totass and total of squares
+  { totals    :: !(Map Bucket (Double, Double)) -- compute running totals and total of squares
   , count     :: !Int                         -- number of frames
   }
 
 parse0 :: Parse
 parse0 = Parse{ totals = empty, count = 0 }
 
-total :: [Frame] -> (Int, Map Text (Double, Double))
+total :: [Frame] -> (Int, Map Bucket (Double, Double))
 total fs =
   let parse1 = flip execState parse0 . mapM_ parseFrame $ fs
   in  (
