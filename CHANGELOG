@@ -1,3 +1,5 @@
+0.6, released 2019-10-22
+
 * Revamp how cost centre profiles are displayed.
 * Fix incorrectly calculated start time for certain profiles.
 * Line chart now displays points for each sample so it's easier to see where to hover.
