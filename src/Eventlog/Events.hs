@@ -269,19 +269,9 @@ elHeader :: EL -> PartialHeader
 elHeader EL{..} =
   let title = maybe "" (T.unwords . map T.pack) pargs
       date = formatDate clocktimeSec
-      profileType = ppHeapProfileType heapProfileType
       ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
-  in Header title date profileType ppSamplingRate "" ""
+  in Header title date heapProfileType ppSamplingRate "" ""
 
-ppHeapProfileType :: Maybe HeapProfBreakdown -> Text
-ppHeapProfileType (Just HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
-ppHeapProfileType (Just HeapProfBreakdownModule) = "Profiling by module (implied by -hm)"
-ppHeapProfileType (Just HeapProfBreakdownClosureDescr) = "Profiling by closure description (implied by -hd)"
-ppHeapProfileType (Just HeapProfBreakdownTypeDescr) = "Profiling by type (implied by -hy)"
-ppHeapProfileType (Just HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
-ppHeapProfileType (Just HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
-ppHeapProfileType (Just HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
-ppHeapProfileType Nothing = "<Not available>"
 
 elBucketMap :: EL -> BucketMap
 elBucketMap = bucketMap

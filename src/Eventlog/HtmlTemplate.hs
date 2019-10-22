@@ -15,11 +15,12 @@ import Text.Blaze.Html.Renderer.String
 
 import Eventlog.Javascript
 import Eventlog.Args
-import Eventlog.Types (Header(..))
+import Eventlog.Types (Header(..), HeapProfBreakdown(..))
 import Eventlog.VegaTemplate
 import Paths_eventlog2html
 import Data.Version
 import Control.Monad
+import Data.Maybe
 
 type VizID = Int
 
@@ -55,13 +56,13 @@ encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
   where
     vidt = T.pack $ show vid
 
-htmlHeader :: Value -> Value -> Args -> Html
+htmlHeader :: Value -> Maybe Value -> Args -> Html
 htmlHeader dat desc as =
     H.head $ do
     H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
     script $ insertJsonData dat
-    script $ insertJsonDesc desc
+    maybe (return ()) (script . insertJsonDesc) desc
     script $ insertColourScheme (userColourScheme as)
     if not (noIncludejs as)
       then do
@@ -81,7 +82,7 @@ htmlHeader dat desc as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: Header -> Value -> Value -> Args -> Html
+template :: Header -> Value -> Maybe Value -> Args -> Html
 template header' dat descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat descs as
@@ -100,10 +101,11 @@ template header' dat descs as = docTypeHtml $ do
         "Created at: "
         code $ toHtml $ hDate header'
 
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Type of profile: "
-        code $ toHtml $ hHeapProfileType header'
+    forM_ (hHeapProfileType header') $ \prof_type -> do
+      H.div ! class_ "row" $ do
+        H.div ! class_ "column" $ do
+          "Type of profile: "
+          code $ toHtml $ ppHeapProfileType prof_type
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -116,7 +118,8 @@ template header' dat descs as = docTypeHtml $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
         button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
         button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
-        button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
+        when (isJust descs) $ do
+          button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -129,8 +132,9 @@ template header' dat descs as = docTypeHtml $ do
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
 
-        H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
-          renderChart 5 treevega
+        when (isJust descs) $ do
+          H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
+            renderChart 5 treevega
     script $ preEscapedToHtml tablogic
 
 
@@ -149,6 +153,15 @@ renderChartWithJson k dat vegaSpec = do
     renderChart k vegaSpec
 
 
-templateString :: Header -> Value -> Value -> Args -> String
+templateString :: Header -> Value -> Maybe Value -> Args -> String
 templateString header' dat descs as =
   renderHtml $ template header' dat descs as
+
+ppHeapProfileType :: HeapProfBreakdown -> Text
+ppHeapProfileType (HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
+ppHeapProfileType (HeapProfBreakdownModule) = "Profiling by module (implied by -hm)"
+ppHeapProfileType (HeapProfBreakdownClosureDescr) = "Profiling by closure description (implied by -hd)"
+ppHeapProfileType (HeapProfBreakdownTypeDescr) = "Profiling by type (implied by -hy)"
+ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
+ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
+ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"

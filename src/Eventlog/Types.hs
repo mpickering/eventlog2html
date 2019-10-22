@@ -1,18 +1,19 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Eventlog.Types where
+module Eventlog.Types(module Eventlog.Types, HeapProfBreakdown(..)) where
 
 import Data.Text (Text)
 import Data.Map (Map)
 import Data.Aeson
 import Data.Hashable
 import Data.Word
+import GHC.RTS.Events (HeapProfBreakdown(..))
 
 data Header =
   Header
   { hJob         :: Text
   , hDate        :: Text
-  , hHeapProfileType :: Text
+  , hHeapProfileType :: Maybe HeapProfBreakdown
   , hSamplingRate :: Text
   , hSampleUnit  :: Text
   , hValueUnit   :: Text
@@ -45,7 +46,7 @@ data Frame = Frame Double [Sample] deriving Show
 data Trace = Trace Double Text deriving Show
 
 data ProfData = ProfData { profHeader :: Header
-                         , profTotals ::  (Map Bucket BucketInfo)
+                         , profTotals :: (Map Bucket BucketInfo)
                          , profCCMap  :: Map Word32 CostCentre
                          , profFrames :: [Frame]
                          , profTraces :: [Trace] } deriving Show
