@@ -5,7 +5,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE StrictData #-}
-{-# LANGUAGE CPP #-}
 module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)

@@ -44,15 +44,29 @@ insertColourScheme scheme = preEscapedToHtml $ T.unlines [
     "colour_scheme= \"" `append` scheme `append` "\";"
   , "console.log(colour_scheme);" ]
 
+
+data_sets :: [Text]
+data_sets = [
+    ".insert(\"data_json_samples\", data_json.samples)"
+  , ".insert(\"data_json_traces\", data_json.traces)" ]
+
 encloseScript :: VizID -> Text -> Html
-encloseScript vid vegaspec = preEscapedToHtml $ T.unlines [
+encloseScript = encloseScriptX True
+
+encloseRawVegaScript :: VizID -> Text -> Html
+encloseRawVegaScript = encloseScriptX False
+
+encloseScriptX :: Bool -> VizID -> Text -> Html
+encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
   , ".then((res) => "
-  , "res.view"
-  , ".insert(\"data_json_samples\", data_json.samples)"
-  , ".insert(\"data_json_traces\", data_json.traces)"
-  , ".runAsync());" ]
+  , "res.view" ]
+-- For the 4 vega lite charts we dynamically insert the data after the
+-- chart is created to avoid duplicating it. For the vega chart, this
+-- causes a harmless error so we just don't do it.
+  ++ (if insert_data_sets then data_sets else []) ++
+  [ ".runAsync());" ])
   where
     vidt = T.pack $ show vid
 
@@ -125,7 +139,7 @@ template header' dat descs as = docTypeHtml $ do
       H.div ! class_ "column" $ do
         mapM_ (\(vid, chartname, conf) ->
                   H.div ! A.id chartname ! class_ "tabviz" $ do
-                    renderChart vid
+                    renderChart True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
           [(1, "areachart",  AreaChart Stacked)
           ,(2, "normalizedchart", AreaChart Normalized)
@@ -134,23 +148,25 @@ template header' dat descs as = docTypeHtml $ do
 
         when (isJust descs) $ do
           H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
-            renderChart 5 treevega
+            renderChart False 5 treevega
     script $ preEscapedToHtml tablogic
 
 
 htmlConf :: Args -> ChartType -> ChartConfig
 htmlConf as = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as)
 
-renderChart :: VizID -> Text -> Html
-renderChart vid vegaSpec = do
+renderChart :: Bool -> VizID -> Text -> Html
+renderChart vega_lite vid vegaSpec = do
     H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
-      (encloseScript vid vegaSpec)
+      if vega_lite
+        then encloseScript vid vegaSpec
+        else encloseRawVegaScript vid vegaSpec
 
 renderChartWithJson :: Int -> Value -> Text -> Html
 renderChartWithJson k dat vegaSpec = do
     script $ insertJsonData dat
-    renderChart k vegaSpec
+    renderChart True k vegaSpec
 
 
 templateString :: Header -> Value -> Maybe Value -> Args -> String
