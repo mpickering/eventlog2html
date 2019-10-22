@@ -110,8 +110,8 @@ data CostCentre = CC { cid :: Word32
                      , modul :: Text
                      , loc :: Text } deriving Show
 
-initEL :: Word64 -> EL
-initEL t = EL
+initEL :: EL
+initEL = EL
   { pargs = Nothing
   , ident = Nothing
   , samplingRate = Nothing
@@ -120,17 +120,16 @@ initEL t = EL
   , samples = Nothing
   , frames = []
   , traces = []
-  , start = t
+  , start = 0
   , end = 0
   , ccMap = Map.empty
   , ccsMap =  CCSMap Trie.empty 0
   }
 
 foldEvents :: Args -> [Event] -> EL
-foldEvents a (e:es) =
-  let res = foldl' (folder a)  (initEL (evTime e)) (e:es)
+foldEvents a es =
+  let res = foldl' (folder a) initEL es
   in addFrame 0 res
-foldEvents _ [] = error "Empty event log"
 
 folder :: Args -> EL -> Event -> EL
 folder a el (Event t e _) = el &
