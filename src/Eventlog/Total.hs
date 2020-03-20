@@ -1,5 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
-module Eventlog.Total (total) where
+module Eventlog.Total(total) where
 
 import Control.Monad.State.Strict (State(), execState, get, put, modify)
 import Data.Map (Map, empty, alter)
@@ -25,13 +24,14 @@ total fs =
       , fmap (stddev $ fromIntegral (count parse1)) (totals parse1)
       )
 
+
 stddev :: Double -> (Double, Double) -> (Double, Double)
 stddev s0 (s1, s2) = (s1, sqrt (s0 * s2 - s1 * s1) / s0)
 
 
 parseFrame :: Frame -> State Parse ()
 parseFrame (Frame _time ls) = do
-  _ <- mapM inserter ls
+  mapM_ inserter ls
   modify $ \p -> p{ count = count p + 1 }
 
 inserter :: Sample -> State Parse Double

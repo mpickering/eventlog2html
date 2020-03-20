@@ -1,7 +1,4 @@
-{-# LANGUAGE BangPatterns #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternGuards #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE StrictData #-}
@@ -36,6 +33,7 @@ type PartialHeader = Int -> Header
 
 fromNano :: Word64 -> Double
 fromNano e = fromIntegral e * 1e-9
+
 
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
@@ -80,7 +78,7 @@ eventsToHP a (Data es) = do
   return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [FrameEL] -> [Frame]
-normalise fs = map (\(FrameEL t ss) -> Frame (fromNano t) ss) fs
+normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
 
 type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 

@@ -57,7 +57,7 @@ parseSample :: Text -> Sample
 parseSample s =
   let [k,vs] = words s
       !v = readDouble vs
-  in (Sample (Bucket k) v)
+  in Sample (Bucket k) v
 
 
 sampleTime :: Text -> Text -> Double
