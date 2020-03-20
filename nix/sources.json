@@ -11,14 +11,15 @@
         "rev": "53c0498ec4011a9747ae1995df699849b5bacaa1"
     },
     "nixpkgs": {
-        "url": "https://github.com/NixOS/nixpkgs-channels/archive/83ba5afcc9682b52b39a9a958f730b966cc369c5.tar.gz",
+        "homepage": "https://github.com/NixOS/nixpkgs",
+        "url": "https://github.com/NixOS/nixpkgs-channels/archive/ddf87fb1baf8f5022281dad13fb318fa5c17a7c6.tar.gz",
         "owner": "NixOS",
         "branch": "nixos-unstable",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz",
         "repo": "nixpkgs-channels",
-        "sha256": "0swh1i3rm8a7fij6drz11s5nyzr145yh4n17k0572pp8knpxw762",
+        "sha256": "1xd6lz11lp7gqp00qfkk9h4nj4hvigm2xk1gi6css0r7sjw1chg4",
         "description": "Nixpkgs/NixOS branches that track the Nixpkgs/NixOS channels",
-        "rev": "83ba5afcc9682b52b39a9a958f730b966cc369c5"
+        "rev": "ddf87fb1baf8f5022281dad13fb318fa5c17a7c6"
     },
     "niv": {
         "homepage": "https://github.com/nmattia/niv",
