@@ -16,13 +16,16 @@ jobs:
       script:
         - nix-env -iA cachix -f https://cachix.org/api/v1/install
         - cachix use mpickering
+        - cachix use iohk
         - cachix push mpickering --watch-store&
-        - nix-build -A eventlog2html --arg ci true
+        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc865
+        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc881
 
     - stage: build documentation
       script:
         - nix-env -iA cachix -f https://cachix.org/api/v1/install
         - cachix use mpickering
+        - cachix use iohk
         - cachix push mpickering --watch-store&
         - nix-build -A site --arg ci true -o site
 
