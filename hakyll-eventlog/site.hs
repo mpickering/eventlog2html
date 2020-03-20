@@ -19,12 +19,13 @@ import           Eventlog.Data
 import           Eventlog.Args
 import           Eventlog.VegaTemplate
 import           Eventlog.HtmlTemplate
-import           Text.Blaze.Html.Renderer.String
+import           Text.Blaze.Html.Renderer.Text
 import           Options.Applicative
 import           Options.Applicative.Help.Types
 import           Options.Applicative.Help.Core
 import           Data.IORef
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 
 --------------------------------------------------------------------------------
 main :: IO ()
@@ -46,7 +47,7 @@ main = do
         path <- getResourceFilePath
         res <- unsafeCompiler $ fullEventLogPage path
         saveSnapshot "snippet" =<< makeItem
-                               =<< (unsafeCompiler $ eventlogSnippet globalCounter [path] exampleConf)
+                               =<< (unsafeCompiler $ eventlogSnippet globalCounter [T.pack path] exampleConf)
         makeItem res
 
     create ["examples.html"] $ do
@@ -91,7 +92,7 @@ renderEventlog p = do
 
 insertEventlogs :: IORef Int -> Block -> IO Block
 insertEventlogs c block@(CodeBlock (ident, classes, attrs) code) | "eventlog" `elem` classes = do
-   d <- eventlogSnippet c (words code) (chartConfig attrs)
+   d <- eventlogSnippet c (T.words code) (chartConfig attrs)
    return $ wrap (RawBlock (Format "html") d)
 insertEventlogs _ (CodeBlock (_, ["help"], _) _) = insertHelp
 insertEventlogs _ (c@(CodeBlock {})) = return $ Div ("", ["bg-light"],[]) [c]
@@ -100,20 +101,20 @@ insertEventlogs _ block = return block
 wrap :: Block -> Block
 wrap b = Div ("", ["card", "mx-auto"],[("style", "max-width: 600px")]) [Div ("", ["card-body"],[]) [b]]
 
-render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " ++ c)]
+render c = Div ("", ["bg-light"], []) [CodeBlock nullAttr ("> eventlog2html " <> c)]
 
 
-eventlogSnippet :: IORef Int -> [String] -> ChartConfig -> IO String
+eventlogSnippet :: IORef Int -> [T.Text] -> ChartConfig -> IO T.Text
 eventlogSnippet c as conf = do
    n <- readIORef c
    modifyIORef c (+1)
    drawEventlog as n conf
 
-drawEventlog :: [String] -> Int -> ChartConfig -> IO String
+drawEventlog :: [T.Text] -> Int -> ChartConfig -> IO T.Text
 drawEventlog args vid conf  = do
-  as <- handleParseResult (execParserPure defaultPrefs argsInfo args)
+  as <- handleParseResult (execParserPure defaultPrefs argsInfo (map T.unpack args))
   (_, dat, _) <- generateJson (head $ files as) as
-  return $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
+  return $ TL.toStrict $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
 
 def :: ChartConfig
 def = ChartConfig 600 500 True "category20" (AreaChart Stacked) Nothing
@@ -121,31 +122,32 @@ def = ChartConfig 600 500 True "category20" (AreaChart Stacked) Nothing
 exampleConf :: ChartConfig
 exampleConf = ChartConfig 500 300 False "category20" (AreaChart Stacked) Nothing
 
-chartConfig :: [(String, String)] -> ChartConfig
+chartConfig :: [(T.Text, T.Text)] -> ChartConfig
 chartConfig as = foldr go def as
   where
-
-    go :: (String, String) -> ChartConfig -> ChartConfig
+    tread :: Read a => T.Text -> a
+    tread = read . T.unpack
+    go :: (T.Text, T.Text) -> ChartConfig -> ChartConfig
     go (k,v) c = case k of
-                   "w"      -> c { cwidth  = read v }
-                   "h"      -> c { cheight = read v }
-                   "traces" -> c { traces = read v }
+                   "w"      -> c { cwidth  = tread v }
+                   "h"      -> c { cheight = tread v }
+                   "traces" -> c { traces = tread v }
                    "type"   -> c { chartType = readChart v }
-                   "scheme" -> c { colourScheme = T.pack v }
+                   "scheme" -> c { colourScheme = v }
 
     readChart "stack"  = AreaChart Stacked
     readChart "stream" = AreaChart StreamGraph
     readChart "normal" = AreaChart Normalized
     readChart "line"   = LineChart
-    readChart e = error $ "Unknown chart type: "  ++ e
+    readChart e = error $ "Unknown chart type: "  ++ (T.unpack e)
 
 insertHelp :: IO Block
 insertHelp =
   return $ Div ("", ["bg-light"], []) [CodeBlock nullAttr (base_help argsInfo)]
   where
-    base_help :: ParserInfo a -> String
+    base_help :: ParserInfo a -> T.Text
     base_help i =
-      renderHelp 80 (mconcat [h, f, parserHelp defaultPrefs (infoParser i)])
+      T.pack $ renderHelp 80 (mconcat [h, f, parserHelp defaultPrefs (infoParser i)])
       where
         h = headerHelp (infoHeader i)
         f = footerHelp (infoFooter i)
