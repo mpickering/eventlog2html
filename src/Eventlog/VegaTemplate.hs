@@ -16,11 +16,6 @@ import Data.Text (Text)
 import Data.Aeson.Text (encodeToLazyText)
 import Data.Text.Lazy (toStrict)
 
--- | Workaround for some limitations in the HVega library.
--- This function should be removed once the features are merged into HVega.
-injectJSON :: Text -> Value -> BuildLabelledSpecs
-injectJSON t val = \x -> x ++ [(t,val)]
-
 data AreaChartType
   = Stacked
   | Normalized
@@ -86,7 +81,7 @@ lineChartFull c = hConcat
   , legendDiagram
   ]
 
-config :: [LabelledSpec] -> (VLProperty, VLSpec)
+config :: [ConfigureSpec] -> (VLProperty, VLSpec)
 config =
   configure
     . configuration (TextStyle [(MAlign AlignRight), (MdX (-5)), (MdY 5)])
@@ -109,7 +104,7 @@ linesLayer c = asSpec
     transformLineLayer []
   ]
 
-encodingLineLayer :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
+encodingLineLayer :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingLineLayer c
  = encoding
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
@@ -117,7 +112,7 @@ encodingLineLayer c
                   PScale [SDomain (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
 
-transformLineLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+transformLineLayer :: [TransformSpec] -> (VLProperty, VLSpec)
 transformLineLayer =
   transform
   . window [([WField "y", WAggregateOp Max], "max_y")] [WFrame Nothing Nothing, WGroupBy ["k"]]
@@ -128,18 +123,19 @@ transformLineLayer =
 -- The Selection Chart
 -----------------------------------------------------------------------------------
 
-encodingSelection :: ChartConfig -> [LabelledSpec] -> (VLProperty, VLSpec)
+encodingSelection :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingSelection c =
   encoding
     . order [OName "k", OmType Quantitative]
-    . injectJSON "tooltip" Null
+    . tooltip []
     . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [{-AxTitle "Allocation", AxFormat "s"-}], PAggregate Sum, PStack StZero]
 
-brush :: (VLProperty, VLSpec)
-brush = (selection . injectJSON "brush" (object [ "type" .= String "interval"
-                                                , "init" .= object [ "x" .= [Null, Null] ] ])) []
+brush :: [SelectSpec] -> PropertySpec
+brush = selection .
+          select "brush" Interval [SInitInterval (Just (NullValue, NullValue)) Nothing]
+
 -- init field is not supported and necessary for dynamic loading
 
 selectionChart :: ChartConfig -> VLSpec
@@ -149,7 +145,7 @@ selectionChart c = asSpec [
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
     encodingSelection c [],
-    brush
+    brush []
   ]
 
 -----------------------------------------------------------------------------------
@@ -178,7 +174,7 @@ bandsLayer ct c = asSpec
 
 encodingBandsLayer :: AreaChartType
                    -> ChartConfig
-                   -> [LabelledSpec]
+                   -> [EncodingSpec]
                    -> (VLProperty, VLSpec)
 encodingBandsLayer ct c =
   encoding
@@ -207,7 +203,7 @@ encodingBandsLayer ct c =
                  ++
                   [PScale [SDomain (DNumbers [0,  extent])] | Just extent <- [fixedYAxisExtent c]] )
 
-transformBandsLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+transformBandsLayer :: [TransformSpec] -> (VLProperty, VLSpec)
 transformBandsLayer =
   transform
     . filter (FSelection "legend")
@@ -224,7 +220,7 @@ tracesLayer = asSpec
     encodingTracesLayer []
   ]
 
-encodingTracesLayer :: [LabelledSpec] -> (VLProperty, VLSpec)
+encodingTracesLayer :: [EncodingSpec] -> (VLProperty, VLSpec)
 encodingTracesLayer =
   encoding
     . color [MString "grey"]
@@ -247,10 +243,10 @@ legendDiagram  = asSpec
     selectionRight []
   ]
 
-encodingRight :: [LabelledSpec] -> (VLProperty, VLSpec)
+encodingRight :: [EncodingSpec] -> (VLProperty, VLSpec)
 encodingRight =
   encoding
-  . injectJSON "tooltip" Null
+  . tooltip []
   . color
      [
        MSelectionCondition (SelectionName "legend") [MName "c", MmType Nominal, MLegend []] [MString "lightgray"]
@@ -265,7 +261,7 @@ encodingRight =
                        , AxMaxExtent 100]
                , PSort [(ByFieldOp "k" Mean), Descending]]
 
-selectionRight :: [LabelledSpec] -> (VLProperty, VLSpec)
+selectionRight :: [SelectSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection
      . select "legend" Multi [On "click", Encodings [ChColor], ResolveSelections Global, Toggle "event.shiftKey"]
