@@ -7,6 +7,7 @@ module Eventlog.Events(chunk) where
 import GHC.RTS.Events hiding (Header, header)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
+import qualified Data.Text.IO as T
 import Data.Text (Text)
 
 import Eventlog.Types
@@ -53,19 +54,19 @@ chunk a f = do
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
   return $ (ProfData (ph counts) binfo ccMap frames traces)
 
-checkGHCVersion :: EL -> Maybe String
+checkGHCVersion :: EL -> Maybe Text
 checkGHCVersion EL { ident = Just (version,_)}
   | version <= makeVersion [8,4,4]  =
       Just $ "Warning: The eventlog has been generated with ghc-"
-           ++ showVersion version
-           ++ ", which does not support profiling events in the eventlog."
+           <> T.pack (showVersion version)
+           <> ", which does not support profiling events in the eventlog."
 checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
   | version > makeVersion [8,4,4] &&
     version <= makeVersion [8,9,0] &&
     ("-hr" `elem` args || "-hb" `elem` args) =
      Just $ "Warning: The eventlog has been generated with ghc-"
-            ++ showVersion version
-            ++ ", which does not support biographical or retainer profiling."
+            <> T.pack (showVersion version)
+            <> ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
 eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace])
@@ -74,7 +75,7 @@ eventsToHP a (Data es) = do
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
-  mapM_ (hPutStrLn stderr) (checkGHCVersion el)
+  mapM_ (T.hPutStrLn stderr) (checkGHCVersion el)
   return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces)
 
 normalise :: [FrameEL] -> [Frame]
@@ -83,8 +84,8 @@ normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
 type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 
 data EL = EL
-  { pargs :: !(Maybe [String])
-  , ident :: Maybe (Version, String)
+  { pargs :: !(Maybe [Text])
+  , ident :: Maybe (Version, Text)
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
   , ccMap :: !(Map.Map Word32 CostCentre)
@@ -157,9 +158,9 @@ folder a el (Event t e _) = el &
       -- Messages and UserMessages correspond to high-frequency "traceEvent" or "traceEventIO" events from Debug.Trace and
       -- are only included if "--include-trace-events" has been specified.
       -- For low-frequency events "traceMarker" or "traceMarkerIO" should be used, which generate "UserMarker" events.
-      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
-      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
-      UserMarker s -> addTrace a (Trace (fromNano t) (T.pack s))
+      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) s) else id
+      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) s) else id
+      UserMarker s -> addTrace a (Trace (fromNano t) s)
       -- Information about the program
       RtsIdentifier _ ident -> addIdent ident
       ProgramArgs _ as -> addArgs as
@@ -177,8 +178,8 @@ folder a el (Event t e _) = el &
 addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
 addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
 
-addIdent :: String -> EL -> EL
-addIdent s el = el { ident = parseIdent s }
+addIdent :: Text -> EL -> EL
+addIdent s el = el { ident = fmap T.pack <$> (parseIdent (T.unpack s)) }
 
 parseIdent :: String -> Maybe (Version, String)
 parseIdent s = listToMaybe $ flip readP_to_S s $ do
@@ -205,7 +206,7 @@ addCCSample res _sd st el =
 addClocktime :: Word64 -> EL -> EL
 addClocktime s el = el { clocktimeSec = s }
 
-addArgs :: [String] -> EL -> EL
+addArgs :: [Text] -> EL -> EL
 addArgs as el = el { pargs = Just as }
 
 
@@ -264,7 +265,7 @@ formatDate sec =
 
 elHeader :: EL -> PartialHeader
 elHeader EL{..} =
-  let title = maybe "" (T.unwords . map T.pack) pargs
+  let title = maybe "" T.unwords pargs
       date = formatDate clocktimeSec
       ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
   in Header title date heapProfileType ppSamplingRate "" ""
