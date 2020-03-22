@@ -14,15 +14,16 @@ module Eventlog.Javascript
 import Data.Text
 import Data.Text.Encoding
 import Data.FileEmbed
+import Eventlog.VegaVersions
 
 vegaLite :: Text
-vegaLite = decodeUtf8 $(embedFile "javascript/vega-lite@3.3.0")
+vegaLite = decodeUtf8 $(embedFile ("javascript/vega-lite@" ++ vegaLiteVersion))
 
 vegaEmbed :: Text
-vegaEmbed = decodeUtf8 $(embedFile "javascript/vega-embed@4.2.0")
+vegaEmbed = decodeUtf8 $(embedFile ("javascript/vega-embed@" ++ vegaEmbedVersion))
 
 vega :: Text
-vega = decodeUtf8 $(embedFile "javascript/vega@5.4.0")
+vega = decodeUtf8 $(embedFile ("javascript/vega@" ++ vegaVersion))
 
 stylesheet :: Text
 stylesheet = decodeUtf8 $(embedFile "javascript/stylesheet.css")

@@ -17,6 +17,7 @@ import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..), HeapProfBreakdown(..))
 import Eventlog.VegaTemplate
+import Eventlog.VegaVersions
 import Paths_eventlog2html
 import Data.Version
 import Control.Monad
@@ -60,13 +61,15 @@ encloseScriptX :: Bool -> VizID -> Text -> Html
 encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
-  , ".then((res) => "
+  , ".then((res) => { "
   , "res.view" ]
 -- For the 4 vega lite charts we dynamically insert the data after the
 -- chart is created to avoid duplicating it. For the vega chart, this
 -- causes a harmless error so we just don't do it.
   ++ (if insert_data_sets then data_sets else []) ++
-  [ ".runAsync());" ])
+  [ "; res.view.resize()"
+  , "; res.view.runAsync()"
+  , "})" ])
   where
     vidt = T.pack $ show vid
 
@@ -86,9 +89,9 @@ htmlHeader dat desc as =
         H.style  $ preEscapedToHtml milligram
         H.style  $ preEscapedToHtml normalizecss
       else do
-        script ! src "https://cdn.jsdelivr.net/npm/vega@5.4.0" $ ""
-        script ! src "https://cdn.jsdelivr.net/npm/vega-lite@3.3.0" $ ""
-        script ! src "https://cdn.jsdelivr.net/npm/vega-embed@4.2.0" $ ""
+        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega@" ++ vegaVersion) $ ""
+        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-lite@" ++ vegaLiteVersion) $ ""
+        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-embed@" ++ vegaEmbedVersion) $ ""
         link ! rel "stylesheet" ! href "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
         link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"

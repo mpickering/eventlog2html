@@ -21,9 +21,9 @@ Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen 2019 Mat
 Category:            Development
 Build-type:          Simple
 Extra-source-files:
-  javascript/vega-lite@3.3.0
-  javascript/vega-embed@4.2.0
-  javascript/vega@5.4.0
+  javascript/vega-lite@4.7.0
+  javascript/vega-embed@6.3.2
+  javascript/vega@5.10.0
   javascript/stylesheet.css
   javascript/tablogic.js
   javascript/ccmap.vg
@@ -73,6 +73,7 @@ Library
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate
+                       Eventlog.VegaVersions
   other-modules:       Paths_eventlog2html
 
 Executable eventlog2html
