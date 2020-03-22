@@ -68,18 +68,10 @@ vegaResult conf = toVegaLite $
   ]
 
 areaChartFull :: AreaChartType -> ChartConfig -> (VLProperty, VLSpec)
-areaChartFull ct c = hConcat
-  [
-    asSpec [vConcat [areaChart ct c, selectionChart c]]
-  , legendDiagram
-  ]
+areaChartFull ct c = vConcat [areaChart ct c,  selectionChart c]
 
 lineChartFull :: ChartConfig -> (VLProperty, VLSpec)
-lineChartFull c = hConcat
-  [
-    asSpec [vConcat [lineChart c, selectionChart c]]
-  , legendDiagram
-  ]
+lineChartFull c = vConcat [lineChart c, selectionChart c]
 
 config :: [ConfigureSpec] -> (VLProperty, VLSpec)
 config =
@@ -101,15 +93,18 @@ linesLayer c = asSpec
     dataFromSource "data_json_samples" [],
     VL.mark Line [MPoint (PMMarker [])],
     encodingLineLayer c [],
-    transformLineLayer []
+    transformLineLayer [],
+    selectionRight []
   ]
 
 encodingLineLayer :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingLineLayer c
  = encoding
-    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
-    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""],
-                  PScale [SDomain (DSelection "brush")]]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c]
+            , MSort [ByFieldOp "k" Max, Descending]
+            , MLegend [LNoTitle]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
+                 ,PScale [SDomain (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
 
 transformLineLayer :: [TransformSpec] -> (VLProperty, VLSpec)
@@ -128,7 +123,8 @@ encodingSelection c =
   encoding
     . order [OName "k", OmType Quantitative]
     . tooltip []
-    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []
+            , MSort [ByFieldOp "k" Max, Descending]]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [{-AxTitle "Allocation", AxFormat "s"-}], PAggregate Sum, PStack StZero]
 
@@ -169,7 +165,8 @@ bandsLayer ct c = asSpec
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
     encodingBandsLayer ct c [],
-    transformBandsLayer []
+    transformBandsLayer [],
+    selectionRight []
   ]
 
 encodingBandsLayer :: AreaChartType
@@ -179,7 +176,10 @@ encodingBandsLayer :: AreaChartType
 encodingBandsLayer ct c =
   encoding
     . order [OName "k", OmType Quantitative]
-    . color [MName "c", MmType Nominal, MScale [colourProperty c], MLegend []]
+    . color [MName "c", MmType Nominal, MScale [colourProperty c]
+            , MSort [ByFieldOp "k" Max, Descending]
+            , MLegend [LNoTitle]
+            ]
     . tooltips
         [ [TName "y", TmType Quantitative, TFormat "s", TTitle "Allocation"]
         , [TName "c", TmType Nominal, TTitle "Type"]
@@ -224,45 +224,17 @@ encodingTracesLayer :: [EncodingSpec] -> (VLProperty, VLSpec)
 encodingTracesLayer =
   encoding
     . color [MString "grey"]
-    . position X [PmType Quantitative, PAxis [], PName "tx", PScale [SDomain (DSelection "brush")]]
+    . position X [PmType Quantitative, PAxis [], PName "tx"
+                 , PScale [SDomain (DSelection "brush")] ]
     . VL.size [MNumber 2]
     . tooltip [TName "desc", TmType Nominal]
 
 -----------------------------------------------------------------------------------
--- The legend
--- In order to make the legend interactive we make it into another chart.
--- Workaround comes from https://github.com/vega/vega-lite/issues/1657
+-- The legend selection
 -----------------------------------------------------------------------------------
-
-legendDiagram :: VLSpec
-legendDiagram  = asSpec
-  [
-    VL.mark Point [MStroke "transparent"],
-    dataFromSource "data_json_samples" [],
-    encodingRight [],
-    selectionRight []
-  ]
-
-encodingRight :: [EncodingSpec] -> (VLProperty, VLSpec)
-encodingRight =
-  encoding
-  . tooltip []
-  . color
-     [
-       MSelectionCondition (SelectionName "legend") [MName "c", MmType Nominal, MLegend []] [MString "lightgray"]
-     ]
-  . position Y [PName "c"
-               , PmType Nominal
-               , PAxis [ AxOrient SRight
-                       , AxDomain False
-                       , AxTicks False
-                       , AxGrid False
-                       , AxMinExtent 100
-                       , AxMaxExtent 100]
-               , PSort [(ByFieldOp "k" Mean), Descending]]
 
 selectionRight :: [SelectSpec] -> (VLProperty, VLSpec)
 selectionRight =
     selection
-     . select "legend" Multi [On "click", Encodings [ChColor], ResolveSelections Global, Toggle "event.shiftKey"]
+      . select "legend" Multi [BindLegend (BLField "c")]
 
