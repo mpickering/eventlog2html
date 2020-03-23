@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+-- Warning turned off for CI
+{-# OPTIONS_GHC -Wwarn=unused-imports #-}
 module Eventlog.Args
   (
     args
@@ -9,6 +11,7 @@ module Eventlog.Args
 
 import Options.Applicative
 import Data.Text (Text)
+-- Used for GHC 8.6.5
 import Data.Semigroup ((<>))
 import Control.Applicative (optional)
 

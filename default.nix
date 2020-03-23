@@ -1,26 +1,27 @@
-{ci ? false }:
+{ci ? false, haskellCompiler ? "ghc881" }:
 let
-  pin = import ((import ./nix/sources.nix).nixpkgs) {} ;
   # Import the Haskell.nix library,
-  haskell = import ((import ./nix/sources.nix)."haskell.nix") { pkgs = pin; };
+  haskell-src = import ((import ./nix/sources.nix)."haskell.nix");
+  pin = import ((import ./nix/sources.nix).nixpkgs) haskell-src ;
+#  pin = import <nixpkgs> haskell-src ;
 
-  pkgPlan = haskell.importAndFilterProject (haskell.callCabalProjectToNix
-              { index-state = "2019-10-01T00:00:00Z"
-              ; src = pin.lib.cleanSource ./.;});
-
+  haskell = pin.haskell-nix;
 
   ciOptions = [ { packages.eventlog2html.configureFlags = [ "--ghc-option=-Werror" ]; } ];
 
+  opts = [ { packages.vault.doHaddock = false; } ];
+
   # Instantiate a package set using the generated file.
-  pkgSet = haskell.mkCabalProjectPkgSet {
-    plan-pkgs = pkgPlan.pkgs;
-    pkg-def-extras = [];
-    modules = if ci then ciOptions else [];
+  pkgSet = haskell.cabalProject {
+    src = haskell.haskellLib.cleanGit { src = ./.; };
+    ghc = pin.buildPackages.pkgs.haskell-nix.compiler.${haskellCompiler};
+    modules = (if ci then ciOptions else []) ++ opts;
   };
 
 
-  site = import ./nix/site.nix { nixpkgs = pin; hspkgs = pkgSet.config.hsPkgs; };
+  site = import ./nix/site.nix { nixpkgs = pin; hspkgs = pkgSet; };
 
 in
-  { eventlog2html = pkgSet.config.hsPkgs.eventlog2html.components.exes.eventlog2html ;
-    site = site; }
+  { eventlog2html = pkgSet.eventlog2html.components.exes.eventlog2html ;
+  site = site;
+  }

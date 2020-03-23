@@ -20,7 +20,7 @@ outputTree ccMap mdescs =
 
 outputTrie :: Map.Map Word32 CostCentre -> Trie.TMap Word32 (Int, Text, Text) -> [Value]
 outputTrie ccMap (TrieI.TMap (TrieI.Node ni m))  =
-    (mkNode 0 Nothing "MAIN" ni) : outputTrieLoop ccMap 0 m
+    mkNode 0 Nothing "MAIN" ni : outputTrieLoop ccMap 0 m
 
 
 outputTrieLoop :: Map.Map Word32 CostCentre
