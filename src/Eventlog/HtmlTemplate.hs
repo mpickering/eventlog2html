@@ -46,27 +46,27 @@ insertColourScheme scheme = preEscapedToHtml $ T.unlines [
   , "console.log(colour_scheme);" ]
 
 
-data_sets :: [Text]
-data_sets = [
-    ".insert(\"data_json_samples\", data_json.samples)"
-  , ".insert(\"data_json_traces\", data_json.traces)" ]
+data_sets :: IncludeTraceData -> [Text]
+data_sets itd = ["res.view.insert(\"data_json_samples\", data_json.samples)"]
+    ++ ["; res.view.insert(\"data_json_traces\", data_json.traces)" | TraceData <- [itd] ]
 
-encloseScript :: VizID -> Text -> Html
+data IncludeTraceData = TraceData | NoTraceData
+
+encloseScript :: IncludeTraceData -> VizID -> Text -> Html
 encloseScript = encloseScriptX True
 
-encloseRawVegaScript :: VizID -> Text -> Html
+encloseRawVegaScript :: IncludeTraceData -> VizID -> Text -> Html
 encloseRawVegaScript = encloseScriptX False
 
-encloseScriptX :: Bool -> VizID -> Text -> Html
-encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
+encloseScriptX :: Bool -> IncludeTraceData -> VizID -> Text -> Html
+encloseScriptX insert_data_sets itd vid vegaspec = preEscapedToHtml $ T.unlines ([
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
-  , ".then((res) => { "
-  , "res.view" ]
+  , ".then((res) => { " ]
 -- For the 4 vega lite charts we dynamically insert the data after the
 -- chart is created to avoid duplicating it. For the vega chart, this
 -- causes a harmless error so we just don't do it.
-  ++ (if insert_data_sets then data_sets else []) ++
+  ++ (if insert_data_sets then data_sets itd else []) ++
   [ "; res.view.resize()"
   , "; res.view.runAsync()"
   , "})" ])
@@ -137,12 +137,12 @@ template header' dat descs as = docTypeHtml $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
         when (isJust descs) $ do
           button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
-
+    let itd = if noTraces as then NoTraceData else TraceData
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
         mapM_ (\(vid, chartname, conf) ->
                   H.div ! A.id chartname ! class_ "tabviz" $ do
-                    renderChart True vid
+                    renderChart itd True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
           [(1, "areachart",  AreaChart Stacked)
           ,(2, "normalizedchart", AreaChart Normalized)
@@ -151,25 +151,25 @@ template header' dat descs as = docTypeHtml $ do
 
         when (isJust descs) $ do
           H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
-            renderChart False 5 treevega
+            renderChart itd False 5 treevega
     script $ preEscapedToHtml tablogic
 
 
 htmlConf :: Args -> ChartType -> ChartConfig
 htmlConf as ct = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as) ct (fromIntegral <$> (fixedYAxis as))
 
-renderChart :: Bool -> VizID -> Text -> Html
-renderChart vega_lite vid vegaSpec = do
+renderChart :: IncludeTraceData -> Bool -> VizID -> Text -> Html
+renderChart itd vega_lite vid vegaSpec = do
     H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
       if vega_lite
-        then encloseScript vid vegaSpec
-        else encloseRawVegaScript vid vegaSpec
+        then encloseScript itd vid vegaSpec
+        else encloseRawVegaScript itd vid vegaSpec
 
-renderChartWithJson :: Int -> Value -> Text -> Html
-renderChartWithJson k dat vegaSpec = do
+renderChartWithJson :: IncludeTraceData -> Int -> Value -> Text -> Html
+renderChartWithJson itd k dat vegaSpec = do
     script $ insertJsonData dat
-    renderChart True k vegaSpec
+    renderChart itd True k vegaSpec
 
 
 templateString :: Header -> Value -> Maybe Value -> Args -> String

@@ -114,7 +114,8 @@ drawEventlog :: [T.Text] -> Int -> ChartConfig -> IO T.Text
 drawEventlog args vid conf  = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo (map T.unpack args))
   (_, dat, _) <- generateJson (head $ files as) as
-  return $ TL.toStrict $ renderHtml $ renderChartWithJson vid dat (vegaJsonText conf)
+  let itd = if traces conf then TraceData else NoTraceData
+  return $ TL.toStrict $ renderHtml $ renderChartWithJson itd vid dat (vegaJsonText conf)
 
 def :: ChartConfig
 def = ChartConfig 600 500 True "category20" (AreaChart Stacked) Nothing
