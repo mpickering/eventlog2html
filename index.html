@@ -8,9 +8,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>eventlog2html</title>
         <link rel="stylesheet" href="./css/default.css" />
-    <script src="https://cdn.jsdelivr.net/npm/vega@5.4.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@3.3.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@4.2.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.10.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.7.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.3.2"></script>
     </head>
     <body>
         <header>
@@ -31,9 +31,7 @@ console.log(data_json);
 </script><div id="vis0" class="chart"></div><script type="text/javascript">var yourVlSpec0= {"height":500,"config":{"text":{"dx":-5,"dy":5,"align":"right"}},"width":600,"vconcat":[{"layer":[{"transform":[{"filter":{"selection":"legend"}}],"height":350,"mark":"area","data":{"name":"data_json_samples"},"width":423,"selection":{"legend":{"bind":"legend","type":"multi","fields":["c"]}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":{"title":null}},"tooltip":[{"field":"y","format":"s","title":"Allocation","type":"quantitative"},{"field":"c","title":"Type","type":"nominal"}],"x":{"field":"x","scale":{"domain":{"selection":"brush"}},"type":"quantitative","axis":{"title":""}},"order":{"field":"k","type":"quantitative"},"y":{"field":"y","aggregate":"sum","type":"quantitative","axis":{"format":"s","titlePadding":15,"maxExtent":15,"title":"Allocation"},"stack":"zero"}}}]},{"height":50,"mark":"area","data":{"name":"data_json_samples"},"width":423,"selection":{"brush":{"init":{"x":[null,null]},"type":"interval"}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":null},"tooltip":null,"x":{"field":"x","type":"quantitative","axis":{"title":"Time (s)"}},"order":{"field":"k","type":"quantitative"},"y":{"field":"y","aggregate":"sum","type":"quantitative","axis":null,"stack":"zero"}}}],"$schema":"https://vega.github.io/schema/vega-lite/v4.json","description":"Heap Profile"};
 vegaEmbed('#vis0', yourVlSpec0)
 .then((res) => { 
-res.view
-.insert("data_json_samples", data_json.samples)
-.insert("data_json_traces", data_json.traces)
+res.view.insert("data_json_samples", data_json.samples)
 ; res.view.resize()
 ; res.view.runAsync()
 })
@@ -63,9 +61,8 @@ console.log(data_json);
 </script><div id="vis1" class="chart"></div><script type="text/javascript">var yourVlSpec1= {"height":500,"config":{"text":{"dx":-5,"dy":5,"align":"right"}},"width":600,"vconcat":[{"layer":[{"transform":[{"filter":{"selection":"legend"}}],"height":350,"mark":"area","data":{"name":"data_json_samples"},"width":423,"selection":{"legend":{"bind":"legend","type":"multi","fields":["c"]}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":{"title":null}},"tooltip":[{"field":"y","format":"s","title":"Allocation","type":"quantitative"},{"field":"c","title":"Type","type":"nominal"}],"x":{"field":"x","scale":{"domain":{"selection":"brush"}},"type":"quantitative","axis":{"title":""}},"order":{"field":"k","type":"quantitative"},"y":{"field":"y","aggregate":"sum","type":"quantitative","axis":{"format":"s","titlePadding":15,"maxExtent":15,"title":"Allocation"},"stack":"zero"}}},{"mark":"rule","data":{"name":"data_json_traces"},"encoding":{"color":{"value":"grey"},"size":{"value":2},"tooltip":{"field":"desc","type":"nominal"},"x":{"field":"tx","scale":{"domain":{"selection":"brush"}},"type":"quantitative","axis":null}}}]},{"height":50,"mark":"area","data":{"name":"data_json_samples"},"width":423,"selection":{"brush":{"init":{"x":[null,null]},"type":"interval"}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":null},"tooltip":null,"x":{"field":"x","type":"quantitative","axis":{"title":"Time (s)"}},"order":{"field":"k","type":"quantitative"},"y":{"field":"y","aggregate":"sum","type":"quantitative","axis":null,"stack":"zero"}}}],"$schema":"https://vega.github.io/schema/vega-lite/v4.json","description":"Heap Profile"};
 vegaEmbed('#vis1', yourVlSpec1)
 .then((res) => { 
-res.view
-.insert("data_json_samples", data_json.samples)
-.insert("data_json_traces", data_json.traces)
+res.view.insert("data_json_samples", data_json.samples)
+; res.view.insert("data_json_traces", data_json.traces)
 ; res.view.resize()
 ; res.view.runAsync()
 })
@@ -81,9 +78,8 @@ console.log(data_json);
 </script><div id="vis2" class="chart"></div><script type="text/javascript">var yourVlSpec2= {"height":500,"config":{"text":{"dx":-5,"dy":5,"align":"right"}},"width":600,"vconcat":[{"layer":[{"transform":[{"window":[{"op":"max","as":"max_y","field":"y"}],"groupby":["k"],"frame":[null,null]},{"as":"norm_y","calculate":"datum.y / datum.max_y"},{"filter":{"selection":"legend"}}],"height":350,"mark":{"point":true,"type":"line"},"data":{"name":"data_json_samples"},"width":423,"selection":{"legend":{"bind":"legend","type":"multi","fields":["c"]}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":{"title":null}},"x":{"field":"x","scale":{"domain":{"selection":"brush"}},"type":"quantitative","axis":{"title":""}},"y":{"field":"norm_y","type":"quantitative","axis":{"format":".1f","title":"Allocation"}}}},{"mark":"rule","data":{"name":"data_json_traces"},"encoding":{"color":{"value":"grey"},"size":{"value":2},"tooltip":{"field":"desc","type":"nominal"},"x":{"field":"tx","scale":{"domain":{"selection":"brush"}},"type":"quantitative","axis":null}}}]},{"height":50,"mark":"area","data":{"name":"data_json_samples"},"width":423,"selection":{"brush":{"init":{"x":[null,null]},"type":"interval"}},"encoding":{"color":{"field":"c","scale":{"scheme":"category20"},"sort":{"op":"max","field":"k","order":"descending"},"type":"nominal","legend":null},"tooltip":null,"x":{"field":"x","type":"quantitative","axis":{"title":"Time (s)"}},"order":{"field":"k","type":"quantitative"},"y":{"field":"y","aggregate":"sum","type":"quantitative","axis":null,"stack":"zero"}}}],"$schema":"https://vega.github.io/schema/vega-lite/v4.json","description":"Heap Profile"};
 vegaEmbed('#vis2', yourVlSpec2)
 .then((res) => { 
-res.view
-.insert("data_json_samples", data_json.samples)
-.insert("data_json_traces", data_json.traces)
+res.view.insert("data_json_samples", data_json.samples)
+; res.view.insert("data_json_traces", data_json.traces)
 ; res.view.resize()
 ; res.view.runAsync()
 })
