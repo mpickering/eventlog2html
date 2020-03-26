@@ -1,3 +1,8 @@
+0.7, released 2020-03-26
+
+* Use native interactive legend in new version of vega-lite
+* Update to latest vega, vega-lite and vega-embed versions
+
 0.6, released 2019-10-22
 
 * Revamp how cost centre profiles are displayed.
