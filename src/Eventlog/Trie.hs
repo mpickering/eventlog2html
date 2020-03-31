@@ -2,7 +2,7 @@
 module Eventlog.Trie where
 
 import Prelude hiding (init, lookup)
-import Data.Text (Text)
+import Data.Text (Text, pack)
 
 import Eventlog.Types
 import Data.Word
@@ -11,6 +11,7 @@ import Data.Map ((!))
 import qualified Data.Trie.Map as Trie
 import qualified Data.Trie.Map.Internal as TrieI
 import Data.Aeson
+import Control.Monad.State
 
 outputTree :: Map.Map Word32 CostCentre -> [(Bucket, (Int, BucketInfo))]
            -> Value
@@ -20,20 +21,30 @@ outputTree ccMap mdescs =
 
 outputTrie :: Map.Map Word32 CostCentre -> Trie.TMap Word32 (Int, Text, Text) -> [Value]
 outputTrie ccMap (TrieI.TMap (TrieI.Node ni m))  =
-    mkNode 0 Nothing "MAIN" ni : outputTrieLoop ccMap 0 m
+    mkNode "TOP" Nothing "MAIN" ni : flip evalState 0 (outputTrieLoop ccMap "TOP" m)
+
+newLabel :: Word32 -> State Int Text
+newLabel n = do
+  l <- get
+  modify (+1)
+  return (pack (show l ++ "-" ++ show n))
 
 
 outputTrieLoop :: Map.Map Word32 CostCentre
-               -> Word32
+               -> Text
                -> Map.Map Word32 (Trie.TMap Word32 (Int, Text, Text))
-               -> [Value]
+               -> State Int [Value]
 outputTrieLoop ccMap p cs =
-  let go p' (TrieI.TMap (TrieI.Node mv cs')) os
-        = mkNode p' (Just p) (label $ ccMap ! p') mv :  outputTrieLoop ccMap p' cs' ++ os
-  in Map.foldrWithKey go [] cs
+  let go p' (TrieI.TMap (TrieI.Node mv cs')) rest = do
+        nid <- newLabel p'
+        let n = mkNode nid (Just p) (label $ ccMap ! p') mv
+        rs <- outputTrieLoop ccMap nid cs'
+        os <- rest
+        return (n : rs ++ os)
+  in Map.foldrWithKey go (return []) cs
 
-mkNode :: Word32 -> Maybe Word32 -> Text -> Maybe (Int, Text, Text) -> Value
-mkNode i mparent n mccs = object $ [ "id" .= i, "name" .= n
+mkNode :: Text -> Maybe Text -> Text -> Maybe (Int, Text, Text) -> Value
+mkNode id_string mparent n mccs = object $ [ "id" .= id_string, "name" .= n
                              , "ccs" .= maybe "" (\(_, v, _) -> v) mccs
                              , "c" .= maybe "OTHER" (\(_, _, c) -> c) mccs]
                              ++ ["parent" .= p | Just p <- [mparent] ]
