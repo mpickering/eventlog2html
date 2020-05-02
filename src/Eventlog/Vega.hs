@@ -2,7 +2,8 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Eventlog.Vega (bandsToVega, tracesToVega) where
+{-# LANGUAGE DuplicateRecordFields #-}
+module Eventlog.Vega (bandsToVega, tracesToVega, metricsToVega) where
 
 import Data.Array.Base ((!), bounds)
 import Data.Array.Unboxed (UArray)
@@ -36,6 +37,12 @@ bandsToVega ks (ts, vs) =
 data VegaTrace = VegaTrace { tx :: Double, desc :: Text }
   deriving (Show, ToJSON, Generic)
 
+data VegaMetric = VegaMetric { tx :: Double, m :: Int }
+  deriving (Show, ToJSON, Generic)
+
 tracesToVega :: [Trace] -> [VegaTrace]
 tracesToVega = map (\(Trace t d) -> VegaTrace t d)
+
+metricsToVega :: [Metric] -> [VegaMetric]
+metricsToVega = map (\(Metric t d) -> VegaMetric t d)
 

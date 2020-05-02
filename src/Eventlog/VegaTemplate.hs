@@ -30,6 +30,7 @@ data ChartConfig =
   ChartConfig { cwidth :: Double
               , cheight :: Double
               , traces :: Bool
+              , metrics :: Bool
               , colourScheme :: Text
               , chartType :: ChartType
               , fixedYAxisExtent :: Maybe Double
@@ -151,7 +152,9 @@ selectionChart c = asSpec [
 -----------------------------------------------------------------------------------
 
 areaChart :: AreaChartType -> ChartConfig -> VLSpec
-areaChart ct c = asSpec [layer ([bandsLayer ct c] ++ [tracesLayer | traces c])]
+areaChart ct c = asSpec [layer ([bandsLayer ct c]
+                                ++ [tracesLayer | traces c]
+                                ++ [metricsLayer | metrics c])]
 
 -----------------------------------------------------------------------------------
 -- The bands layer:
@@ -228,6 +231,27 @@ encodingTracesLayer =
                  , PScale [SDomain (DSelection "brush")] ]
     . VL.size [MNumber 2]
     . tooltip [TName "desc", TmType Nominal]
+
+-----------------------------------------------------------------------------------
+-- The metrics layer:
+-----------------------------------------------------------------------------------
+
+metricsLayer :: VLSpec
+metricsLayer = asSpec
+  [
+    dataFromSource "data_json_metrics" [],
+    VL.mark Line [],
+    encodingMetricsLayer []
+  ]
+
+encodingMetricsLayer :: [EncodingSpec] -> (VLProperty, VLSpec)
+encodingMetricsLayer =
+  encoding
+    . color [MString "grey"]
+    . position X [PmType Quantitative, PAxis [], PName "tx"
+                 , PScale [SDomain (DSelection "brush")] ]
+    . position Y2 [PmType Quantitative, PAxis [], PName "m" ]
+
 
 -----------------------------------------------------------------------------------
 -- The legend selection

@@ -19,12 +19,14 @@ import Eventlog.Trie
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value)
 generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
-  dat@(ProfData h binfo ccMap fs traces) <- chunk file
+  dat@(ProfData h binfo ccMap fs traces metrics) <- chunk file
   validate dat
   let keeps = prune a binfo
       combinedJson = object [
           "samples" .= bandsToVega keeps (bands h (Map.map fst keeps) fs)
         , "traces"  .= tracesToVega traces
+        , "metrics" .= metricsToVega metrics
+        , "ccs" .= Map.elems ccMap
         ]
       mdescs =
         sortBy (flip (comparing (fst . snd))) $ Map.toList keeps

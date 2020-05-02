@@ -17,7 +17,7 @@ chunk f = do
       -- Heap profiles don't contain any other information than the simple bucket name
       binfo = Map.mapWithKey (\(Bucket k) (t,s) -> BucketInfo k Nothing t s ) totals
   -- Heap profiles do not support traces
-  return (ProfData (ph counts) binfo mempty fs [])
+  return (ProfData (ph counts) binfo mempty fs [] [])
 
 chunkT :: Text -> (Int -> Header, [Frame])
 chunkT s =

@@ -28,6 +28,7 @@ import System.IO
 import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
+import Debug.Trace
 
 type PartialHeader = Int -> Header
 
@@ -38,7 +39,7 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, bucket_map, ccMap, frames, traces) <- eventsToHP a e
+  (ph, bucket_map, ccMap, frames, traces, metrics) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
       combine = zipWithAMatched (\_ (t, mt) (tot, sd) -> Identity $ BucketInfo t mt tot sd)
@@ -51,7 +52,7 @@ chunk a f = do
       combineMissingDesc (Bucket t) (tot, sd) = Identity (BucketInfo t Nothing tot sd)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
-  return $ (ProfData (ph counts) binfo ccMap frames traces)
+  return $ (ProfData (ph counts) binfo ccMap frames traces metrics)
 
 checkGHCVersion :: EL -> Maybe String
 checkGHCVersion EL { ident = Just (version,_)}
@@ -68,14 +69,18 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             ++ ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace])
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace], [Metric])
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
+      n_frames = length frames
+      n_metrics = length metrics
+      thin_metrics [] = []
+      thin_metrics (m:ms) = m : thin_metrics (drop (n_metrics `div` n_frames) ms)
   mapM_ (hPutStrLn stderr) (checkGHCVersion el)
-  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces)
+  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces, thin_metrics metrics)
 
 normalise :: [FrameEL] -> [Frame]
 normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
@@ -96,6 +101,8 @@ data EL = EL
   , samples :: !(Maybe FrameEL)
   , frames :: ![FrameEL]
   , traces :: ![Trace]
+  , metrics :: ![Metric]
+  , readMetric :: Bool
   , start :: !Word64
   , end :: !Word64 } deriving Show
 
@@ -137,6 +144,10 @@ initEL = EL
   , samples = Nothing
   , frames = []
   , traces = []
+  , metrics = []
+  -- This is toggled on by a BeginProf and off on the first user event to
+  -- be read so we only get as many metrics as there are samples.
+  , readMetric = True
   , start = 0
   , end = 0
   , ccMap = Map.empty
@@ -157,8 +168,14 @@ folder a el (Event t e _) = el &
       -- Messages and UserMessages correspond to high-frequency "traceEvent" or "traceEventIO" events from Debug.Trace and
       -- are only included if "--include-trace-events" has been specified.
       -- For low-frequency events "traceMarker" or "traceMarkerIO" should be used, which generate "UserMarker" events.
-      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
-      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
+      Message s
+        | traceEvents a ->  addTrace a (Trace (fromNano t) (T.pack s))
+        | ("METRIC", m) <- (break (== ':') s) -> addMetric a (Metric (fromNano t) (read m))
+        | otherwise -> id
+      UserMessage s
+        | traceEvents a ->  addTrace a (Trace (fromNano t) (T.pack s))
+        | ("METRIC", m) <- (break (== ':') s) -> addMetric a (Metric (fromNano t) (read (tail m)))
+        | otherwise -> id
       UserMarker s -> addTrace a (Trace (fromNano t) (T.pack s))
       -- Information about the program
       RtsIdentifier _ ident -> addIdent ident
@@ -208,6 +225,12 @@ addClocktime s el = el { clocktimeSec = s }
 addArgs :: [String] -> EL -> EL
 addArgs as el = el { pargs = Just as }
 
+addMetric :: Args -> Metric -> EL -> EL
+addMetric _a m el =
+  if readMetric el
+    then el { metrics = m : metrics el, readMetric = True }
+    else el
+
 
 -- | Decide whether to include a trace based on the "includes" and
 -- "excludes" options.
@@ -230,6 +253,7 @@ filterTrace includes excludes (Trace _ trc) =
   any (flip T.isInfixOf trc) includes
     || not (any (flip T.isInfixOf trc) excludes)
 
+
 addTrace :: Args -> Trace -> EL -> EL
 addTrace a t el | noTraces a = el
                 | prop t     = el { traces = t : traces el }
@@ -240,7 +264,8 @@ addTrace a t el | noTraces a = el
 addFrame :: Word64 -> EL -> EL
 addFrame t el =
   el { samples = Just (FrameEL t [])
-     , frames = sampleToFrames (samples el) (frames el) }
+     , frames = sampleToFrames (samples el) (frames el)
+     , readMetric = True }
 
 sampleToFrames :: Maybe FrameEL -> [FrameEL]
                                 -> [FrameEL]

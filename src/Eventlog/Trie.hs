@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 module Eventlog.Trie where
 
 import Prelude hiding (init, lookup)
@@ -37,7 +38,8 @@ outputTrieLoop :: Map.Map Word32 CostCentre
 outputTrieLoop ccMap p cs =
   let go p' (TrieI.TMap (TrieI.Node mv cs')) rest = do
         nid <- newLabel p'
-        let n = mkNode nid (Just p) (label $ ccMap ! p') mv
+        let CC{..} = ccMap ! p'
+        let n = mkNode nid (Just p) (label <> ":" <> loc) mv
         rs <- outputTrieLoop ccMap nid cs'
         os <- rest
         return (n : rs ++ os)

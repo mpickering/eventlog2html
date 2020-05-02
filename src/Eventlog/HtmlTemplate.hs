@@ -156,7 +156,7 @@ template header' dat descs as = docTypeHtml $ do
 
 
 htmlConf :: Args -> ChartType -> ChartConfig
-htmlConf as ct = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as) ct (fromIntegral <$> (fixedYAxis as))
+htmlConf as ct = ChartConfig 1200 1000 (not (noTraces as)) True (userColourScheme as) ct (fromIntegral <$> (fixedYAxis as))
 
 renderChart :: IncludeTraceData -> Bool -> VizID -> Text -> Html
 renderChart itd vega_lite vid vegaSpec = do
