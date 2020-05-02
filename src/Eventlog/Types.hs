@@ -18,6 +18,7 @@ data Header =
   , hSampleUnit  :: Text
   , hValueUnit   :: Text
   , hCount       :: Int
+  , hProgPath    :: Maybe FilePath
   } deriving Show
 
 

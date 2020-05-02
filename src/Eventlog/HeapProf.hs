@@ -26,8 +26,7 @@ chunkT s =
       [job, date, smpU, valU] =
         zipWith header [sJOB, sDATE, sSAMPLE_UNIT, sVALUE_UNIT] hs
       fs = chunkSamples ss
-  in  (
-        Header job date Nothing (pack "") smpU valU
+  in  (\v -> Header job date Nothing (pack "") smpU valU v Nothing
       ,  fs
       )
 

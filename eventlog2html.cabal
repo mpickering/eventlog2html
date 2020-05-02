@@ -36,6 +36,9 @@ Tested-With:         GHC ==8.6.5
 
 Library
   Build-depends:
+    cpu,
+    dwarf-el >= 0.4,
+    dwarfadt >= 0.6,
     aeson                >= 1.4.3 && < 1.5,
     attoparsec           >= 0.13.2 && < 0.14,
     array                >= 0.5.3 && < 0.6,
@@ -55,7 +58,8 @@ Library
     time                 >= 1.8.0 && < 2.0,
     vector               >= 0.11,
     trie-simple          >= 0.4,
-    hashable             >= 1.0
+    hashable             >= 1.0,
+    directory
 
   GHC-options:         -Wall
   default-language:    Haskell2010
@@ -74,6 +78,7 @@ Library
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate
                        Eventlog.VegaVersions
+                       Eventlog.Dwarf
   other-modules:       Paths_eventlog2html
 
 Executable eventlog2html
