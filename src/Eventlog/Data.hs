@@ -15,6 +15,7 @@ import Eventlog.Types (Header(..), ProfData(..), HeapProfBreakdown(..))
 import Data.List
 import Data.Ord
 import Eventlog.Trie
+import Eventlog.ByInfoTable
 
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value)
 generateJsonValidate validate file a = do
@@ -29,9 +30,13 @@ generateJsonValidate validate file a = do
       mdescs =
         sortBy (flip (comparing (fst . snd))) $ Map.toList keeps
       -- Only supply the cost centre view in cost centre profiling mode.
-      descs = case hHeapProfileType h of
+      cc_descs = case hHeapProfileType h of
                 Just HeapProfBreakdownCostCentre -> Just (outputTree ccMap mdescs)
                 _ -> Nothing
+      it_desc = case (,) <$> hHeapProfileType h <*> hProgramInvocation h of
+                  Just (HeapProfBreakdownInfoTable, debug_prog) -> Just (lookupSourcePos debug_prog binfo)
+                  _ -> Nothing
+  print it_desc
   return (h, combinedJson, descs)
 
 generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value)

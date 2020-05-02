@@ -1,2 +1,5 @@
 packages: .
           hakyll-eventlog
+          dwarf
+          dwarfadt
+          ../ghc-events

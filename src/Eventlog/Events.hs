@@ -85,6 +85,7 @@ type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 
 data EL = EL
   { pargs :: !(Maybe [Text])
+  , programInvocation :: !(Maybe FilePath)
   , ident :: Maybe (Version, Text)
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
@@ -143,6 +144,7 @@ initEL = EL
   , ccMap = Map.empty
   , ccsMap =  CCSMap Trie.empty 0
   , bucketMap = Map.empty
+  , programInvocation = Nothing
   }
 
 foldEvents :: Args -> [Event] -> EL
@@ -164,6 +166,7 @@ folder a el (Event t e _) = el &
       -- Information about the program
       RtsIdentifier _ ident -> addIdent ident
       ProgramArgs _ as -> addArgs as
+      ProgramInvocation inv -> addInvocation inv
       WallClockTime _ s _ -> addClocktime s
       -- Profiling Events
       HeapProfBegin { heapProfSamplingPeriod, heapProfBreakdown } -> addHeapProfBegin heapProfSamplingPeriod heapProfBreakdown
@@ -208,6 +211,9 @@ addClocktime s el = el { clocktimeSec = s }
 
 addArgs :: [Text] -> EL -> EL
 addArgs as el = el { pargs = Just as }
+
+addInvocation :: String -> EL -> EL
+addInvocation inv el = el { programInvocation = Just inv }
 
 
 -- | Decide whether to include a trace based on the "includes" and
@@ -268,7 +274,7 @@ elHeader EL{..} =
   let title = maybe "" T.unwords pargs
       date = formatDate clocktimeSec
       ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
-  in Header title date heapProfileType ppSamplingRate "" ""
+  in \v -> Header title date heapProfileType ppSamplingRate "" "" v (head <$> pargs)
 
 
 elBucketMap :: EL -> BucketMap
