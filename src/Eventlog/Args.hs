@@ -15,7 +15,7 @@ import Data.Text (Text)
 import Data.Semigroup ((<>))
 import Control.Applicative (optional)
 
-data Sort = Size | StdDev | Name
+data Sort = Size | StdDev | Name | Gradient
 
 data Args = Args
   {
@@ -107,6 +107,7 @@ parseSort = eitherReader $ \s -> case s of
   "size" -> Right Size
   "stddev" -> Right StdDev
   "name" -> Right Name
+  "gradient" -> Right Gradient
   _ -> Left "expected one of: size, stddev, name"
 
 args :: IO Args

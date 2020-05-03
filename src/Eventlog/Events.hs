@@ -29,6 +29,7 @@ import System.IO
 import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
+import Debug.Trace
 
 type PartialHeader = Int -> Header
 
@@ -42,14 +43,14 @@ chunk a f = do
   (ph, bucket_map, ccMap, frames, traces) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
-      combine = zipWithAMatched (\_ (t, mt) (tot, sd) -> Identity $ BucketInfo t mt tot sd)
+      combine = zipWithAMatched (\_ (t, mt) (tot, sd, g) -> Identity $ BucketInfo t mt tot sd g)
       -- If total is missing, something bad has happened
       combineMissingTotal :: Bucket -> (Text, Maybe [Word32]) -> Identity BucketInfo
       combineMissingTotal k = error ("Missing total for: " ++ show k)
 
       -- This case happens when we are not in CC mode
-      combineMissingDesc :: Bucket -> (Double, Double) -> Identity BucketInfo
-      combineMissingDesc (Bucket t) (tot, sd) = Identity (BucketInfo t Nothing tot sd)
+      combineMissingDesc :: Bucket -> (Double, Double, Double) -> Identity BucketInfo
+      combineMissingDesc (Bucket t) (tot, sd, g) = Identity (traceShowId $ BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
   return $ (ProfData (ph counts) binfo ccMap frames traces)
