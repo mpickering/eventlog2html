@@ -99,10 +99,10 @@ htmlHeader dat desc as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: Header -> Value -> Maybe Value -> Args -> Html
-template header' dat descs as = docTypeHtml $ do
+template :: Header -> Value -> Maybe Value -> Maybe Html -> Args -> Html
+template header' dat cc_descs closure_descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader dat descs as
+  htmlHeader dat cc_descs as
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -135,8 +135,10 @@ template header' dat descs as = docTypeHtml $ do
         button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
         button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
         button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
-        when (isJust descs) $ do
+        when (isJust cc_descs) $ do
           button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
+        when (isJust closure_descs) $ do
+          button ! class_ "tablink button-black" ! onclick "changeTab('closures', this)" $ "Closure Descs"
     let itd = if noTraces as then NoTraceData else TraceData
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -149,10 +151,14 @@ template header' dat descs as = docTypeHtml $ do
           ,(3, "streamgraph", AreaChart StreamGraph)
           ,(4, "linechart", LineChart)]
 
-        when (isJust descs) $ do
+        when (isJust cc_descs) $ do
           H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
             renderChart itd False 5 treevega
+        forM_ closure_descs $ \v -> do
+          H.div ! A.id "closures" ! class_ "tabviz" $ do
+            v
     script $ preEscapedToHtml tablogic
+
 
 
 htmlConf :: Args -> ChartType -> ChartConfig
@@ -172,9 +178,9 @@ renderChartWithJson itd k dat vegaSpec = do
     renderChart itd True k vegaSpec
 
 
-templateString :: Header -> Value -> Maybe Value -> Args -> String
-templateString header' dat descs as =
-  renderHtml $ template header' dat descs as
+templateString :: Header -> Value -> Maybe Value -> Maybe Html -> Args -> String
+templateString header' dat cc_descs closure_descs as =
+  renderHtml $ template header' dat cc_descs closure_descs as
 
 ppHeapProfileType :: HeapProfBreakdown -> Text
 ppHeapProfileType (HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
@@ -184,3 +190,4 @@ ppHeapProfileType (HeapProfBreakdownTypeDescr) = "Profiling by type (implied by 
 ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
 ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
+ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
