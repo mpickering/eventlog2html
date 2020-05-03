@@ -16,7 +16,10 @@ import Control.Monad.State
 outputTree :: Map.Map Word32 CostCentre -> [(Bucket, (Int, BucketInfo))]
            -> Value
 outputTree ccMap mdescs =
-  let t = Trie.fromList [(k, (i, b, v)) | (Bucket b, (i, BucketInfo v (Just k) _ _)) <- mdescs ]
+  let t =
+        Trie.fromList [(k, (i, b, v)) | (Bucket b, (i, BucketInfo { shortDescription = v
+                                                                  , longDescription = (Just k) }))
+                                                                  <- mdescs ]
   in toJSON $ outputTrie ccMap t
 
 outputTrie :: Map.Map Word32 CostCentre -> Trie.TMap Word32 (Int, Text, Text) -> [Value]

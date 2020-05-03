@@ -15,7 +15,7 @@ chunk f = do
   (ph, fs) <- chunkT <$> readFile f
   let (counts, totals) = total fs
       -- Heap profiles don't contain any other information than the simple bucket name
-      binfo = Map.mapWithKey (\(Bucket k) (t,s) -> BucketInfo k Nothing t s ) totals
+      binfo = Map.mapWithKey (\(Bucket k) (t,s,g) -> BucketInfo k Nothing t s g) totals
   -- Heap profiles do not support traces
   return (ProfData (ph counts) binfo mempty fs [])
 

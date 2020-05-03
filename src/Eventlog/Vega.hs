@@ -30,7 +30,7 @@ bandsToVega ks (ts, vs) =
 
       other_binfo = BucketInfo "OTHER" Nothing
                                -- Last two fields currently unused
-                               0 0
+                               0 0 0
   in Data.Map.foldr go (go (0, other_binfo) []) ks
 
 data VegaTrace = VegaTrace { tx :: Double, desc :: Text }

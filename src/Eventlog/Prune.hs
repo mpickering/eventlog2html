@@ -18,6 +18,8 @@ getComparison Args { sorting = StdDev, reversing = False }  = cmpStdDevDescendin
 getComparison Args { sorting = StdDev, reversing = True } = cmpStdDevAscending
 getComparison Args { sorting = Name,   reversing = True }  = cmpNameDescending
 getComparison Args { sorting = Name,   reversing = False } = cmpNameAscending
+getComparison Args { sorting = Gradient,   reversing = True }  = cmpGradientAscending
+getComparison Args { sorting = Gradient,   reversing = False } = cmpGradientDescending
 
 cmpNameAscending, cmpNameDescending,
   cmpStdDevAscending, cmpStdDevDescending,
@@ -28,6 +30,8 @@ cmpStdDevAscending = comparing (bucketStddev . snd)
 cmpStdDevDescending = flip cmpStdDevAscending
 cmpSizeAscending = comparing (bucketTotal . snd)
 cmpSizeDescending = flip cmpSizeAscending
+cmpGradientAscending = comparing (bucketGradient . snd)
+cmpGradientDescending = flip cmpGradientAscending
 
 prune :: Args -> Map Bucket BucketInfo
               -> Map Bucket (Int, BucketInfo)

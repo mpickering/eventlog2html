@@ -32,6 +32,7 @@ data BucketInfo = BucketInfo { shortDescription :: Text -- For the legend and ho
                              , longDescription :: Maybe [Word32]
                              , bucketTotal :: Double
                              , bucketStddev :: Double
+                             , bucketGradient :: !Double
                              } deriving Show
 
 data CostCentre = CC { cid :: Word32
