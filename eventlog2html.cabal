@@ -59,7 +59,8 @@ Library
     vector               >= 0.11,
     trie-simple          >= 0.4,
     hashable             >= 1.0,
-    directory
+    directory,
+    strict
 
   GHC-options:         -Wall
   default-language:    Haskell2010
@@ -79,6 +80,7 @@ Library
                        Eventlog.VegaTemplate
                        Eventlog.VegaVersions
                        Eventlog.Dwarf
+                       Eventlog.ByInfoTable
   other-modules:       Paths_eventlog2html
 
 Executable eventlog2html

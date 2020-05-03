@@ -3,3 +3,8 @@ packages: .
           dwarf
           dwarfadt
           ../ghc-events
+
+package *
+  debug-info: 3
+  executable-stripping: False
+  library-stripping: False

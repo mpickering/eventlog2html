@@ -32,13 +32,13 @@ argsToOutput _ =
 
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
-  (_, val, _) <- generateJson fin a
+  (_, val, _, _) <- generateJson fin a
   encodeFile fout val
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
-  (header, data_json, descs) <- generateJsonValidate checkTraces fin a
-  let html = templateString header data_json descs a
+  (header, data_json, descs, closure_descs) <- generateJsonValidate checkTraces fin a
+  let html = templateString header data_json descs closure_descs a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()

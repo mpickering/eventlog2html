@@ -16,8 +16,9 @@ import Data.List
 import Data.Ord
 import Eventlog.Trie
 import Eventlog.ByInfoTable
+import Text.Blaze.Html
 
-generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value)
+generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
   dat@(ProfData h binfo ccMap fs traces) <- chunk file
@@ -33,12 +34,12 @@ generateJsonValidate validate file a = do
       cc_descs = case hHeapProfileType h of
                 Just HeapProfBreakdownCostCentre -> Just (outputTree ccMap mdescs)
                 _ -> Nothing
-      it_desc = case (,) <$> hHeapProfileType h <*> hProgramInvocation h of
-                  Just (HeapProfBreakdownInfoTable, debug_prog) -> Just (lookupSourcePos debug_prog binfo)
-                  _ -> Nothing
-  print it_desc
-  return (h, combinedJson, descs)
+  closure_table <- case (,) <$> hHeapProfileType h <*> hProgPath h of
+                     Just (HeapProfBreakdownInfoTable, debug_prog) ->
+                      Just . renderClosureInfo <$> mkClosureInfo debug_prog keeps
+                     _ -> return Nothing
+  return (h, combinedJson, cc_descs, closure_table)
 
-generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value)
+generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJson = generateJsonValidate (const (return ()))
 

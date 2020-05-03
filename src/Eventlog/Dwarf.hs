@@ -1,7 +1,9 @@
 module Eventlog.Dwarf
   ( getDwarfInfo
   , lookupDwarf
-  , showFileSnippet
+  , lookupSourceInfo
+  , SourceInfo(..)
+  , printFileSnippet
   , InfoTablePtr(..)
   ) where
 
@@ -23,24 +25,43 @@ import qualified Data.Text  as T
 import System.FilePath
 import System.Directory
 import Text.Printf
+import Numeric
+import Debug.Trace
+import qualified System.IO.Strict as S
 
 
 getDwarfInfo :: FilePath -> IO Dwarf
 getDwarfInfo fn = do
  (dwarf, warnings) <- Dwarf.Elf.parseElfDwarfADT Dwarf.LittleEndian fn
+-- (dwarf, warnings) <- Dwarf.Elf.parseElfDwarfADT Dwarf.LittleEndian "/home/matt/ghc/inplace/lib/bin/ghc-stage2"
+-- (dwarf, warnings) <- Dwarf.Elf.parseElfDwarfADT Dwarf.LittleEndian ("/home/matt/eventlog2html/dist-newstyle/build/x86_64-linux/ghc-8.8.1/eventlog2html-0.7.0/x/eventlog2html/build/eventlog2html/eventlog2html")
 -- mapM_ print warnings
 -- print $ DwarfPretty.dwarf dwarf
  return dwarf
 
 data InfoTablePtr = InfoTablePtr Word64
 
+instance Show InfoTablePtr where
+  show (InfoTablePtr p) =  "0x" ++ showHex (fromBE64 p) ""
+
+data SourceInfo = SourceInfo FilePath (Int, Int) !([(Int, String)])
+
+lookupSourceInfo :: FilePath -> Dwarf -> InfoTablePtr -> IO (Maybe SourceInfo)
+lookupSourceInfo prog_fp d itp = do
+  let res = lookupDwarf d itp
+  case res of
+    Nothing -> return Nothing
+    Just pinfo -> getFileSnippet prog_fp pinfo
+
 lookupDwarf :: Dwarf -> InfoTablePtr -> Maybe ([FilePath], Int, Int)
 lookupDwarf d (InfoTablePtr w) = do
   let (Dwarf units) = d
+  traceShowM (length units)
   asum (map (lookupDwarfUnit (fromBE64 w)) units)
 
 lookupDwarfUnit :: Word64 -> Boxed CompilationUnit -> Maybe ([FilePath], Int, Int)
 lookupDwarfUnit w (Boxed _ cu) = do
+--  traceShowM (cuName cu, cuLowPc cu, cuHighPc cu, w)
   low <- cuLowPc cu
   high <- cuHighPc cu
   guard (low <= w && w <= high)
@@ -72,10 +93,10 @@ lookupDwarfLine w Nothing (d, nd) =
     else Nothing
 lookupDwarfLine _ (Just r) _ =  Just r
 
-showFileSnippet :: FilePath -> ([FilePath], Int, Int) -> IO ()
-showFileSnippet d_fp (fps, l, c) = go fps
+getFileSnippet :: FilePath -> ([FilePath], Int, Int) -> IO (Maybe SourceInfo)
+getFileSnippet d_fp (fps, l, c) = go fps
   where
-    go [] = putStrLn ("No files could be found: " ++ show fps)
+    go [] = return Nothing
     go (fp: fps) = do
       exists <- doesFileExist fp
       -- get file modtime
@@ -83,12 +104,18 @@ showFileSnippet d_fp (fps, l, c) = go fps
         then go fps
         else do
           fp `warnIfNewer` d_fp
-          src <- zip [1..] . lines <$> readFile fp
+          src <- zip [1..] . lines <$> S.readFile fp
           let ctx = take 10 (drop (max (l - 5) 0) src)
-          putStrLn (fp <> ":" <> show l <> ":" <> show c)
-          mapM_ (\(n, l) ->
-           let sn = show n
-           in putStrLn (sn <> replicate (5 - length sn) ' ' <> l)) ctx
+          return (Just $ SourceInfo fp (l, c) ctx)
+
+
+-- For debugging
+printFileSnippet :: SourceInfo -> IO ()
+printFileSnippet (SourceInfo file (l, c) ctx) = do
+  putStrLn (file <> ":" <> show l <> ":" <> show c)
+  mapM_ (\(n, l) ->
+    let sn = show n
+    in putStrLn (sn <> replicate (5 - length sn) ' ' <> l)) ctx
 
 -- | Print a warning if source file (first argument) is newer than the binary (second argument)
 warnIfNewer :: FilePath -> FilePath -> IO ()
