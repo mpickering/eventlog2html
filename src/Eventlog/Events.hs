@@ -83,7 +83,7 @@ normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
 type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 
 data EL = EL
-  { pargs :: !(Maybe [String])
+  { pargs :: !(Maybe [Text])
   , ident :: Maybe (Version, String)
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
@@ -157,9 +157,9 @@ folder a el (Event t e _) = el &
       -- Messages and UserMessages correspond to high-frequency "traceEvent" or "traceEventIO" events from Debug.Trace and
       -- are only included if "--include-trace-events" has been specified.
       -- For low-frequency events "traceMarker" or "traceMarkerIO" should be used, which generate "UserMarker" events.
-      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
-      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) (T.pack s)) else id
-      UserMarker s -> addTrace a (Trace (fromNano t) (T.pack s))
+      Message s -> if traceEvents a then addTrace a (Trace (fromNano t) s) else id
+      UserMessage s -> if traceEvents a then addTrace a (Trace (fromNano t) s) else id
+      UserMarker s -> addTrace a (Trace (fromNano t) s)
       -- Information about the program
       RtsIdentifier _ ident -> addIdent ident
       ProgramArgs _ as -> addArgs as
@@ -177,11 +177,11 @@ folder a el (Event t e _) = el &
 addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
 addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
 
-addIdent :: String -> EL -> EL
+addIdent :: Text -> EL -> EL
 addIdent s el = el { ident = parseIdent s }
 
-parseIdent :: String -> Maybe (Version, String)
-parseIdent s = listToMaybe $ flip readP_to_S s $ do
+parseIdent :: Text -> Maybe (Version, String)
+parseIdent s = listToMaybe $ flip readP_to_S (T.unpack s) $ do
   void $ string "GHC-"
   [v1, v2, v3] <- replicateM 3 (intP <* optional (char '.'))
   skipSpaces
@@ -205,7 +205,7 @@ addCCSample res _sd st el =
 addClocktime :: Word64 -> EL -> EL
 addClocktime s el = el { clocktimeSec = s }
 
-addArgs :: [String] -> EL -> EL
+addArgs :: [Text] -> EL -> EL
 addArgs as el = el { pargs = Just as }
 
 
@@ -264,7 +264,7 @@ formatDate sec =
 
 elHeader :: EL -> PartialHeader
 elHeader EL{..} =
-  let title = maybe "" (T.unwords . map T.pack) pargs
+  let title = maybe "" T.unwords pargs
       date = formatDate clocktimeSec
       ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
   in Header title date heapProfileType ppSamplingRate "" ""

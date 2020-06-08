@@ -1,3 +1,7 @@
+unreleased
+
+* Switch to ghc-events 0.13.0
+
 0.7, released 2020-03-26
 
 * Use native interactive legend in new version of vega-lite
