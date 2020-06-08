@@ -1,3 +1,7 @@
+unreleased
+
+* Fix a bug for Windows users by explicitly setting output to utf-8. (Issue #123)
+
 0.7, released 2020-03-26
 
 * Use native interactive legend in new version of vega-lite
