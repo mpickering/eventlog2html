@@ -1,0 +1,32 @@
+name: Build 
+on: [push, pull_request] 
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+          persist-credentials: false
+    - uses: cachix/install-nix-action@v8
+    - uses: cachix/cachix-action@v6
+      with:
+        name: mpickering
+        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+        # Only needed for private caches
+        authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+    - run: cachix use iohk
+    - run: nix-build -A site --arg ci true -o site
+    # This stuff is only to avoid the deployment crashing when it
+    # tries to remove files
+    - run: mkdir -p build-folder
+    - run: cp -r site/* build-folder
+    - run: find build-folder -type d -exec chmod 755 {} \;
+    - run: find build-folder -type f -exec chmod 644 {} \;
+    - name: Deploy to GitHub Pages
+      uses: JamesIves/github-pages-deploy-action@releases/v3
+      with:
+        BRANCH: gh-pages
+        FOLDER: build-folder
+        ACCESS_TOKEN: ${{ secrets.GH_SECRET }}
+
+
