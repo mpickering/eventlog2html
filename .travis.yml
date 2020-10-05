@@ -18,8 +18,8 @@ jobs:
         - cachix use mpickering
         - cachix use iohk
         - cachix push mpickering --watch-store&
-        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc865
-        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc881
+        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc883
+        - nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc8102
 
     - stage: build documentation
       script:
