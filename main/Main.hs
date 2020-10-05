@@ -4,6 +4,7 @@ module Main (main) where
 
 import Control.Monad
 import Data.Aeson (encodeFile)
+import GHC.IO.Encoding (setLocaleEncoding)
 import System.FilePath
 import System.Exit
 import System.IO
@@ -15,6 +16,8 @@ import Eventlog.Types
 
 main :: IO ()
 main = do
+  -- This fixes a problem for Windows users: https://serokell.io/blog/haskell-with-utf8
+  setLocaleEncoding utf8
   a <- args
   when (null (files a)) exitSuccess
   argsToOutput a
