@@ -37,7 +37,8 @@ stddev s0 (s1, s2, samples) = (s1, sqrt (s0 * s2 - s1 * s1) / s0, gradient)
     (times, values) = unzip (reverse samples)
     yvect = V.fromList (map (/ m) values)
     xvect = V.fromList (map (/ mt) times)
-    (_offset, gradient) = traceShow (samples, V.length xvect, V.length yvect, xvect, yvect) (linearRegression xvect yvect)
+    (_offset, gradient) = --traceShow (samples, V.length xvect, V.length yvect, xvect, yvect)
+                          (linearRegression xvect yvect)
 
 
 

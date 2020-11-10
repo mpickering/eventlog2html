@@ -13,6 +13,7 @@ import System.IO
 import Data.Word
 import System.Endian
 import Data.Foldable
+import Eventlog.Types
 
 
 import qualified Data.Dwarf as Dwarf
@@ -39,10 +40,6 @@ getDwarfInfo fn = do
 -- print $ DwarfPretty.dwarf dwarf
  return dwarf
 
-data InfoTablePtr = InfoTablePtr Word64
-
-instance Show InfoTablePtr where
-  show (InfoTablePtr p) =  "0x" ++ showHex (fromBE64 p) ""
 
 data SourceInfo = SourceInfo FilePath (Int, Int) !([(Int, String)])
 

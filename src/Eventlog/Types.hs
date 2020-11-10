@@ -8,6 +8,9 @@ import Data.Aeson
 import Data.Hashable
 import Data.Word
 import GHC.RTS.Events (HeapProfBreakdown(..))
+import System.Endian
+import Numeric
+import qualified Data.Text as T
 
 data Header =
   Header
@@ -51,4 +54,24 @@ data ProfData = ProfData { profHeader :: Header
                          , profTotals :: (Map Bucket BucketInfo)
                          , profCCMap  :: Map Word32 CostCentre
                          , profFrames :: [Frame]
-                         , profTraces :: [Trace] } deriving Show
+                         , profTraces :: [Trace]
+                         , profItl    :: Map InfoTablePtr InfoTableLoc } deriving Show
+
+data InfoTableLoc = InfoTableLoc { itlName :: !Text
+                                 , itlClosureDesc :: !Text
+                                 , itlTyDesc :: !Text
+                                 , itlLbl :: !Text
+                                 , itlModule :: !Text
+                                 , itlSrcLoc :: !Text } deriving Show
+
+data InfoTablePtr = InfoTablePtr Word64 deriving (Eq, Ord)
+
+instance Show InfoTablePtr where
+  show (InfoTablePtr p) =  "0x" ++ showHex p ""
+
+toItblPointer (Bucket t) =
+    let s = drop 2 (T.unpack t)
+        w64 = case readHex s of
+                ((n, ""):_) -> n
+                _ -> error (show t)
+    in InfoTablePtr w64
