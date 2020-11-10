@@ -4,3 +4,6 @@
 [submodule "dwarfadt"]
 	path = dwarfadt
 	url = https://github.com/mpickering/dwarfadt.git
+[submodule "ghc-events"]
+	path = ghc-events
+	url = https://github.com/mpickering/ghc-events.git

@@ -2,7 +2,7 @@ packages: .
           hakyll-eventlog
           dwarf
           dwarfadt
-          ../ghc-events
+          ghc-events
 
 package *
   debug-info: 3

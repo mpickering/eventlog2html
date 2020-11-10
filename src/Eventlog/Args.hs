@@ -40,7 +40,7 @@ argParser :: Parser Args
 argParser = Args
       <$> option parseSort
           ( long "sort"
-         <> help "How to sort the bands.  One of: size (default), stddev, name."
+         <> help "How to sort the bands.  One of: size (default), stddev, name, gradient."
          <> value Size
          <> metavar "FIELD" )
       <*> switch

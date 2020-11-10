@@ -1,11 +1,14 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Eventlog.Prune
   ( prune
   ) where
 
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import Data.Map.Strict (Map, toList, fromList, (!))
+import qualified Data.Map as M
+import Data.Map.Strict (Map, toList, fromList, (!), lookup)
 import Eventlog.Types
+import Debug.Trace
 
 import Eventlog.Args (Args(..), Sort(..))
 
@@ -34,9 +37,11 @@ cmpGradientAscending = comparing (bucketGradient . snd)
 cmpGradientDescending = flip cmpGradientAscending
 
 prune :: Args -> Map Bucket BucketInfo
+              -> Map InfoTablePtr InfoTableLoc
               -> Map Bucket (Int, BucketInfo)
-prune args ts =
-  let ccTotals = sortBy cmpSizeDescending (toList ts)
+prune args ts ipes =
+  let ccTotals = sortBy cmpSizeDescending -- (toList ts)
+                  (filter noCon $ toList ts)
       sizes = map (bucketTotal . snd) ccTotals
       limit = sum sizes
       bigs = takeWhile (< limit) . scanl (+) 0 $ sizes
@@ -45,6 +50,14 @@ prune args ts =
       res :: [(Bucket, (Int, BucketInfo))]
       res = zipWith (\b k -> (b, (k, ts ! b))) (reverse ccs) [1..]
   in  fromList res
+  where
+    noCon :: (Bucket, BucketInfo) -> Bool
+    noCon (b, _) =
+      case M.lookup (toItblPointer b) ipes of
+        -- Remove CON closures
+        Just info -> (itlClosureDesc info /= "0")
+        Nothing -> False
+
 
 bound :: Int -> Int
 bound n

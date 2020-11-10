@@ -30,6 +30,7 @@ import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
 import Debug.Trace
+import System.Endian
 
 type PartialHeader = Int -> Header
 
@@ -40,7 +41,7 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, bucket_map, ccMap, frames, traces) <- eventsToHP a e
+  (ph, bucket_map, ccMap, frames, traces, ipes) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
       combine = zipWithAMatched (\_ (t, mt) (tot, sd, g) -> Identity $ BucketInfo t mt tot sd g)
@@ -53,7 +54,7 @@ chunk a f = do
       combineMissingDesc (Bucket t) (tot, sd, g) = Identity (traceShowId $ BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
-  return $ (ProfData (ph counts) binfo ccMap frames traces)
+  return $ (ProfData (ph counts) binfo ccMap frames traces ipes)
 
 checkGHCVersion :: EL -> Maybe Text
 checkGHCVersion EL { ident = Just (version,_)}
@@ -70,14 +71,14 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             <> ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace])
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace], Map.Map InfoTablePtr InfoTableLoc)
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
   mapM_ (T.hPutStrLn stderr) (checkGHCVersion el)
-  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces)
+  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces, Map.fromList ipes)
 
 normalise :: [FrameEL] -> [Frame]
 normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
@@ -99,8 +100,10 @@ data EL = EL
   , samples :: !(Maybe FrameEL)
   , frames :: ![FrameEL]
   , traces :: ![Trace]
+  , ipes :: [(InfoTablePtr, InfoTableLoc)]
   , start :: !Word64
   , end :: !Word64 } deriving Show
+
 
 data FrameEL = FrameEL Word64 [Sample] deriving Show
 
@@ -140,6 +143,7 @@ initEL = EL
   , samples = Nothing
   , frames = []
   , traces = []
+  , ipes = []
   , start = 0
   , end = 0
   , ccMap = Map.empty
@@ -176,8 +180,11 @@ folder a el (Event t e _) = el &
       HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample (Bucket k) (fromIntegral res))
+      IPE a b c d e f g -> addInfoTableLoc (InfoTablePtr (traceShowId a), InfoTableLoc b c d e f g)
       _ -> id
 
+addInfoTableLoc :: (InfoTablePtr, InfoTableLoc) -> EL -> EL
+addInfoTableLoc itl el = el { ipes = itl : ipes el }
 
 addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
 addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
