@@ -92,9 +92,14 @@ htmlHeader dat desc as =
         script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega@" ++ vegaVersion) $ ""
         script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-lite@" ++ vegaLiteVersion) $ ""
         script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-embed@" ++ vegaEmbedVersion) $ ""
+        script ! src (fromString "https://code.jquery.com/jquery-3.3.1.min.js") $ ""
+        link ! rel "stylesheet" ! href "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        script ! src (fromString "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js") $ ""
         link ! rel "stylesheet" ! href "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
-        link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
-        link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
+        script ! src (fromString "https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js" ) $ ""
+        script ! src (fromString "https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js") $ ""
+--        link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
+--        link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
 

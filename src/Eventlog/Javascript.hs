@@ -31,6 +31,7 @@ stylesheet = decodeUtf8 $(embedFile "javascript/stylesheet.css")
 tablogic :: Text
 tablogic = decodeUtf8 $(embedFile "javascript/tablogic.js")
 
+
 milligram :: Text
 milligram = decodeUtf8 $(embedFile "javascript/milligram.min.css")
 
@@ -39,4 +40,3 @@ normalizecss = decodeUtf8 $(embedFile "javascript/normalize.min.css")
 
 treevega :: Text
 treevega = decodeUtf8 $(embedFile "javascript/ccmap.vg")
-

@@ -24,8 +24,9 @@ generateJsonValidate validate file a = do
   dat@(ProfData h binfo ccMap fs traces ipes) <- chunk file
   validate dat
   let keeps = prune a binfo ipes
+      bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
-          "samples" .= bandsToVega keeps (bands h (Map.map fst keeps) fs)
+          "samples" .= bandsToVega keeps bs
         , "traces"  .= tracesToVega traces
         ]
       mdescs =
@@ -36,7 +37,9 @@ generateJsonValidate validate file a = do
                 _ -> Nothing
   closure_table <- case (,) <$> hHeapProfileType h <*> hProgPath h of
                      Just (HeapProfBreakdownInfoTable, debug_prog) ->
-                      Just . renderClosureInfo <$> mkClosureInfo debug_prog keeps ipes
+                      let (_, desc_tab) = Map.mapAccum (\n b -> (n + 1, (n, b))) 0 binfo
+                          bs' = bands h (Map.map fst desc_tab) fs
+                      in Just . renderClosureInfo bs' <$> mkClosureInfo debug_prog desc_tab ipes
                      _ -> return Nothing
   return (h, combinedJson, cc_descs, closure_table)
 

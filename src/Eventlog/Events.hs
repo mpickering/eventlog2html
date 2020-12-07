@@ -2,6 +2,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE StrictData #-}
+{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeApplications #-}
 module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header)
@@ -31,6 +33,7 @@ import Data.Map.Merge.Lazy
 import Data.Functor.Identity
 import Debug.Trace
 import System.Endian
+import GHC.Exts.Heap.ClosureTypes
 
 type PartialHeader = Int -> Header
 
@@ -50,7 +53,7 @@ chunk a f = do
       combineMissingTotal k = error ("Missing total for: " ++ show k)
 
       -- This case happens when we are not in CC mode
-      combineMissingDesc :: Bucket -> (Double, Double, Double) -> Identity BucketInfo
+      combineMissingDesc :: Bucket -> (Double, Double, Maybe (Double, Double, Double)) -> Identity BucketInfo
       combineMissingDesc (Bucket t) (tot, sd, g) = Identity (traceShowId $ BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
@@ -158,6 +161,8 @@ foldEvents a es =
   in addFrame 0 res
 
 folder :: Args -> EL -> Event -> EL
+--folder a el (Event (fromNano -> t) _ _)
+--  | (t >= 5 && t <= 60) || t >= 85 = el
 folder a el (Event t e _) = el &
   updateLast t .
     case e of
@@ -176,15 +181,21 @@ folder a el (Event t e _) = el &
       -- Profiling Events
       HeapProfBegin { heapProfSamplingPeriod, heapProfBreakdown } -> addHeapProfBegin heapProfSamplingPeriod heapProfBreakdown
       HeapProfCostCentre cid l m loc _  -> addCostCentre cid (CC cid l m loc)
-      HeapProfSampleBegin {} -> addFrame t
+      HeapProfSampleBegin {}
+        | t >= 1 -> addFrame t
       HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample (Bucket k) (fromIntegral res))
-      IPE a b c d e f g -> addInfoTableLoc (InfoTablePtr (traceShowId a), InfoTableLoc b c d e f g)
+      IPE a b c d e f g -> addInfoTableLoc (InfoTablePtr (traceShowId a), InfoTableLoc b (parseClosureType c) d e f g)
       _ -> id
 
+parseClosureType :: Text -> ClosureType
+-- IPEs do not distinguish different CONSTR types, yet
+parseClosureType "0" = CONSTR
+parseClosureType ct = toEnum . read @Int . T.unpack $ ct
+
 addInfoTableLoc :: (InfoTablePtr, InfoTableLoc) -> EL -> EL
-addInfoTableLoc itl el = el { ipes = itl : ipes el }
+addInfoTableLoc itl el = traceShow itl (el { ipes = itl : ipes el })
 
 addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
 addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
