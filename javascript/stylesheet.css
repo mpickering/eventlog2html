@@ -9,7 +9,8 @@
   background-color: transparent;
   color: black;
 }
-.container { width: 90%; }
+.container { width: 90%;
+             max-width: 1400px; }
 
 /* Reset milligram table styling so tooltips render correctly */
 table, caption, tbody, tfoot, thead, tr, th, td {
@@ -30,4 +31,8 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 
 #description{
   visibility: hidden;
+}
+/* https://github.com/gwatts/jquery.sparkline/issues/202 */
+.jqstooltip {
+  box-sizing: content-box;
 }

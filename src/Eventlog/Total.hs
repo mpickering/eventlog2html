@@ -20,7 +20,7 @@ data Parse =
 parse0 :: Parse
 parse0 = Parse{ totals = empty, count = 0, times = [] }
 
-total :: [Frame] -> (Int, Map Bucket (Double, Double, Double))
+total :: [Frame] -> (Int, Map Bucket (Double, Double, Maybe (Double, Double, Double)))
 total fs =
   let parse1 = flip execState parse0 . mapM_ parseFrame $ fs
   in  (
@@ -29,16 +29,23 @@ total fs =
       )
 
 
-stddev :: Double -> (Double, Double, [(Double, Double)]) -> (Double, Double, Double)
-stddev s0 (s1, s2, samples) = (s1, sqrt (s0 * s2 - s1 * s1) / s0, gradient)
+stddev :: Double -> (Double, Double, [(Double, Double)]) -> (Double, Double, Maybe (Double, Double, Double))
+stddev s0 (s1, s2, samples) = traceShow (slope, xvect, yvect) (s1, sqrt (s0 * s2 - s1 * s1) / s0, slope)
   where
     m = maximum values
     mt = maximum times
     (times, values) = unzip (reverse samples)
     yvect = V.fromList (map (/ m) values)
     xvect = V.fromList (map (/ mt) times)
-    (_offset, gradient) = --traceShow (samples, V.length xvect, V.length yvect, xvect, yvect)
-                          (linearRegression xvect yvect)
+    slope = -- TODO: Distinguish these cases
+            case samples of
+              [] -> Nothing
+              -- Linear regression is meaningless with 1 sample
+              [_] -> Nothing
+              _
+                -- All values are the same leads to NaN r2
+                | V.all (1 ==) yvect -> Nothing
+                | otherwise -> Just $! linearRegressionRSqr xvect yvect
 
 
 

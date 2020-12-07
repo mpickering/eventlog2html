@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Eventlog.Types(module Eventlog.Types, HeapProfBreakdown(..)) where
+module Eventlog.Types(module Eventlog.Types, HeapProfBreakdown(..), ClosureType) where
 
 import Data.Text (Text)
 import Data.Map (Map)
@@ -8,6 +8,7 @@ import Data.Aeson
 import Data.Hashable
 import Data.Word
 import GHC.RTS.Events (HeapProfBreakdown(..))
+import GHC.Exts.Heap.ClosureTypes
 import System.Endian
 import Numeric
 import qualified Data.Text as T
@@ -35,7 +36,7 @@ data BucketInfo = BucketInfo { shortDescription :: Text -- For the legend and ho
                              , longDescription :: Maybe [Word32]
                              , bucketTotal :: Double
                              , bucketStddev :: Double
-                             , bucketGradient :: !Double
+                             , bucketGradient :: !(Maybe (Double, Double, Double))
                              } deriving Show
 
 data CostCentre = CC { cid :: Word32
@@ -58,7 +59,7 @@ data ProfData = ProfData { profHeader :: Header
                          , profItl    :: Map InfoTablePtr InfoTableLoc } deriving Show
 
 data InfoTableLoc = InfoTableLoc { itlName :: !Text
-                                 , itlClosureDesc :: !Text
+                                 , itlClosureDesc :: !ClosureType
                                  , itlTyDesc :: !Text
                                  , itlLbl :: !Text
                                  , itlModule :: !Text

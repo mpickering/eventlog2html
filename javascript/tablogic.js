@@ -18,6 +18,8 @@ function changeTab(tabName,elmnt) {
 
     // Add the specific color to the button used to open the tab content
     elmnt.classList.add('button-outline');
+    $.sparkline_display_visible()
+
 }
 
 // Get the element with id="defaultOpen" and click on it
