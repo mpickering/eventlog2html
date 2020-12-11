@@ -1,6 +1,8 @@
-unreleased
+0.8, release 2020-12-11
 
 * Fix a bug for Windows users by explicitly setting output to utf-8. (Issue #123)
+* New detailed view to display per-band information
+* Update vega assets to latest versions
 
 0.7, released 2020-03-26
 
