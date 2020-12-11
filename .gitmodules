@@ -1,9 +1,0 @@
-[submodule "dwarf"]
-	path = dwarf
-	url = https://github.com/mpickering/dwarf.git
-[submodule "dwarfadt"]
-	path = dwarfadt
-	url = https://github.com/mpickering/dwarfadt.git
-[submodule "ghc-events"]
-	path = ghc-events
-	url = https://github.com/mpickering/ghc-events.git
