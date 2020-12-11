@@ -41,8 +41,11 @@ generateJsonValidate validate file a = do
                    _ -> Nothing
       desc_buckets = pruneDetailed a binfo
       bs' = bands h (Map.map fst desc_buckets) fs
-      closure_table = renderClosureInfo bs' use_ipes desc_buckets
-  return (h, combinedJson, cc_descs, Just closure_table)
+      closure_table =
+        case detailedLimit a of
+          Just 0 ->  Nothing
+          _ -> Just (renderClosureInfo bs' use_ipes desc_buckets)
+  return (h, combinedJson, cc_descs, closure_table)
 
 generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJson = generateJsonValidate (const (return ()))
