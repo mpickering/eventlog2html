@@ -31,7 +31,6 @@ import System.IO
 import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
-import Debug.Trace
 import GHC.Exts.Heap.ClosureTypes
 
 type PartialHeader = Int -> Header
@@ -160,8 +159,6 @@ foldEvents a es =
   in addFrame 0 res
 
 folder :: Args -> EL -> Event -> EL
---folder a el (Event (fromNano -> t) _ _)
---  | (t >= 5 && t <= 60) || t >= 85 = el
 folder a el (Event t e _) = el &
   updateLast t .
     case e of
