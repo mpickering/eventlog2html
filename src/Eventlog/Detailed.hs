@@ -126,6 +126,7 @@ initTable b = "$(document).ready(function() {\
         \    onUpdate: function(){$.sparkline_display_visible()}\
         \});\
         \$.fn.sparkline.defaults.common.chartRangeMin = 0;\
+        \$.fn.sparkline.defaults.common.width = 200;\
         \$('.linechart').sparkline()\
 \});"
 
