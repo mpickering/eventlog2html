@@ -76,7 +76,7 @@ Library
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate
                        Eventlog.AssetVersions
-                       Eventlog.ByInfoTable
+                       Eventlog.Detailed
   other-modules:       Paths_eventlog2html
 
 Executable eventlog2html

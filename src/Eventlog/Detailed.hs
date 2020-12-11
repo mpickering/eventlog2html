@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
-module Eventlog.ByInfoTable where
+module Eventlog.Detailed where
 
 import qualified Data.Map as Map
 import Eventlog.Types
