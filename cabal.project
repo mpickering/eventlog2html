@@ -1,7 +1,2 @@
 packages: .
           hakyll-eventlog
-
-source-repository-package
-  type: git
-  location: https://github.com/mpickering/ghc-events.git
-  tag: c09eb63d39a7fd90f683c79d9c3612eea2c4aca9

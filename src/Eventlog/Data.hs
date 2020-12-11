@@ -21,7 +21,7 @@ import Text.Blaze.Html
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
-  dat@(ProfData h binfo ccMap fs traces ipes) <- chunk file
+  dat@(ProfData h binfo ccMap fs traces _ipes) <- chunk file
   validate dat
   let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
@@ -37,7 +37,7 @@ generateJsonValidate validate file a = do
                 _ -> Nothing
 
   let use_ipes = case hHeapProfileType h of
-                   Just HeapProfBreakdownInfoTable -> Just ipes
+                   --Just HeapProfBreakdownInfoTable -> Just ipes
                    _ -> Nothing
       desc_buckets = pruneDetailed a binfo
       bs' = bands h (Map.map fst desc_buckets) fs
