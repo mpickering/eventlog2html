@@ -17,7 +17,6 @@ jobs:
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
     - run: nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc8102 --option trusted-public-keys "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=" --option substituters "https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/"
   deploy:
-    if: github.event_name == 'create' && github.event.ref_type == 'tag'
     needs: build
     runs-on: ubuntu-latest
     steps:
@@ -52,6 +51,7 @@ jobs:
     - run: find build-folder -type d -exec chmod 755 {} \;
     - run: find build-folder -type f -exec chmod 644 {} \;
     - name: Deploy to GitHub Pages
+      if: github.event_name == 'create' && github.event.ref_type == 'tag'
       uses: JamesIves/github-pages-deploy-action@releases/v3
       with:
         BRANCH: gh-pages
