@@ -9,7 +9,6 @@ import Data.Hashable
 import Data.Word
 import GHC.RTS.Events (HeapProfBreakdown(..))
 import GHC.Exts.Heap.ClosureTypes
-import System.Endian
 import Numeric
 import qualified Data.Text as T
 
@@ -70,6 +69,7 @@ data InfoTablePtr = InfoTablePtr Word64 deriving (Eq, Ord)
 instance Show InfoTablePtr where
   show (InfoTablePtr p) =  "0x" ++ showHex p ""
 
+toItblPointer :: Bucket -> InfoTablePtr
 toItblPointer (Bucket t) =
     let s = drop 2 (T.unpack t)
         w64 = case readHex s of

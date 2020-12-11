@@ -33,10 +33,10 @@ stddev :: Double -> (Double, Double, [(Double, Double)]) -> (Double, Double, May
 stddev s0 (s1, s2, samples) = traceShow (slope, xvect, yvect) (s1, sqrt (s0 * s2 - s1 * s1) / s0, slope)
   where
     m = maximum values
-    mt = maximum times
-    (times, values) = unzip (reverse samples)
+    mt = maximum timesv
+    (timesv, values) = unzip (reverse samples)
     yvect = V.fromList (map (/ m) values)
-    xvect = V.fromList (map (/ mt) times)
+    xvect = V.fromList (map (/ mt) timesv)
     slope = -- TODO: Distinguish these cases
             case samples of
               [] -> Nothing

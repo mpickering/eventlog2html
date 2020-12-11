@@ -32,7 +32,6 @@ import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
 import Debug.Trace
-import System.Endian
 import GHC.Exts.Heap.ClosureTypes
 
 type PartialHeader = Int -> Header
@@ -186,7 +185,8 @@ folder a el (Event t e _) = el &
       HeapBioProfSampleBegin { heapProfSampleTime = t' } -> addFrame t'
       HeapProfSampleCostCentre _hid r d s -> addCCSample r d s
       HeapProfSampleString _hid res k -> addSample (Sample (Bucket k) (fromIntegral res))
-      IPE a b c d e f g -> addInfoTableLoc (InfoTablePtr (traceShowId a), InfoTableLoc b (parseClosureType c) d e f g)
+      IPE ptr name desc ty lbl smod sloc -> addInfoTableLoc (InfoTablePtr ptr,
+                                              InfoTableLoc name (parseClosureType desc) ty lbl smod sloc)
       _ -> id
 
 parseClosureType :: Text -> ClosureType

@@ -23,7 +23,7 @@ generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
   dat@(ProfData h binfo ccMap fs traces ipes) <- chunk file
   validate dat
-  let keeps = prune a binfo ipes
+  let keeps = prune a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
           "samples" .= bandsToVega keeps bs
@@ -35,11 +35,11 @@ generateJsonValidate validate file a = do
       cc_descs = case hHeapProfileType h of
                 Just HeapProfBreakdownCostCentre -> Just (outputTree ccMap mdescs)
                 _ -> Nothing
-  closure_table <- case (,) <$> hHeapProfileType h <*> hProgPath h of
-                     Just (HeapProfBreakdownInfoTable, debug_prog) ->
+  closure_table <- case hHeapProfileType h  of
+                     Just HeapProfBreakdownInfoTable ->
                       let (_, desc_tab) = Map.mapAccum (\n b -> (n + 1, (n, b))) 0 binfo
                           bs' = bands h (Map.map fst desc_tab) fs
-                      in Just . renderClosureInfo bs' <$> mkClosureInfo debug_prog desc_tab ipes
+                      in Just . renderClosureInfo bs' <$> mkClosureInfo desc_tab ipes
                      _ -> return Nothing
   return (h, combinedJson, cc_descs, closure_table)
 
