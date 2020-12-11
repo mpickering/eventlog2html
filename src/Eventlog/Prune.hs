@@ -6,10 +6,8 @@ module Eventlog.Prune
 
 import Data.List (sortBy)
 import Data.Ord (comparing)
-import qualified Data.Map as M
-import Data.Map.Strict (Map, toList, fromList, (!), lookup)
 import Eventlog.Types
-import Debug.Trace
+import Data.Map (Map, fromList, (!), toList)
 
 import Eventlog.Args (Args(..), Sort(..))
 
@@ -27,7 +25,8 @@ getComparison Args { sorting = Gradient,   reversing = False } = cmpGradientDesc
 
 cmpNameAscending, cmpNameDescending,
   cmpStdDevAscending, cmpStdDevDescending,
-  cmpSizeAscending, cmpSizeDescending :: Compare (Bucket, BucketInfo)
+  cmpSizeAscending, cmpSizeDescending,
+  cmpGradientAscending, cmpGradientDescending :: Compare (Bucket, BucketInfo)
 cmpNameAscending = comparing fst
 cmpNameDescending = flip cmpNameAscending
 cmpStdDevAscending = comparing (bucketStddev . snd)
@@ -36,15 +35,13 @@ cmpSizeAscending = comparing (bucketTotal . snd)
 cmpSizeDescending = flip cmpSizeAscending
 cmpGradientAscending = comparing (fmap getGradient . bucketGradient . snd)
  where
-   getGradient (a, b, r2) = b
+   getGradient (_a, b, _r2) = b
 cmpGradientDescending = flip cmpGradientAscending
 
 prune :: Args -> Map Bucket BucketInfo
-              -> Map InfoTablePtr InfoTableLoc
               -> Map Bucket (Int, BucketInfo)
-prune args ts ipes =
+prune args ts =
   let ccTotals = sortBy cmpSizeDescending
-                  --(toList ts)
                   (toList ts)
       sizes = map (bucketTotal . snd) ccTotals
       limit = sum sizes

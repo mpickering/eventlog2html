@@ -4,27 +4,20 @@ module Eventlog.ByInfoTable where
 
 import qualified Data.Map as Map
 import Eventlog.Types
-import Numeric
 import qualified Data.Text as T
-import System.Endian
-import Data.Maybe
 
-import Data.Aeson
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
-import Data.Word
 import Data.Array.Unboxed (UArray, bounds)
 import qualified Data.Array.Unboxed as A
 import Data.Fixed
 
 
-mkClosureInfo :: FilePath
-              -> Map.Map Bucket a
+mkClosureInfo :: Map.Map Bucket a
               -> Map.Map InfoTablePtr InfoTableLoc
               -> IO (Map.Map Bucket (InfoTableLoc, a))
-mkClosureInfo fp b ipes = do
---  d <- getDwarfInfo fp
+mkClosureInfo b ipes = do
   let itps = map toItblPointer (Map.keys b)
   print (take 5 (zip (Map.keys b) itps))
   print $ length (Map.keys b)
@@ -73,19 +66,19 @@ renderClosureInfo (ts, bs) cs = do
     Map.foldrWithKey (\k a res -> renderEntry k a >> res) (mempty :: Html) cs
   H.script $ preEscapedToHtml initTable
   where
-    numTh label = H.th ! H.dataAttribute "sortas" "numeric" $ label
-    truncate :: Double -> Fixed E2
-    truncate = realToFrac
+    numTh lbl = H.th ! H.dataAttribute "sortas" "numeric" $ lbl
+    trunc :: Double -> Fixed E2
+    trunc = realToFrac
     render = showFixed True
     renderEntry (Bucket k)
-      (InfoTableLoc table_name cd tydesc lbl m loc
+      (InfoTableLoc table_name cd tydesc _lbl m sloc
         , (n, BucketInfo _ _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
                   Nothing -> ("", "", "")
-                  Just (ad, bd, r2d) -> (render $ truncate ad
-                                       , render $ truncate bd
-                                       , render $ truncate r2d)
+                  Just (ad, bd, r2d) -> (render $ trunc ad
+                                       , render $ trunc bd
+                                       , render $ trunc r2d)
           H.tr $ do
             H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml n)
@@ -94,9 +87,9 @@ renderClosureInfo (ts, bs) cs = do
             H.td (toHtml (show @ClosureType cd))
             H.td (toHtml tydesc)
             H.td (toHtml m)
-            H.td (toHtml loc)
-            H.td (toHtml (render $ truncate (tot / 1e6)))
-            H.td (toHtml (render $ truncate std))
+            H.td (toHtml sloc)
+            H.td (toHtml (render $ trunc (tot / 1e6)))
+            H.td (toHtml (render $ trunc std))
             H.td (toHtml a)
             H.td (toHtml b)
             H.td (toHtml r2)
