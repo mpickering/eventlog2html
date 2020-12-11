@@ -15,7 +15,7 @@ import Eventlog.Types (Header(..), ProfData(..), HeapProfBreakdown(..))
 import Data.List
 import Data.Ord
 import Eventlog.Trie
-import Eventlog.ByInfoTable
+import Eventlog.Detailed
 import Text.Blaze.Html
 
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
