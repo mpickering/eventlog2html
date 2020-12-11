@@ -1,9 +1,10 @@
-{ci ? false, haskellCompiler ? "ghc881" }:
+{ci ? false, haskellCompiler ? "ghc8102" }:
 let
   # Import the Haskell.nix library,
-  haskell-src = import ((import ./nix/sources.nix)."haskell.nix");
-  pin = import ((import ./nix/sources.nix).nixpkgs) haskell-src ;
-#  pin = import <nixpkgs> haskell-src ;
+  haskell-src = import ((import ./nix/sources.nix)."haskell.nix") {};
+  npSrc = haskell-src.sources.nixpkgs-2009;
+  npArgs = haskell-src.nixpkgsArgs;
+  pin = import npSrc npArgs;
 
   haskell = pin.haskell-nix;
 
@@ -13,8 +14,8 @@ let
 
   # Instantiate a package set using the generated file.
   pkgSet = haskell.cabalProject {
-    src = haskell.haskellLib.cleanGit { src = ./.; };
-    ghc = pin.buildPackages.pkgs.haskell-nix.compiler.${haskellCompiler};
+    compiler-nix-name = haskellCompiler;
+    src = haskell.haskellLib.cleanGit { name = "eventlog2html"; src = ./.; };
     modules = (if ci then ciOptions else []) ++ opts;
   };
 
