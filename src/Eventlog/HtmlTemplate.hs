@@ -149,7 +149,7 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
         when (isJust cc_descs) $ do
           button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
         when (isJust closure_descs) $ do
-          button ! class_ "tablink button-black" ! onclick "changeTab('closures', this)" $ "Closure Descs"
+          button ! class_ "tablink button-black" ! onclick "changeTab('closures', this)" $ "Detailed"
     let itd = if noTraces as then NoTraceData else TraceData
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do

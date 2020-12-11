@@ -35,13 +35,14 @@ generateJsonValidate validate file a = do
       cc_descs = case hHeapProfileType h of
                 Just HeapProfBreakdownCostCentre -> Just (outputTree ccMap mdescs)
                 _ -> Nothing
-  closure_table <- case hHeapProfileType h  of
-                     Just HeapProfBreakdownInfoTable ->
-                      let (_, desc_tab) = Map.mapAccum (\n b -> (n + 1, (n, b))) 0 binfo
-                          bs' = bands h (Map.map fst desc_tab) fs
-                      in Just . renderClosureInfo bs' <$> mkClosureInfo desc_tab ipes
-                     _ -> return Nothing
-  return (h, combinedJson, cc_descs, closure_table)
+
+  let use_ipes = case hHeapProfileType h of
+                   Just HeapProfBreakdownInfoTable -> Just ipes
+                   _ -> Nothing
+      (_, desc_buckets) = Map.mapAccum (\n b -> (n + 1, (n, b))) 0 binfo
+      bs' = bands h (Map.map fst desc_buckets) fs
+      closure_table = renderClosureInfo bs' use_ipes desc_buckets
+  return (h, combinedJson, cc_descs, Just closure_table)
 
 generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJson = generateJsonValidate (const (return ()))

@@ -12,67 +12,85 @@ import qualified Text.Blaze.Html5.Attributes as A
 import Data.Array.Unboxed (UArray, bounds)
 import qualified Data.Array.Unboxed as A
 import Data.Fixed
+import Control.Monad
+import Data.Maybe
+
+data InfoTableLocStatus = None -- None of the entries have InfoTableLoc
+                        | Missing -- This one is just missing
+                        | Here InfoTableLoc -- Here is is
+
+mkMissing :: Maybe InfoTableLoc -> InfoTableLocStatus
+mkMissing = maybe Missing Here
 
 
 mkClosureInfo :: Map.Map Bucket a
               -> Map.Map InfoTablePtr InfoTableLoc
-              -> IO (Map.Map Bucket (InfoTableLoc, a))
-mkClosureInfo b ipes = do
-  let itps = map toItblPointer (Map.keys b)
-  print (take 5 (zip (Map.keys b) itps))
-  print $ length (Map.keys b)
-  print $ (Map.size ipes)
-  print $ (take 100 $ Map.keys ipes)
-  --res <- Map.traverseMaybeWithKey (\k _ -> lookupSourceInfo fp d (toItblPointer k)) b
-  res <- Map.traverseMaybeWithKey (\k v -> return $ (,) <$> Map.lookup (toItblPointer k) ipes <*> pure v) b
-  print (Map.size res)
---  print $ length (catMaybes ress)
---  print (head ress)
-  return res
+              -> Map.Map Bucket (InfoTableLocStatus, a)
+mkClosureInfo b ipes =
+  Map.mapWithKey (\k v -> (mkMissing $ Map.lookup (toItblPointer k) ipes, v)) b
 
-
-{-
-renderClosureInfo :: Map.Map Bucket SourceInfo -> Html
-renderClosureInfo cs = do
-  H.dl $ Map.foldrWithKey (\k a res -> renderEntry k a >> res) mempty cs
-  where
-    renderEntry (Bucket k) (SourceInfo f (l, c) ctx) = do
-        H.dt (H.b (toHtml k) <> toHtml (":" <> T.pack f <> ":" <> T.pack (show l) <> ":" <> T.pack (show c)))
-        H.dd (H.pre (H.code ((preEscapedToHtml (unlines (map renderLine ctx))))))
-    renderLine (n, l) =
-      let sn = show n
-      in sn <> replicate (5 - length sn) ' ' <> l
-      -}
 
 renderClosureInfo :: (UArray Int Double, UArray (Int, Int) Double)
-                  -> Map.Map Bucket (InfoTableLoc, (Int, BucketInfo))
+                  -- Raw Data
+                  -> Maybe (Map.Map InfoTablePtr InfoTableLoc)
+                  -- Do we have IPE information?
+                  -> Map.Map Bucket (Int, BucketInfo)
+                  -- Buckets
                   -> Html
-renderClosureInfo (ts, bs) cs = do
+renderClosureInfo (ts, bs) mipes raw_bs = do
+  let cs = case mipes of
+             Just ipes -> mkClosureInfo raw_bs ipes
+             Nothing   -> Map.map (\v -> (None, v)) raw_bs
+
   H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" $ do
     H.thead $ H.tr $ do
       H.th "Profile"
       numTh "n"
-      H.th "Address"
-      H.th "Description"
-      H.th "CTy"
-      H.th "Type"
-      H.th "Module"
-      H.th "Loc"
-      numTh "Total Size (M)"
+      H.th "Label"
+      when (isJust mipes) $ do
+        H.th "Description"
+        H.th "CTy"
+        H.th "Type"
+        H.th "Module"
+        H.th "Loc"
+      numTh "Total Size (Mb/S)"
       numTh "Stddev"
       numTh "Intercept"
       numTh "Slope"
       numTh "Fit (r2)"
     Map.foldrWithKey (\k a res -> renderEntry k a >> res) (mempty :: Html) cs
-  H.script $ preEscapedToHtml initTable
+  H.script $ preEscapedToHtml (initTable (isJust mipes))
   where
     numTh lbl = H.th ! H.dataAttribute "sortas" "numeric" $ lbl
     trunc :: Double -> Fixed E2
     trunc = realToFrac
     render = showFixed True
-    renderEntry (Bucket k)
-      (InfoTableLoc table_name cd tydesc _lbl m sloc
-        , (n, BucketInfo _ _ tot std mg)) = do
+
+    renderInfoTableLoc :: InfoTableLoc -> Html
+    renderInfoTableLoc (InfoTableLoc table_name cd tydesc _lbl m sloc) = do
+      H.td (toHtml table_name)
+      H.td (toHtml (show @ClosureType cd))
+      H.td (toHtml tydesc)
+      H.td (toHtml m)
+      H.td (toHtml sloc)
+
+
+    renderInfoTableLocStatus :: InfoTableLocStatus -> Html
+    renderInfoTableLocStatus itls =
+      case itls of
+        Here itl -> renderInfoTableLoc itl
+        Missing  -> emptyItlColumns
+        None     -> mempty
+
+    emptyItlColumns = do
+      H.td ""
+      H.td ""
+      H.td ""
+      H.td ""
+      H.td ""
+      H.td ""
+
+    renderEntry (Bucket k) (mitl, (n, BucketInfo _ _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
                   Nothing -> ("", "", "")
@@ -83,11 +101,7 @@ renderClosureInfo (ts, bs) cs = do
             H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml n)
             H.td (toHtml k)
-            H.td (toHtml table_name)
-            H.td (toHtml (show @ClosureType cd))
-            H.td (toHtml tydesc)
-            H.td (toHtml m)
-            H.td (toHtml sloc)
+            renderInfoTableLocStatus mitl
             H.td (toHtml (render $ trunc (tot / 1e6)))
             H.td (toHtml (render $ trunc std))
             H.td (toHtml a)
@@ -100,10 +114,10 @@ renderSpark vs = H.span ! A.class_ "linechart" $ toHtml (T.intercalate "," (map 
     rdouble = T.pack . showFixed True . realToFrac @Double @(Fixed E2)
     renderLine (x,y) = rdouble x <> ":" <> rdouble y
 
-initTable :: T.Text
-initTable = "$(document).ready(function() {\
+initTable :: Bool -> T.Text
+initTable b = "$(document).ready(function() {\
         \$(\".closureTable\").fancyTable({\
-        \    sortColumn:8,\
+        \    sortColumn:" <> if b then "8" else "3" <> ",\
         \    pagination: true,\
         \    perPage:10,\
         \    globalSearch:false,\
