@@ -53,7 +53,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
         H.th "Type"
         H.th "Module"
         H.th "Loc"
-      numTh "Integrated Size (MiB s)"
+      numTh ("Integrated Size" <> H.br <> "(MiB s)")
       numTh "Stddev (MiB) "
       numTh "Intercept"
       numTh "Slope"
