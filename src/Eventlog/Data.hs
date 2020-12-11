@@ -9,7 +9,7 @@ import Eventlog.Args (Args(..))
 import Eventlog.Bands (bands)
 import qualified Eventlog.Events as E
 import qualified Eventlog.HeapProf as H
-import Eventlog.Prune (prune)
+import Eventlog.Prune
 import Eventlog.Vega
 import Eventlog.Types (Header(..), ProfData(..), HeapProfBreakdown(..))
 import Data.List
@@ -23,7 +23,7 @@ generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
   dat@(ProfData h binfo ccMap fs traces ipes) <- chunk file
   validate dat
-  let keeps = prune a binfo
+  let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
           "samples" .= bandsToVega keeps bs
@@ -39,7 +39,7 @@ generateJsonValidate validate file a = do
   let use_ipes = case hHeapProfileType h of
                    Just HeapProfBreakdownInfoTable -> Just ipes
                    _ -> Nothing
-      (_, desc_buckets) = Map.mapAccum (\n b -> (n + 1, (n, b))) 0 binfo
+      desc_buckets = pruneDetailed a binfo
       bs' = bands h (Map.map fst desc_buckets) fs
       closure_table = renderClosureInfo bs' use_ipes desc_buckets
   return (h, combinedJson, cc_descs, Just closure_table)

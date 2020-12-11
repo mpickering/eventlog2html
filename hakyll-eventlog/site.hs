@@ -161,7 +161,7 @@ fullEventLogPage file = do
   -- In the future we can replace these examples but for now this is more
   -- convenient.
   as <- handleParseResult (execParserPure defaultPrefs argsInfo
-          [file, "--no-include-js", "--include-trace-events"])
+          [file, "--no-include-js", "--include-trace-events", "--limit-detailed=100"])
   (header, data_json, descs, closure_descs) <- generateJson file as
   return $ templateString header data_json descs closure_descs as
 

@@ -22,6 +22,7 @@ data Args = Args
     sorting      :: Sort
   , reversing    :: Bool
   , nBands       :: Int
+  , detailedLimit :: Maybe Int
   , heapProfile  :: Bool
   , noIncludejs    :: Bool
   , json         :: Bool
@@ -52,6 +53,10 @@ argParser = Args
          <> value 15
          <> showDefault
          <> metavar "COUNT" )
+      <*> (optional $ option auto
+          (long "limit-detailed"
+          <> help "The maximum number of bands to show in the detailed view."
+          <> metavar "N"))
       <*> switch
           ( long "heap-profile"
           <> short 'p'
