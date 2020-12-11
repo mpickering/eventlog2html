@@ -7,7 +7,6 @@ import Prelude hiding (init, lookup, lines, words, drop, length, readFile)
 import Eventlog.Types
 import qualified Data.Vector as V
 import Statistics.LinearRegression
-import Debug.Trace
 
 
 data Parse =
@@ -30,7 +29,7 @@ total fs =
 
 
 stddev :: Double -> (Double, Double, [(Double, Double)]) -> (Double, Double, Maybe (Double, Double, Double))
-stddev s0 (s1, s2, samples) = traceShow (slope, xvect, yvect) (s1, sqrt (s0 * s2 - s1 * s1) / s0, slope)
+stddev s0 (s1, s2, samples) = (s1, sqrt (s0 * s2 - s1 * s1) / s0, slope)
   where
     m = maximum values
     mt = maximum timesv

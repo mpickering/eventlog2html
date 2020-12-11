@@ -53,7 +53,7 @@ chunk a f = do
 
       -- This case happens when we are not in CC mode
       combineMissingDesc :: Bucket -> (Double, Double, Maybe (Double, Double, Double)) -> Identity BucketInfo
-      combineMissingDesc (Bucket t) (tot, sd, g) = Identity (traceShowId $ BucketInfo t Nothing tot sd g)
+      combineMissingDesc (Bucket t) (tot, sd, g) = Identity (BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
   return $ (ProfData (ph counts) binfo ccMap frames traces ipes)
@@ -195,7 +195,7 @@ parseClosureType "0" = CONSTR
 parseClosureType ct = toEnum . read @Int . T.unpack $ ct
 
 addInfoTableLoc :: (InfoTablePtr, InfoTableLoc) -> EL -> EL
-addInfoTableLoc itl el = traceShow itl (el { ipes = itl : ipes el })
+addInfoTableLoc itl el = el { ipes = itl : ipes el }
 
 addHeapProfBegin :: Word64 -> HeapProfBreakdown -> EL -> EL
 addHeapProfBegin sr hptype el = el { samplingRate = Just sr, heapProfileType = Just hptype }
