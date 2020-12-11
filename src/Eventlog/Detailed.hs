@@ -53,8 +53,8 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
         H.th "Type"
         H.th "Module"
         H.th "Loc"
-      numTh "Total Size (Mb * s)"
-      numTh "Stddev"
+      numTh "Total Size (MiB * s)"
+      numTh "Stddev (MiB) "
       numTh "Intercept"
       numTh "Slope"
       numTh "Fit (r2)"
@@ -103,7 +103,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
             H.td (toHtml k)
             renderInfoTableLocStatus mitl
             H.td (toHtml (render $ trunc (tot / 1e6)))
-            H.td (toHtml (render $ trunc std))
+            H.td (toHtml (render $ trunc (std / 1e6)))
             H.td (toHtml a)
             H.td (toHtml b)
             H.td (toHtml r2)
