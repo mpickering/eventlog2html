@@ -113,7 +113,7 @@ eventlogSnippet c as conf = do
 drawEventlog :: [T.Text] -> Int -> ChartConfig -> IO T.Text
 drawEventlog args vid conf  = do
   as <- handleParseResult (execParserPure defaultPrefs argsInfo (map T.unpack args))
-  (_, dat, _) <- generateJson (head $ files as) as
+  (_, dat, _, _) <- generateJson (head $ files as) as
   let itd = if traces conf then TraceData else NoTraceData
   return $ TL.toStrict $ renderHtml $ renderChartWithJson itd vid dat (vegaJsonText conf)
 
@@ -160,6 +160,6 @@ fullEventLogPage file = do
   -- In the future we can replace these examples but for now this is more
   -- convenient.
   as <- handleParseResult (execParserPure defaultPrefs argsInfo [file, "--include-trace-events"])
-  (header, data_json, descs) <- generateJson file as
-  return $ templateString header data_json descs as
+  (header, data_json, descs, closure_descs) <- generateJson file as
+  return $ templateString header data_json descs closure_descs as
 
