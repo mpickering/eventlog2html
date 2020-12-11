@@ -78,6 +78,7 @@ Library
                        Eventlog.AssetVersions
                        Eventlog.Detailed
   other-modules:       Paths_eventlog2html
+  autogen-modules:     Paths_eventlog2html
 
 Executable eventlog2html
   GHC-options:         -Wall
