@@ -17,7 +17,7 @@ import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..), HeapProfBreakdown(..))
 import Eventlog.VegaTemplate
-import Eventlog.VegaVersions
+import Eventlog.AssetVersions
 import Paths_eventlog2html
 import Data.Version
 import Control.Monad
@@ -73,6 +73,11 @@ encloseScriptX insert_data_sets itd vid vegaspec = preEscapedToHtml $ T.unlines 
   where
     vidt = T.pack $ show vid
 
+jsScript :: String -> Html
+jsScript url = script ! src (fromString $ url) $ ""
+css :: AttributeValue -> Html
+css url = link ! rel "stylesheet" ! href url
+
 htmlHeader :: Value -> Maybe Value -> Args -> Html
 htmlHeader dat desc as =
     H.head $ do
@@ -86,20 +91,21 @@ htmlHeader dat desc as =
         script $ preEscapedToHtml vegaLite
         script $ preEscapedToHtml vega
         script $ preEscapedToHtml vegaEmbed
-        H.style  $ preEscapedToHtml milligram
-        H.style  $ preEscapedToHtml normalizecss
+        script $ preEscapedToHtml jquery
+        H.style  $ preEscapedToHtml bootstrapCSS
+        script $ preEscapedToHtml bootstrap
+        script $ preEscapedToHtml fancytable
+        script $ preEscapedToHtml sparkline
       else do
-        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega@" ++ vegaVersion) $ ""
-        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-lite@" ++ vegaLiteVersion) $ ""
-        script ! src (fromString $ "https://cdn.jsdelivr.net/npm/vega-embed@" ++ vegaEmbedVersion) $ ""
-        script ! src (fromString "https://code.jquery.com/jquery-3.3.1.min.js") $ ""
-        link ! rel "stylesheet" ! href "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-        script ! src (fromString "https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js") $ ""
-        link ! rel "stylesheet" ! href "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
-        script ! src (fromString "https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js" ) $ ""
-        script ! src (fromString "https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js") $ ""
---        link ! rel "stylesheet" ! href "//cdn.rawgit.com/necolas/normalize.css/master/normalize.css"
---        link ! rel "stylesheet" ! href "//cdn.rawgit.com/milligram/milligram/master/dist/milligram.min.css"
+        jsScript vegaURL
+        jsScript vegaLiteURL
+        jsScript vegaEmbedURL
+        jsScript jqueryURL
+        css (preEscapedStringValue bootstrapCSSURL)
+        jsScript bootstrapURL
+        css "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
+        jsScript fancyTableURL
+        jsScript sparklinesURL
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
 

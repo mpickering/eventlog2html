@@ -1,3 +1,4 @@
+cabal-version:       2.4
 Name:                eventlog2html
 Version:             0.7.0
 Synopsis:            Visualise an eventlog
@@ -13,7 +14,7 @@ Description:         eventlog2html is a library for visualising eventlogs.
                      a more exploratory feel to heap profile analysis.
 Homepage:            https://mpickering.github.io/eventlog2html
 Bug-reports:         https://github.com/mpickering/eventlog2html/issues
-License:             BSD3
+License:             BSD-3-Clause
 License-file:        LICENSE
 Author:              Matthew Pickering, David Binder, Claude Heiland-Allen
 Maintainer:          matthewtpickering@gmail.com
@@ -21,15 +22,11 @@ Copyright:           (C) 2010,2011,2015,2017,2018  Claude Heiland-Allen 2019 Mat
 Category:            Development
 Build-type:          Simple
 Extra-source-files:
-  javascript/vega-lite@4.7.0
-  javascript/vega-embed@6.3.2
-  javascript/vega@5.10.0
-  javascript/stylesheet.css
-  javascript/tablogic.js
-  javascript/ccmap.vg
-  javascript/milligram.min.css
-  javascript/normalize.min.css
-cabal-version: 1.18
+  javascript/**/*.js
+  javascript/**/*.css
+  javascript/generated/vega-embed@6.3.2
+  javascript/generated/vega@5.10.0
+  javascript/generated/vega-lite@4.7.0
 extra-doc-files: README.md
                  CHANGELOG
 Tested-With:         GHC ==8.6.5
@@ -78,7 +75,7 @@ Library
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate
-                       Eventlog.VegaVersions
+                       Eventlog.AssetVersions
                        Eventlog.ByInfoTable
   other-modules:       Paths_eventlog2html
 
