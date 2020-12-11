@@ -125,6 +125,7 @@ initTable b = "$(document).ready(function() {\
         \    sortOrder: 'descending',\
         \    onUpdate: function(){$.sparkline_display_visible()}\
         \});\
+        \$.fn.sparkline.defaults.common.chartRangeMin = 0;\
         \$('.linechart').sparkline()\
 \});"
 
