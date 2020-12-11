@@ -53,11 +53,11 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
         H.th "Type"
         H.th "Module"
         H.th "Loc"
-      numTh "Total Size (MiB * s)"
+      numTh "Integrated Size (MiB s)"
       numTh "Stddev (MiB) "
       numTh "Intercept"
       numTh "Slope"
-      numTh "Fit (r2)"
+      numTh "Fit (R²)"
     Map.foldrWithKey (\k a res -> renderEntry k a >> res) (mempty :: Html) cs
   H.script $ preEscapedToHtml (initTable (isJust mipes))
   where
