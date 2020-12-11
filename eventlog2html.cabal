@@ -24,9 +24,9 @@ Build-type:          Simple
 Extra-source-files:
   javascript/**/*.js
   javascript/**/*.css
-  javascript/generated/vega-embed@6.3.2
-  javascript/generated/vega@5.10.0
-  javascript/generated/vega-lite@4.7.0
+  javascript/generated/vega-embed@6.14.0
+  javascript/generated/vega@5.17.0
+  javascript/generated/vega-lite@4.17.0
 extra-doc-files: README.md
                  CHANGELOG
 Tested-With:         GHC ==8.6.5
