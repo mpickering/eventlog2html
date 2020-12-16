@@ -1,3 +1,7 @@
+0.8.1, release 202-12-16
+
+* Add a missing file to the cabal file to fix 0.8 release
+
 0.8, release 2020-12-11
 
 * Fix a bug for Windows users by explicitly setting output to utf-8. (Issue #123)
