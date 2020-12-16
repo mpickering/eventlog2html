@@ -17,6 +17,8 @@ let
     compiler-nix-name = haskellCompiler;
     src = haskell.haskellLib.cleanGit { name = "eventlog2html"; src = ./.; };
     modules = (if ci then ciOptions else []) ++ opts;
+    index-state = "2020-12-11T00:00:00Z";
+    plan-sha256 = "1dwhj5ga5cn58y3svqmh7vr6jmh8rhixh8vars1i38scwdzchls0";
   };
 
 
