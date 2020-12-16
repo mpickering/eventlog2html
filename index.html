@@ -112,10 +112,12 @@ res.view.insert("data_json_samples", data_json.samples)
 
 Available options:
   --sort FIELD             How to sort the bands. One of: size (default),
-                           stddev, name.
+                           stddev, name, gradient.
   --reverse                Reverse the order of bands.
   --bands COUNT            Maximum number of bands to draw (0 for
                            unlimited). (default: 15)
+  --limit-detailed N       The maximum number of bands to show in the detailed
+                           view.
   -p,--heap-profile        Input files are .hp heap profiles.
   --no-include-js          Fetch the javascript from a CDN rather than bundling
                            it into the file.
