@@ -19,7 +19,7 @@ import Eventlog.Detailed
 import Text.Blaze.Html
 
 generateJsonData :: Args -> ProfData -> IO (Header, Value, Maybe Value, Maybe Html)
-generateJsonData a (ProfData h binfo ccMap fs traces _ipes) = do
+generateJsonData a (ProfData h binfo ccMap fs traces ipes) = do
   let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
@@ -34,7 +34,7 @@ generateJsonData a (ProfData h binfo ccMap fs traces _ipes) = do
                 _ -> Nothing
 
   let use_ipes = case hHeapProfileType h of
-                   --Just HeapProfBreakdownInfoTable -> Just ipes
+                   Just HeapProfBreakdownInfoTable -> Just ipes
                    _ -> Nothing
       desc_buckets = pruneDetailed a binfo
       bs' = bands h (Map.map fst desc_buckets) fs

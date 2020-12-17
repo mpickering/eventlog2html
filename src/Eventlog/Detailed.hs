@@ -88,7 +88,6 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       H.td ""
       H.td ""
       H.td ""
-      H.td ""
 
     renderEntry (Bucket k) (mitl, (n, BucketInfo _ _ tot std mg)) = do
           let (a, b, r2) =
@@ -117,7 +116,7 @@ renderSpark vs = H.span ! A.class_ "linechart" $ toHtml (T.intercalate "," (map 
 initTable :: Bool -> T.Text
 initTable b = "$(document).ready(function() {\
         \$(\".closureTable\").fancyTable({\
-        \    sortColumn:" <> (if b then "8" else "3") <> ",\
+        \    sortColumn: 1,\
         \    pagination: true,\
         \    perPage:10,\
         \    globalSearch:false,\
