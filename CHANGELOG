@@ -1,4 +1,8 @@
-0.8.1, release 202-12-16
+0.8.2, release 2020-12-17
+
+* Fix initialisation of fancyTable (#137)
+
+0.8.1, release 2020-12-16
 
 * Add a missing file to the cabal file to fix 0.8 release
 
