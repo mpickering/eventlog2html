@@ -201,4 +201,4 @@ ppHeapProfileType (HeapProfBreakdownTypeDescr) = "Profiling by type (implied by 
 ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by -hr)"
 ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
---ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
+ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
