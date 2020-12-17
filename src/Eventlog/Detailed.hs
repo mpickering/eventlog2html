@@ -117,7 +117,7 @@ renderSpark vs = H.span ! A.class_ "linechart" $ toHtml (T.intercalate "," (map 
 initTable :: Bool -> T.Text
 initTable b = "$(document).ready(function() {\
         \$(\".closureTable\").fancyTable({\
-        \    sortColumn:" <> if b then "8" else "3" <> ",\
+        \    sortColumn:" <> (if b then "8" else "3") <> ",\
         \    pagination: true,\
         \    perPage:10,\
         \    globalSearch:false,\
