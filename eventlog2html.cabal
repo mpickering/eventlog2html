@@ -34,7 +34,6 @@ Tested-With:         GHC ==8.6.5
 
 Library
   Build-depends:
-    cpu,
     aeson                >= 1.4.3 && < 1.5,
     attoparsec           >= 0.13.2 && < 0.14,
     array                >= 0.5.3 && < 0.6,
@@ -55,8 +54,6 @@ Library
     vector               >= 0.11,
     trie-simple          >= 0.4,
     hashable             >= 1.0,
-    directory,
-    strict,
     statistics-linreg,
     ghc-heap
 
