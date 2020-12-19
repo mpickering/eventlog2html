@@ -54,7 +54,7 @@ Library
     vector               >= 0.11,
     trie-simple          >= 0.4,
     hashable             >= 1.0,
-    statistics-linreg,
+    statistics-linreg    >= 0.3,
     ghc-heap
 
   GHC-options:         -Wall
