@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Eventlog.Data (generateJson, generateJsonValidate ) where
+module Eventlog.Data (generateJson, generateJsonValidate, generateJsonData ) where
 
 import Prelude hiding (readFile)
 import Data.Aeson (Value(..), (.=), object)
@@ -18,11 +18,8 @@ import Eventlog.Trie
 import Eventlog.Detailed
 import Text.Blaze.Html
 
-generateJsonValidate :: (ProfData -> IO ()) -> FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
-generateJsonValidate validate file a = do
-  let chunk = if heapProfile a then H.chunk else E.chunk a
-  dat@(ProfData h binfo ccMap fs traces _ipes) <- chunk file
-  validate dat
+generateJsonData :: Args -> ProfData -> IO (Header, Value, Maybe Value, Maybe Html)
+generateJsonData a (ProfData h binfo ccMap fs traces _ipes) = do
   let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
@@ -49,4 +46,12 @@ generateJsonValidate validate file a = do
 
 generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
 generateJson = generateJsonValidate (const (return ()))
+
+generateJsonValidate :: (ProfData -> IO ()) -> FilePath
+                     -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
+generateJsonValidate validate file a = do
+  let chunk = if heapProfile a then H.chunk else E.chunk a
+  dat <- chunk file
+  validate dat
+  generateJsonData a dat
 
