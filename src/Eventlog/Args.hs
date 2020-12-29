@@ -7,6 +7,7 @@ module Eventlog.Args
   , argsInfo
   , Args(..)
   , Sort(..)
+  , defaultArgs
   ) where
 
 import Options.Applicative
@@ -117,6 +118,11 @@ parseSort = eitherReader $ \s -> case s of
 
 args :: IO Args
 args = execParser argsInfo
+
+
+defaultArgs :: FilePath -> IO Args
+defaultArgs fp = handleParseResult (execParserPure defaultPrefs argsInfo [fp])
+
 
 argsInfo :: ParserInfo Args
 argsInfo = opts
