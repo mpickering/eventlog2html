@@ -104,7 +104,7 @@ encodingLineLayer c
             , MSort [ByFieldOp "k" Max, Descending]
             , MLegend [LNoTitle]]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
-                 ,PScale [SDomain (DSelection "brush")]]
+                 ,PScale [SDomainOpt (DSelection "brush")]]
     . position Y [PName "norm_y", PmType Quantitative, PAxis [AxTitle "Allocation", AxFormat ".1f"]]
 
 transformLineLayer :: [TransformSpec] -> (VLProperty, VLSpec)
@@ -185,7 +185,7 @@ encodingBandsLayer ct c =
         , [TName "c", TmType Nominal, TTitle "Type"]
         ]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
-                 , PScale [SDomain (DSelection "brush")]]
+                 , PScale [SDomainOpt (DSelection "brush")]]
     . position Y ([PName "y"
                  , PmType Quantitative
                  , PAxis $ case ct of
@@ -225,7 +225,7 @@ encodingTracesLayer =
   encoding
     . color [MString "grey"]
     . position X [PmType Quantitative, PAxis [], PName "tx"
-                 , PScale [SDomain (DSelection "brush")] ]
+                 , PScale [SDomainOpt (DSelection "brush")] ]
     . VL.size [MNumber 2]
     . tooltip [TName "desc", TmType Nominal]
 
