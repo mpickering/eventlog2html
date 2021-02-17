@@ -51,7 +51,7 @@ multi-threaded applications.
 ### Adding markers
 
 An advantage of using the eventlog is that other events can be correlated with
-heap allocations. Strings emitted using [`traceMarker`](http://hackage.haskell.org/package/base-4.12.0.0/docs/Debug-Trace.html#v:traceMarker) are displayed on the
+heap allocations. Strings emitted using [`traceMarker`](https://hackage.haskell.org/package/base-4.14.1.0/docs/Debug-Trace.html#v:traceMarker) are displayed on the
 chart as a verticle gray line. Hovering near the line will display the name of
 the event which is nearest to the cursor.
 
