@@ -45,7 +45,7 @@ doOneHtml a fin fout = do
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()
-    checkTraces (ProfData _ _ _ _ ts _) =
+    checkTraces (ProfData _ _ _ _ ts _ _) =
       if length ts > 1000
         then hPutStrLn stderr
               "More than 1000 traces, consider reducing using -i or -x"

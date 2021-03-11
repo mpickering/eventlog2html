@@ -6,7 +6,7 @@
 {-# LANGUAGE TypeApplications #-}
 module Eventlog.Events(chunk) where
 
-import GHC.RTS.Events hiding (Header, header)
+import GHC.RTS.Events hiding (Header, header, liveBytes, blocksSize)
 import Prelude hiding (init, lookup)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -31,7 +31,6 @@ import System.IO
 import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
-import GHC.Exts.Heap.ClosureTypes
 
 type PartialHeader = Int -> Header
 
@@ -42,7 +41,7 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, bucket_map, ccMap, frames, traces, ipes) <- eventsToHP a e
+  (ph, bucket_map, ccMap, frames, traces, ipes, hdata) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
       combine = zipWithAMatched (\_ (t, mt) (tot, sd, g) -> Identity $ BucketInfo t mt tot sd g)
@@ -55,7 +54,7 @@ chunk a f = do
       combineMissingDesc (Bucket t) (tot, sd, g) = Identity (BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
-  return $ (ProfData (ph counts) binfo ccMap frames traces ipes)
+  return $ (ProfData (ph counts) binfo ccMap frames traces hdata ipes)
 
 checkGHCVersion :: EL -> Maybe Text
 checkGHCVersion EL { ident = Just (version,_)}
@@ -72,14 +71,15 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             <> ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace], Map.Map InfoTablePtr InfoTableLoc)
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace], Map.Map InfoTablePtr InfoTableLoc, HeapInfo)
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
       fir = Frame (fromNano start) []
       las = Frame (fromNano end) []
   mapM_ (T.hPutStrLn stderr) (checkGHCVersion el)
-  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , traces, Map.fromList ipes)
+  let heapInfo = HeapInfo (reverse heapSize) (reverse blocksSize) (reverse liveBytes)
+  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , reverse traces, Map.fromList ipes, heapInfo)
 
 normalise :: [FrameEL] -> [Frame]
 normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
@@ -89,6 +89,9 @@ type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
 data EL = EL
   { pargs :: !(Maybe [Text])
   , programInvocation :: !(Maybe FilePath)
+  , heapSize :: ![HeapSample]
+  , liveBytes :: ![HeapSample]
+  , blocksSize :: ![HeapSample]
   , ident :: Maybe (Version, Text)
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
@@ -142,6 +145,9 @@ initEL = EL
   , heapProfileType = Nothing
   , clocktimeSec = 0
   , samples = Nothing
+  , heapSize = []
+  , liveBytes = []
+  , blocksSize = []
   , frames = []
   , traces = []
   , ipes = []
@@ -184,6 +190,9 @@ folder a el (Event t e _) = el &
       HeapProfSampleString _hid res k -> addSample (Sample (Bucket k) (fromIntegral res))
       InfoTableProv ptr name desc ty lbl smod sloc -> addInfoTableLoc (InfoTablePtr ptr,
                                               InfoTableLoc name (parseClosureType desc) ty lbl smod sloc)
+      HeapSize _ b -> addHeapSize t b
+      HeapLive _ b -> addHeapLive t b
+      BlocksSize _ b -> addBlocksSize t b
       _ -> id
 
 parseClosureType :: Int -> ClosureType
@@ -228,6 +237,15 @@ addArgs as el = el { pargs = Just as }
 
 addInvocation :: String -> EL -> EL
 addInvocation inv el = el { programInvocation = Just inv }
+
+addHeapLive :: Timestamp -> Word64 -> EL -> EL
+addHeapLive t s el = el { liveBytes = HeapSample (fromNano t) s : liveBytes el }
+
+addHeapSize :: Timestamp -> Word64 -> EL -> EL
+addHeapSize t s el = el { heapSize = HeapSample (fromNano t) s : heapSize el }
+
+addBlocksSize :: Timestamp -> Word64 -> EL -> EL
+addBlocksSize t s el = el { blocksSize = HeapSample (fromNano t) s : blocksSize el}
 
 
 -- | Decide whether to include a trace based on the "includes" and
@@ -293,5 +311,3 @@ elHeader EL{..} =
 
 elBucketMap :: EL -> BucketMap
 elBucketMap = bucketMap
-
-

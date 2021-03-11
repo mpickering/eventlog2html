@@ -32,7 +32,7 @@ Then, run your program with the normal profiling flags with an additional `-l`
 flag. This will tell GHC to also emit the eventlog.
 
 ```
-my-leaky-program +RTS -hy -l-au
+my-leaky-program +RTS -hy -l-agu
 ```
 
 In the current directory a file `my-leaky-program.eventlog` will be produced.
@@ -42,7 +42,7 @@ graphs.
 
 <div class="alert alert-info" role="alert">
 
-The `-l-au` suffix will result in a significantly smaller eventlog
+The `-l-agu` suffix will result in a significantly smaller eventlog
 as it will not include thread events. This makes a big difference for
 multi-threaded applications.
 

@@ -45,16 +45,24 @@ data CostCentre = CC { cid :: Word32
 
 data Sample = Sample Bucket Double deriving Show
 
+data HeapSample = HeapSample Double Word64 deriving Show
+
 data Frame = Frame Double [Sample] deriving Show
 
 -- | A trace we also want to show on the graph
 data Trace = Trace Double Text deriving Show
+
+data HeapInfo = HeapInfo { heapSizeSamples :: [HeapSample]
+                         , blocksSizeSamples :: [HeapSample]
+                         , liveBytesSamples :: [HeapSample]
+                         } deriving Show
 
 data ProfData = ProfData { profHeader :: Header
                          , profTotals :: (Map Bucket BucketInfo)
                          , profCCMap  :: Map Word32 CostCentre
                          , profFrames :: [Frame]
                          , profTraces :: [Trace]
+                         , profHeap   :: HeapInfo
                          , profItl    :: Map InfoTablePtr InfoTableLoc } deriving Show
 
 data InfoTableLoc = InfoTableLoc { itlName :: !Text
