@@ -19,12 +19,13 @@ import Eventlog.Detailed
 import Text.Blaze.Html
 
 generateJsonData :: Args -> ProfData -> IO (Header, Value, Maybe Value, Maybe Html)
-generateJsonData a (ProfData h binfo ccMap fs traces ipes) = do
+generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes) = do
   let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
           "samples" .= bandsToVega keeps bs
         , "traces"  .= tracesToVega traces
+        , "heap"    .= heapToVega heap_info
         ]
       mdescs =
         sortBy (flip (comparing (fst . snd))) $ Map.toList keeps

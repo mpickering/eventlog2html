@@ -59,7 +59,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       numTh "Slope"
       numTh "Fit (R²)"
     Map.foldrWithKey (\k a res -> renderEntry k a >> res) (mempty :: Html) cs
-  H.script $ preEscapedToHtml (initTable (isJust mipes))
+  H.script $ preEscapedToHtml initTable
   where
     numTh lbl = H.th ! H.dataAttribute "sortas" "numeric" $ lbl
     trunc :: Double -> Fixed E2
@@ -113,8 +113,8 @@ renderSpark vs = H.span ! A.class_ "linechart" $ toHtml (T.intercalate "," (map 
     rdouble = T.pack . showFixed True . realToFrac @Double @(Fixed E2)
     renderLine (x,y) = rdouble x <> ":" <> rdouble y
 
-initTable :: Bool -> T.Text
-initTable b = "$(document).ready(function() {\
+initTable :: T.Text
+initTable = "$(document).ready(function() {\
         \$(\".closureTable\").fancyTable({\
         \    sortColumn: 1,\
         \    pagination: true,\

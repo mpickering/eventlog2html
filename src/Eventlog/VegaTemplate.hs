@@ -24,6 +24,7 @@ data AreaChartType
 data ChartType
   = AreaChart AreaChartType
   | LineChart
+  | HeapChart
 
 -- Arguments for directly outputting javascript
 data ChartConfig =
@@ -31,12 +32,16 @@ data ChartConfig =
               , cheight :: Double
               , traces :: Bool
               , colourScheme :: Text
+              , lineColourScheme :: Text
               , chartType :: ChartType
               , fixedYAxisExtent :: Maybe Double
               }
 
 colourProperty :: ChartConfig -> ScaleProperty
 colourProperty c = SScheme (colourScheme c) []
+
+lineColourProperty :: ChartConfig -> ScaleProperty
+lineColourProperty c = SScheme (lineColourScheme c) []
 
 -----------------------------------------------------------------------------------
 -- The visualization consists of:
@@ -64,6 +69,7 @@ vegaResult conf = toVegaLite $
     description "Heap Profile",
     case chartType conf of
       LineChart -> lineChartFull c'
+      HeapChart -> heapChartFull c'
       AreaChart ct -> areaChartFull ct c'
   ]
 
@@ -72,6 +78,9 @@ areaChartFull ct c = vConcat [areaChart ct c,  selectionChart c]
 
 lineChartFull :: ChartConfig -> (VLProperty, VLSpec)
 lineChartFull c = vConcat [lineChart c, selectionChart c]
+
+heapChartFull :: ChartConfig -> (VLProperty, VLSpec)
+heapChartFull c = vConcat [heapChart c, selectionHeapChart c]
 
 config :: [ConfigureSpec] -> (VLProperty, VLSpec)
 config =
@@ -115,8 +124,46 @@ transformLineLayer =
   . filter (FSelection "legend")
 
 -----------------------------------------------------------------------------------
+-- The Heap Chart
+-----------------------------------------------------------------------------------
+
+heapChart :: ChartConfig -> VLSpec
+heapChart c = asSpec [layer ([heapLayer c]  ++ [tracesLayer | traces c])]
+
+heapLayer :: ChartConfig -> VLSpec
+heapLayer c = asSpec
+  [
+    VL.width (0.9 * cwidth c),
+    VL.height (0.7 * cheight c),
+    dataFromSource "data_json_heap" [],
+    VL.mark Line [MPoint (PMMarker [])],
+    encodingHeapLayer c [],
+    transformHeapLayer [],
+    selectionRight []
+  ]
+
+transformHeapLayer :: [TransformSpec] -> (VLProperty, VLSpec)
+transformHeapLayer =
+  transform
+  . filter (FSelection "legend")
+
+
+encodingHeapLayer :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
+encodingHeapLayer c
+ = encoding
+    . color [MName "c", MmType Nominal, MScale [lineColourProperty c]
+            , MLegend [LNoTitle]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle ""]
+                 ,PScale [SDomainOpt (DSelection "brush")]]
+    . position Y [PName "y", PmType Quantitative
+                 , PAxis [AxTitle "Allocation", AxFormat "s"]
+                 , PSort [ByFieldOp "k" Max]]
+    . tooltip [TName "y", TmType Quantitative, TFormat "s" ]
+
+-----------------------------------------------------------------------------------
 -- The Selection Chart
 -----------------------------------------------------------------------------------
+
 
 encodingSelection :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingSelection c =
@@ -141,6 +188,30 @@ selectionChart c = asSpec [
     dataFromSource "data_json_samples" [],
     VL.mark Area [],
     encodingSelection c [],
+    brush []
+  ]
+
+-----------------------------------------------------------------------------------
+-- The Heap Selection Chart
+-----------------------------------------------------------------------------------
+
+encodingHeapSelection :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
+encodingHeapSelection c =
+  encoding
+    . tooltip []
+    . color [MName "c", MmType Nominal, MScale [lineColourProperty c], MLegend [LValues (LStrings ["Heap Size", "Blocks Size", "Live Bytes"])]]
+    . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
+    . position Y [PName "y", PmType Quantitative, PAxis [], PSort [ByFieldOp "k" Max]]
+
+-- init field is not supported and necessary for dynamic loading
+
+selectionHeapChart :: ChartConfig -> VLSpec
+selectionHeapChart c = asSpec [
+    VL.width (0.9 * cwidth c),
+    VL.height (0.1 * cheight c),
+    dataFromSource "data_json_heap" [],
+    VL.mark Line [MPoint (PMMarker [])],
+    encodingHeapSelection c [],
     brush []
   ]
 

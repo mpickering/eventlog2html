@@ -2,7 +2,9 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
-module Eventlog.Vega (bandsToVega, tracesToVega) where
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE RecordWildCards #-}
+module Eventlog.Vega (bandsToVega, tracesToVega, heapToVega) where
 
 import Data.Array.Base ((!), bounds)
 import Data.Array.Unboxed (UArray)
@@ -12,6 +14,7 @@ import Data.Text (Text)
 import Eventlog.Types
 import Data.Aeson hiding (Series)
 import GHC.Generics
+import Data.Word
 
 data VegaEntry = VegaEntry { x :: Double, y :: Double, k :: Int, c :: Text }
   deriving (Show, ToJSON, Generic)
@@ -38,4 +41,13 @@ data VegaTrace = VegaTrace { tx :: Double, desc :: Text }
 
 tracesToVega :: [Trace] -> [VegaTrace]
 tracesToVega = map (\(Trace t d) -> VegaTrace t d)
+
+data VegaHeap = VegaHeap { x :: Double, y :: Word64, c :: Text, k :: Int}
+  deriving (Show, ToJSON, Generic)
+
+heapToVega :: HeapInfo -> [VegaHeap]
+heapToVega HeapInfo{..} = mk 2 "Heap Size" heapSizeSamples ++ mk 0 "Live Bytes" liveBytesSamples ++ mk 1 "Blocks Size" blocksSizeSamples
+
+  where
+    mk k l xs = [VegaHeap t v l k | HeapSample t v <- xs]
 
