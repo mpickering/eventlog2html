@@ -18,7 +18,7 @@ let
     src = haskell.haskellLib.cleanGit { name = "eventlog2html"; src = ./.; };
     modules = (if ci then ciOptions else []) ++ opts;
     index-state = "2021-03-13T00:00:00Z";
-    plan-sha256 = "08nny0h5qp58h44q4dx7y6gan7xb8msz3c2f3mk8ic40lx6902gf";
+    plan-sha256 = "064x0y3ix5h22ibl9sn3znhkan6g1prkniv2hgrrssr0c4sgjvhb";
   };
 
 
