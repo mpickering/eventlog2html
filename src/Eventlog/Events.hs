@@ -15,7 +15,7 @@ import Data.Text (Text)
 import Eventlog.Types
 import Eventlog.Total
 import Eventlog.Args (Args(..))
-import Data.List
+import Data.List (foldl')
 import Data.Function
 import Data.Word
 import Data.Time
