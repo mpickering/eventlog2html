@@ -1,4 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Eventlog.Data (generateJson, generateJsonValidate, generateJsonData ) where
 
 import Prelude hiding (readFile)
@@ -42,7 +45,7 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes) = do
       closure_table =
         case detailedLimit a of
           Just 0 ->  Nothing
-          _ -> Just (renderClosureInfo bs' use_ipes desc_buckets)
+          _ -> Just (renderClosureInfo bs' use_ipes desc_buckets (Just ccMap))
   return (h, combinedJson, cc_descs, closure_table)
 
 generateJson :: FilePath -> Args -> IO (Header, Value, Maybe Value, Maybe Html)
@@ -55,4 +58,3 @@ generateJsonValidate validate file a = do
   dat <- chunk file
   validate dat
   generateJsonData a dat
-

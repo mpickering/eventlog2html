@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeApplications #-}
-module Eventlog.Detailed where
+module Eventlog.Detailed (renderClosureInfo) where
 
 import qualified Data.Map as Map
 import Eventlog.Types
@@ -14,6 +14,9 @@ import qualified Data.Array.Unboxed as A
 import Data.Fixed
 import Control.Monad
 import Data.Maybe
+import Eventlog.Events (CostCentreMap)
+import Data.Text.Read
+import Data.String (fromString)
 
 data InfoTableLocStatus = None -- None of the entries have InfoTableLoc
                         | Missing -- This one is just missing
@@ -36,8 +39,9 @@ renderClosureInfo :: (UArray Int Double, UArray (Int, Int) Double)
                   -- Do we have IPE information?
                   -> Map.Map Bucket (Int, BucketInfo)
                   -- Buckets
+                  -> Maybe CostCentreMap
                   -> Html
-renderClosureInfo (ts, bs) mipes raw_bs = do
+renderClosureInfo (ts, bs) mipes raw_bs ccMap = do
   let cs = case mipes of
              Just ipes -> mkClosureInfo raw_bs ipes
              Nothing   -> Map.map (\v -> (None, v)) raw_bs
@@ -66,6 +70,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
     trunc = realToFrac
     render = showFixed True
 
+
     renderInfoTableLoc :: InfoTableLoc -> Html
     renderInfoTableLoc (InfoTableLoc table_name cd tydesc _lbl m sloc) = do
       H.td (toHtml table_name)
@@ -89,6 +94,14 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       H.td ""
       H.td ""
 
+    renderBucket k = case ccMap of
+      Just m | Right (w, "") <- decimal k
+             , Just cc <- Map.lookup w m
+             -> renderCostCentre cc
+      _ -> toHtml k
+
+    renderCostCentre c = toHtml (label c) ! A.title (fromString $ show c)
+
     renderEntry (Bucket k) (mitl, (n, BucketInfo _ _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
@@ -99,7 +112,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
           H.tr $ do
             H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml n)
-            H.td (toHtml k)
+            H.td (renderBucket k)
             renderInfoTableLocStatus mitl
             H.td (toHtml (render $ trunc (tot / 1e6)))
             H.td (toHtml (render $ trunc (std / 1e6)))

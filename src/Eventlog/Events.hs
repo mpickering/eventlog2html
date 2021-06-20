@@ -4,7 +4,7 @@
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TypeApplications #-}
-module Eventlog.Events(chunk) where
+module Eventlog.Events(CostCentreMap, chunk) where
 
 import GHC.RTS.Events hiding (Header, header, liveBytes, blocksSize)
 import Prelude hiding (init, lookup)
@@ -85,6 +85,7 @@ normalise :: [FrameEL] -> [Frame]
 normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
 
 type BucketMap = Map.Map Bucket (Text, Maybe [Word32])
+type CostCentreMap = Map.Map Word32 CostCentre
 
 data EL = EL
   { pargs :: !(Maybe [Text])
@@ -95,7 +96,7 @@ data EL = EL
   , ident :: Maybe (Version, Text)
   , samplingRate :: !(Maybe Word64)
   , heapProfileType :: !(Maybe HeapProfBreakdown)
-  , ccMap :: !(Map.Map Word32 CostCentre)
+  , ccMap :: !CostCentreMap
   -- At the moment bucketMap and CCS map are quite similar, cost centre profiling
   -- is the only mode to populate the bucket map
   , bucketMap :: BucketMap
