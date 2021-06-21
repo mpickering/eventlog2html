@@ -58,7 +58,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       numTh "Intercept"
       numTh "Slope"
       numTh "Fit (R²)"
-    Map.foldrWithKey (\k a res -> renderEntry k a >> res) (mempty :: Html) cs
+    Map.foldr (\a res -> renderEntry a >> res) (mempty :: Html) cs
   H.script $ preEscapedToHtml initTable
   where
     numTh lbl = H.th ! H.dataAttribute "sortas" "numeric" $ lbl
@@ -89,7 +89,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       H.td ""
       H.td ""
 
-    renderEntry (Bucket k) (mitl, (n, BucketInfo shortDesc _ tot std mg)) = do
+    renderEntry (mitl, (n, BucketInfo shortDesc _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
                   Nothing -> ("", "", "")
