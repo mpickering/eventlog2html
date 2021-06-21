@@ -89,7 +89,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       H.td ""
       H.td ""
 
-    renderEntry (Bucket k) (mitl, (n, BucketInfo _ _ tot std mg)) = do
+    renderEntry (Bucket k) (mitl, (n, BucketInfo shortDesc _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
                   Nothing -> ("", "", "")
@@ -99,7 +99,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
           H.tr $ do
             H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml n)
-            H.td (toHtml k)
+            H.td (toHtml shortDesc)
             renderInfoTableLocStatus mitl
             H.td (toHtml (render $ trunc (tot / 1e6)))
             H.td (toHtml (render $ trunc (std / 1e6)))
