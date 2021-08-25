@@ -6,6 +6,10 @@ import qualified Data.Map as Map
 import Eventlog.Types
 import qualified Data.Text as T
 
+import Control.Applicative (optional, some, many)
+import Data.Char (isAlphaNum, isDigit)
+import qualified Text.Regex.Applicative as RE
+
 import Text.Blaze.Html
 import qualified Text.Blaze.Html5            as H
 import qualified Text.Blaze.Html5.Attributes as A
@@ -89,6 +93,31 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
       H.td ""
       H.td ""
 
+    formatDesc :: T.Text -> T.Text
+    formatDesc t = case RE.match re (T.unpack t) of
+        Nothing                      -> t
+        Just ((pkg,_ver,_hash),name) -> T.pack (pkg ++ ":" ++ name)
+      where
+        re = pure (,)
+            <*> unitRe
+            <*  RE.sym ':'
+            <*> many RE.anySym
+
+        unitRe :: RE.RE Char (String, Maybe String, Maybe String)
+        unitRe = pure (,,)
+            <*> RE.few (RE.psym (/= ':'))
+            <*> optional versionRe
+            <*> optional hashRe
+
+        digitsRe :: RE.RE Char String
+        digitsRe = some (RE.psym isDigit)
+
+        versionRe :: RE.RE Char String
+        versionRe = "-" <> digitsRe <> fmap concat (some ("." <> digitsRe))
+
+        hashRe :: RE.RE Char String
+        hashRe = "-" <> some (RE.psym isAlphaNum)
+
     renderEntry (mitl, (n, BucketInfo shortDesc _ tot std mg)) = do
           let (a, b, r2) =
                 case mg of
@@ -99,7 +128,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
           H.tr $ do
             H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml n)
-            H.td (toHtml shortDesc)
+            H.td (toHtml $ formatDesc shortDesc)
             renderInfoTableLocStatus mitl
             H.td (toHtml (render $ trunc (tot / 1e6)))
             H.td (toHtml (render $ trunc (std / 1e6)))
