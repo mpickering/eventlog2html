@@ -15,19 +15,6 @@ import Data.Fixed
 import Control.Monad
 import Data.Maybe
 
-data InfoTableLocStatus = None -- None of the entries have InfoTableLoc
-                        | Missing -- This one is just missing
-                        | Here InfoTableLoc -- Here is is
-
-mkMissing :: Maybe InfoTableLoc -> InfoTableLocStatus
-mkMissing = maybe Missing Here
-
-
-mkClosureInfo :: Map.Map Bucket a
-              -> Map.Map InfoTablePtr InfoTableLoc
-              -> Map.Map Bucket (InfoTableLocStatus, a)
-mkClosureInfo b ipes =
-  Map.mapWithKey (\k v -> (mkMissing $ Map.lookup (toItblPointer k) ipes, v)) b
 
 
 renderClosureInfo :: (UArray Int Double, UArray (Int, Int) Double)
@@ -39,7 +26,7 @@ renderClosureInfo :: (UArray Int Double, UArray (Int, Int) Double)
                   -> Html
 renderClosureInfo (ts, bs) mipes raw_bs = do
   let cs = case mipes of
-             Just ipes -> mkClosureInfo raw_bs ipes
+             Just ipes -> mkClosureInfo (\k _ -> toItblPointer k) raw_bs ipes
              Nothing   -> Map.map (\v -> (None, v)) raw_bs
 
   H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" ! A.hidden "true" $ do
