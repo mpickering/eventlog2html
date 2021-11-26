@@ -10,7 +10,8 @@
   color: black;
 }
 .container { width: 90%;
-             max-width: 1400px; }
+           ; max-width: 90%;
+           }
 
 /* Reset milligram table styling so tooltips render correctly */
 table, caption, tbody, tfoot, thead, tr, th, td {
@@ -21,6 +22,10 @@ table, caption, tbody, tfoot, thead, tr, th, td {
     font-size: 100%;
     vertical-align: baseline;
     background: transparent;
+}
+
+th {
+  min-width: 60px;
 }
 
 .hoverflow {
@@ -35,4 +40,15 @@ table, caption, tbody, tfoot, thead, tr, th, td {
 /* https://github.com/gwatts/jquery.sparkline/issues/202 */
 .jqstooltip {
   box-sizing: content-box;
+}
+
+.closureTable {
+width: 100%;
+}
+#table {
+width: 100%;
+}
+
+.cheader{
+  margin-left:10px;
 }

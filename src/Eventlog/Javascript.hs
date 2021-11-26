@@ -10,6 +10,14 @@ module Eventlog.Javascript
   , fancytable
   , sparkline
 
+  , datatables
+  , datatablesHtml5
+  , datatablesButtons
+  , datatablesEllipsis
+  , datatablesCSS
+  , datatablesButtonsCSS
+  , imagesCSS
+
   , stylesheet
   , tablogic
   , treevega
@@ -31,6 +39,27 @@ vega = decodeUtf8 $(embedFile ("javascript/generated/vega@" ++ vegaVersion))
 
 jquery :: Text
 jquery = decodeUtf8 $(embedFile ("javascript/generated/jquery-" ++ jqueryVersion ++ ".min.js"))
+
+datatables :: Text
+datatables = decodeUtf8 $(embedFile ("javascript/generated/jquery.dataTables.min.js"))
+
+datatablesButtons :: Text
+datatablesButtons = decodeUtf8 $(embedFile ("javascript/generated/dataTables.buttons.min.js"))
+
+datatablesHtml5 :: Text
+datatablesHtml5 = decodeUtf8 $(embedFile ("javascript/generated/buttons.html5.min.js"))
+
+datatablesCSS :: Text
+datatablesCSS =  decodeUtf8 $(embedFile ("javascript/generated/jquery.dataTables.min.css"))
+
+datatablesButtonsCSS :: Text
+datatablesButtonsCSS =  decodeUtf8 $(embedFile ("javascript/generated/buttons.dataTables.min.css"))
+
+datatablesEllipsis :: Text
+datatablesEllipsis =  decodeUtf8 $(embedFile ("javascript/ellipsis.js"))
+
+imagesCSS :: Text
+imagesCSS =  decodeUtf8 $(embedFile ("javascript/generated/overide_images.css"))
 
 bootstrap :: Text
 bootstrap = decodeUtf8 $(embedFile ("javascript/generated/bootstrap.min.js"))

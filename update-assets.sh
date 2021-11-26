@@ -22,4 +22,16 @@ for row in $(cat versions.json | jq -r '.[] | @base64'); do
 
 done
 
+tmp_dir=$(mktemp -d)
+wget -P $tmp_dir https://datatables.net/media/images/sort_asc.png
+wget -P $tmp_dir https://datatables.net/media/images/sort_desc.png
+wget -P $tmp_dir https://datatables.net/media/images/sort_both.png
+
+b1=$(cat $tmp_dir/sort_asc.png | base64 -w0)
+b2=$(cat $tmp_dir/sort_desc.png | base64 -w0)
+b3=$(cat $tmp_dir/sort_both.png | base64 -w0)
+
+echo "table.dataTable thead .sorting_asc { background-image: url(data:image/png;base64,$b1) !important }"  > javascript/generated/overide_images.css
+echo "table.dataTable thead .sorting_desc { background-image: url(data:image/png;base64,$b2) !important }"  >> javascript/generated/overide_images.css
+echo "table.dataTable thead .sorting { background-image: url(data:image/png;base64,$b3) }"  >> javascript/generated/overide_images.css
 

@@ -40,10 +40,11 @@ Library
     base                 >= 4 && < 5,
     blaze-html           >= 0.9.1 && < 0.10,
     bytestring           >= 0.10.8 && < 0.12,
+    blaze-markup,
     containers           >= 0.5.0 && < 0.7,
     file-embed           >= 0.0.11 && < 0.1,
     filepath             >= 1.4.2 && < 1.5,
-    ghc-events           >= 0.16.0 && < 0.19,
+    ghc-events           >= 0.19.0 && < 0.20,
     hashtables           >= 1.2.3 && < 1.4,
     hvega                >= 0.11.0 && < 0.13,
     mtl                  >= 2.2.2 && < 2.3,
@@ -55,7 +56,8 @@ Library
     trie-simple          >= 0.4,
     hashable             >= 1.0,
     statistics-linreg    >= 0.3,
-    ghc-heap
+    ghc-heap,
+    raw-strings-qq
 
   GHC-options:         -Wall
   default-language:    Haskell2010
@@ -75,6 +77,7 @@ Library
                        Eventlog.VegaTemplate
                        Eventlog.AssetVersions
                        Eventlog.Detailed
+                       Eventlog.Ticky
   other-modules:       Paths_eventlog2html
   autogen-modules:     Paths_eventlog2html
 

@@ -4,6 +4,7 @@
 {-# LANGUAGE StrictData #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Eventlog.Events(chunk) where
 
 import GHC.RTS.Events hiding (Header, header, liveBytes, blocksSize)
@@ -31,6 +32,10 @@ import System.IO
 import qualified Data.Trie.Map as Trie
 import Data.Map.Merge.Lazy
 import Data.Functor.Identity
+import qualified Data.Text.Lazy.Encoding as TE
+import qualified Data.Text.Lazy as TL
+import Data.Aeson
+
 
 type PartialHeader = Int -> Header
 
@@ -41,7 +46,7 @@ fromNano e = fromIntegral e * 1e-9
 chunk :: Args -> FilePath -> IO ProfData
 chunk a f = do
   (EventLog _ e) <- either error id <$> readEventLogFromFile f
-  (ph, bucket_map, ccMap, frames, traces, ipes, hdata) <- eventsToHP a e
+  (ph, bucket_map, ccMap, frames, traces, ipes, hdata, ticky_counters, ticky_samples, total_allocs) <- eventsToHP a e
   let (counts, totals) = total frames
       -- If both keys are present, combine
       combine = zipWithAMatched (\_ (t, mt) (tot, sd, g) -> Identity $ BucketInfo t mt tot sd g)
@@ -54,7 +59,8 @@ chunk a f = do
       combineMissingDesc (Bucket t) (tot, sd, g) = Identity (BucketInfo t Nothing tot sd g)
 
       binfo = merge (traverseMissing combineMissingTotal) (traverseMissing combineMissingDesc) combine bucket_map totals
-  return $ (ProfData (ph counts) binfo ccMap frames traces hdata ipes)
+
+  return $ (ProfData (ph counts) binfo ccMap frames traces hdata ipes ticky_counters ticky_samples total_allocs)
 
 checkGHCVersion :: EL -> Maybe Text
 checkGHCVersion EL { ident = Just (version,_)}
@@ -71,7 +77,9 @@ checkGHCVersion EL { pargs = Just args, ident = Just (version,_)}
             <> ", which does not support biographical or retainer profiling."
 checkGHCVersion _ = Nothing
 
-eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace], Map.Map InfoTablePtr InfoTableLoc, HeapInfo)
+eventsToHP :: Args -> Data -> IO (PartialHeader, BucketMap, Map.Map Word32 CostCentre, [Frame], [Trace]
+                                 , Map.Map InfoTablePtr InfoTableLoc, HeapInfo, Map.Map TickyCounterId TickyCounter, [TickySample]
+                                 , Word64)
 eventsToHP a (Data es) = do
   let
       el@EL{..} = foldEvents a es
@@ -79,7 +87,12 @@ eventsToHP a (Data es) = do
       las = Frame (fromNano end) []
   mapM_ (T.hPutStrLn stderr) (checkGHCVersion el)
   let heapInfo = HeapInfo (reverse heapSize) (reverse blocksSize) (reverse liveBytes)
-  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames) , reverse traces, Map.fromList ipes, heapInfo)
+
+      ticky_counter_map = Map.fromList [(TickyCounterId (tickyCtrId t) , t) | t <- ticky_counter]
+  return $ (elHeader el, elBucketMap el, ccMap, fir : reverse (las: normalise frames)
+           , reverse traces, Map.fromList ipes, heapInfo, ticky_counter_map
+           , ticky_samples
+           , sum (total_allocs))
 
 normalise :: [FrameEL] -> [Frame]
 normalise = map (\(FrameEL t ss) -> Frame (fromNano t) ss)
@@ -104,9 +117,14 @@ data EL = EL
   , samples :: !(Maybe FrameEL)
   , frames :: ![FrameEL]
   , traces :: ![Trace]
-  , ipes :: [(InfoTablePtr, InfoTableLoc)]
+  , ipes :: ![(InfoTablePtr, InfoTableLoc)]
+  , ticky_samples :: ![TickySample]
+  , ticky_counter :: ![TickyCounter]
   , start :: !Word64
-  , end :: !Word64 } deriving Show
+  , end :: !Word64
+  , total_allocs :: !(Map.Map Capset Word64) } deriving Show
+
+
 
 
 data FrameEL = FrameEL Word64 [Sample] deriving Show
@@ -157,6 +175,9 @@ initEL = EL
   , ccsMap =  CCSMap Trie.empty 0
   , bucketMap = Map.empty
   , programInvocation = Nothing
+  , ticky_samples = []
+  , ticky_counter = []
+  , total_allocs  = Map.empty
   }
 
 foldEvents :: Args -> [Event] -> EL
@@ -193,7 +214,15 @@ folder a el (Event t e _) = el &
       HeapSize _ b -> addHeapSize t b
       HeapLive _ b -> addHeapLive t b
       BlocksSize _ b -> addBlocksSize t b
+      TickyCounterDef defid arity _ name tid (Just json_desc) -> addTickyDef defid arity name tid json_desc
+      TickyCounterSample defid entries allocs allocd -> addTickySample t defid entries allocs allocd
+
+      HeapAllocated cp alloc_bytes -> addHeapAllocated cp alloc_bytes
       _ -> id
+
+addHeapAllocated :: Capset -> Word64 -> EL -> EL
+-- The counter is the total since the start of the program.
+addHeapAllocated cid w64 el = el { total_allocs = Map.insert cid w64 (total_allocs el)}
 
 parseClosureType :: Int -> ClosureType
 parseClosureType ct = toEnum ct
@@ -246,6 +275,15 @@ addHeapSize t s el = el { heapSize = HeapSample (fromNano t) s : heapSize el }
 
 addBlocksSize :: Timestamp -> Word64 -> EL -> EL
 addBlocksSize t s el = el { blocksSize = HeapSample (fromNano t) s : blocksSize el}
+
+addTickyDef :: Word64 -> Word16 -> Text -> Word64 -> Text -> EL -> EL
+addTickyDef a b d e json el =
+  case decode (TE.encodeUtf8 (TL.fromStrict json)) of
+    Just argInfo -> el { ticky_counter = TickyCounter a b argInfo d (InfoTablePtr e) : ticky_counter el }
+    Nothing   -> el
+
+addTickySample :: Timestamp -> Word64 -> Word64 -> Word64 -> Word64 -> EL -> EL
+addTickySample t a b c d el = el { ticky_samples = TickySample a b c d (fromNano t) : ticky_samples el }
 
 
 -- | Decide whether to include a trace based on the "includes" and

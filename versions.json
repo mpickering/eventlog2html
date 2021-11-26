@@ -7,5 +7,11 @@
   , { "hname" : "sparklines", "version": "2.1.2", "url" : "https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/<>/jquery.sparkline.min.js" }
   , { "hname" : "bootstrapCSS" , "version": "4.3.1", "url" : "https://stackpath.bootstrapcdn.com/bootstrap/<>/css/bootstrap.min.css" }
   , { "hname" : "fancyTable", "version" : "", "url" : "https://cdn.jsdelivr.net/npm/jquery.fancytable/dist/fancyTable.min.js" }
+  , { "hname" : "datatables", "version" : "1.11.3", "url" : "https://cdn.datatables.net/<>/js/jquery.dataTables.min.js" }
+  , { "hname" : "datatablesCSS", "version" : "1.11.3", "url" : "https://cdn.datatables.net/<>/css/jquery.dataTables.min.css" }
+  , { "hname" : "datatablesButtons", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/js/dataTables.buttons.min.js" }
+  , { "hname" : "datatablesButtonsCSS", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/css/buttons.dataTables.min.css" }
+  , { "hname" : "datatablesButtonsHTML5", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/js/buttons.html5.min.js" }
+
 ]
 
