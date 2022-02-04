@@ -115,7 +115,7 @@ template :: Header -> Value -> Maybe Value -> Maybe Html -> Args -> Html
 template header' dat cc_descs closure_descs as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat cc_descs as
-  body $ H.div ! class_ "container" $ do
+  body $ H.div ! class_ "container" ! A.style "width: fit-content; max-width: 99%;" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
         h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
