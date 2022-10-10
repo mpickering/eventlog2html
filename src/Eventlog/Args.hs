@@ -128,6 +128,7 @@ args = execParser argsInfo
 versionParser :: Parser Option
 versionParser = flag' ShowVersion
   (  long "version"
+  <> short 'v'
   <> help "Show the version of eventlog2html" )
 
 defaultArgs :: FilePath -> IO Option
@@ -137,7 +138,7 @@ defaultArgs fp = handleParseResult (execParserPure defaultPrefs argsInfo [fp])
 argsInfo :: ParserInfo Option
 argsInfo = opts
   where
-    opts = info ((versionParser <|> argParser) <**> helper)
+    opts = info ((argParser <|> versionParser) <**> helper)
       ( fullDesc
      <> progDesc "Convert eventlogs FILES.eventlog to interactive FILES.html"
      <> header "eventlog2html - generate interactive html from eventlogs" )
