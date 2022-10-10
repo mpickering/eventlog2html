@@ -1,3 +1,8 @@
+Unreleased
+
+* Add "--version" flag for eventlog2html which prints the version,
+  git commit and git branch used to build eventlog2html.
+
 0.9.2 release 2021-11-24
 
 * Improve profile load speed (#150)

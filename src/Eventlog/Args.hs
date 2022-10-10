@@ -6,6 +6,7 @@ module Eventlog.Args
     args
   , argsInfo
   , Args(..)
+  , Option(..)
   , Sort(..)
   , defaultArgs
   ) where
@@ -15,6 +16,10 @@ import Data.Text (Text)
 -- Used for GHC 8.6.5
 import Data.Semigroup ((<>))
 import Control.Applicative (optional)
+
+data Option
+  = ShowVersion 
+  | Run Args
 
 data Sort = Size | StdDev | Name | Gradient
 
@@ -38,8 +43,8 @@ data Args = Args
   , files        :: [String]
   }
 
-argParser :: Parser Args
-argParser = Args
+argParser :: Parser Option
+argParser = Run <$> (Args
       <$> option parseSort
           ( long "sort"
          <> help "How to sort the bands.  One of: size (default), stddev, name, gradient."
@@ -106,7 +111,7 @@ argParser = Args
           <> metavar "OUTFILE"))
       <*> some (argument str
           ( help "Eventlogs (FILE.eventlog will be converted to FILE.html)."
-         <> metavar "FILES..." ))
+         <> metavar "FILES..." )))
 
 parseSort :: ReadM Sort
 parseSort = eitherReader $ \s -> case s of
@@ -116,18 +121,23 @@ parseSort = eitherReader $ \s -> case s of
   "gradient" -> Right Gradient
   _ -> Left "expected one of: size, stddev, name"
 
-args :: IO Args
+args :: IO Option
 args = execParser argsInfo
 
 
-defaultArgs :: FilePath -> IO Args
+versionParser :: Parser Option
+versionParser = flag' ShowVersion
+  (  long "version"
+  <> help "Show the version of eventlog2html" )
+
+defaultArgs :: FilePath -> IO Option
 defaultArgs fp = handleParseResult (execParserPure defaultPrefs argsInfo [fp])
 
 
-argsInfo :: ParserInfo Args
+argsInfo :: ParserInfo Option
 argsInfo = opts
   where
-    opts = info (argParser <**> helper)
+    opts = info ((versionParser <|> argParser) <**> helper)
       ( fullDesc
      <> progDesc "Convert eventlogs FILES.eventlog to interactive FILES.html"
      <> header "eventlog2html - generate interactive html from eventlogs" )
