@@ -7,7 +7,7 @@ import Control.Monad
 import Data.Aeson (encodeFile)
 import Data.Version (showVersion)
 import GHC.IO.Encoding (setLocaleEncoding)
-import GitHash (tGitInfoCwd, giHash, giBranch)
+import GitHash (tGitInfoCwdTry, giHash, giBranch)
 import System.FilePath
 import System.Exit
 import System.IO
@@ -34,10 +34,16 @@ dispatch (Run a) = do
 
 printVersion :: IO ()
 printVersion = do
-    let gi = $$tGitInfoCwd
-    putStrLn $ "eventlog2html Version: " <> showVersion version
-    putStrLn $ "Git Commit:            " <> giHash gi
-    putStrLn $ "Git Branch:            " <> giBranch gi
+  putStrLn $ "eventlog2html Version: " <> showVersion version
+  -- We try to get information about the git repository we're building
+  -- from. The .git folder might not be available when building from
+  -- Hackage.
+  let eitherGi = $$tGitInfoCwdTry
+  case eitherGi of
+    Left _ -> pure ()
+    Right gi -> do
+      putStrLn $ "Git Commit:            " <> giHash gi
+      putStrLn $ "Git Branch:            " <> giBranch gi
 
 argsToOutput :: Args -> IO ()
 argsToOutput a@Args{files = files', outputFile = Nothing} =
