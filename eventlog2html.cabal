@@ -1,6 +1,6 @@
 cabal-version:       2.4
 Name:                eventlog2html
-Version:             0.9.2
+Version:             0.9.3
 Synopsis:            Visualise an eventlog
 Description:         eventlog2html is a library for visualising eventlogs.
                      At the moment, the intended use is to visualise eventlogs
@@ -30,7 +30,7 @@ Extra-source-files:
   javascript/generated/vega-lite@4.17.0
 extra-doc-files: README.md
                  CHANGELOG
-Tested-With:         GHC ==8.6.5
+Tested-With:         GHC ==9.2.5, GHC ==9.4.3
 
 Library
   Build-depends:
