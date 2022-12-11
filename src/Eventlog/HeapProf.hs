@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# LANGUAGE BangPatterns #-}
 module Eventlog.HeapProf (chunk) where
 

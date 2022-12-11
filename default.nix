@@ -1,8 +1,8 @@
-{ci ? false, haskellCompiler ? "ghc8102" }:
+{ci ? false, haskellCompiler ? "ghc925" }:
 let
   # Import the Haskell.nix library,
   haskell-src = import ((import ./nix/sources.nix)."haskell.nix") {};
-  npSrc = haskell-src.sources.nixpkgs-2009;
+  npSrc = haskell-src.sources.nixpkgs-unstable;
   npArgs = haskell-src.nixpkgsArgs;
   pin = import npSrc npArgs;
 
@@ -17,8 +17,7 @@ let
     compiler-nix-name = haskellCompiler;
     src = haskell.haskellLib.cleanGit { name = "eventlog2html"; src = ./.; };
     modules = (if ci then ciOptions else []) ++ opts;
-    index-state = "2021-03-13T00:00:00Z";
-    plan-sha256 = "064x0y3ix5h22ibl9sn3znhkan6g1prkniv2hgrrssr0c4sgjvhb";
+    index-state = "2022-12-01T00:00:00Z";
   };
 
 
