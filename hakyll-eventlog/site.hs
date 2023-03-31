@@ -19,6 +19,7 @@ import           Eventlog.Data
 import           Eventlog.Args
 import           Eventlog.VegaTemplate
 import           Eventlog.HtmlTemplate
+import           Eventlog.Ticky
 import           Text.Blaze.Html.Renderer.Text
 import           Options.Applicative
 import           Options.Applicative.Help.Types
@@ -114,9 +115,12 @@ drawEventlog :: [T.Text] -> Int -> ChartConfig -> IO T.Text
 drawEventlog args vid conf  = do
   let final_args = ["--no-include-js"] ++ args
   Run as <- handleParseResult (execParserPure defaultPrefs argsInfo (map T.unpack final_args))
-  (_, dat, _, _) <- generateJson (head $ files as) as
-  let itd = if traces conf then TraceData else NoTraceData
-  return $ TL.toStrict $ renderHtml $ renderChartWithJson itd (chartType conf) vid dat (vegaJsonText conf)
+  ty <- generateJson (head $ files as) as
+  return $ case ty of
+    HeapProfile (_, dat, _, _) ->
+      let itd = if traces conf then TraceData else NoTraceData
+      in TL.toStrict $ renderHtml $ renderChartWithJson itd (chartType conf) vid dat (vegaJsonText conf)
+    TickyProfile {} -> mempty
 
 def :: ChartConfig
 def = ChartConfig 600 500 True "category20" "set1" (AreaChart Stacked) Nothing
@@ -162,6 +166,10 @@ fullEventLogPage file = do
   -- convenient.
   Run as <- handleParseResult (execParserPure defaultPrefs argsInfo
           [file, "--no-include-js", "--include-trace-events", "--limit-detailed=100"])
-  (header, data_json, descs, closure_descs) <- generateJson file as
-  return $ templateString header data_json descs closure_descs as
+  ty <- generateJson file as
+  case ty of
+    HeapProfile (header, data_json, descs, closure_descs) ->
+      return $ templateString header data_json descs closure_descs as
+    TickyProfile (header, tallocs, ticked_per, dat) ->
+      return $ tickyTemplateString header tallocs ticked_per dat as
 
