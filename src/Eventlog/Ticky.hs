@@ -221,6 +221,7 @@ renderTickyInfo with_ipe ticky_samples = do
       case itls of
         Here itl -> renderInfoTableLoc itl
         Missing  -> emptyItlColumns
+        None -> mempty
 
     emptyItlColumns = do
       H.td ""
@@ -233,14 +234,14 @@ renderTickyInfo with_ipe ticky_samples = do
     renderEntry :: (InfoTableLocStatus, (TickyCounter, AccumStats, Double)) -> Html
     renderEntry (loc, ((TickyCounter _id _arity kinds label _), AccumStats {..}, percent)) = do
       let fvs = tickyCounterFVs kinds
-          args = tickyCounterArgs kinds
-          size = closureSize (length fvs) (length args)
+          ticky_args = tickyCounterArgs kinds
+          size = closureSize (length fvs) (length ticky_args)
           alloc_no = fromIntegral allocd `Prelude.div` size
       H.tr $ do
 --            H.td (renderSpark (getBandValues n (ts, bs)))
             H.td (toHtml label)
             H.td (toHtml fvs)
-            H.td (toHtml args)
+            H.td (toHtml ticky_args)
             renderInfoTableLocStatus loc
             H.td (toHtml allocs)
             H.td (toHtml $ render $ trunc (percent * 100))
@@ -260,9 +261,9 @@ renderTickyInfo with_ipe ticky_samples = do
 --            H.td mempty
 
 closureSize :: Int -> Int -> Int
-closureSize fvs args
+closureSize fvs cl_args
   -- THUNK, HEADER = 2
-  | args == 0 = (2 + fvs) * 8
+  | cl_args == 0 = (2 + fvs) * 8
   | otherwise  = (1 + fvs) * 8
 
 
