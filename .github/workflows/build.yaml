@@ -16,7 +16,7 @@ jobs:
         name: mpickering
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
     - run: cachix push mpickering --watch-store&
-    - run: nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc8102 --option trusted-public-keys "mpickering.cachix.org-1:COxPsDJqqrggZgvKG6JeH9baHPue8/pcpYkmcBPUbeg= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" --option substituters "https://cache.iog.io https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/ https://mpickering.cachix.org"
+    - run: nix-build -A eventlog2html --arg ci true --argstr haskellCompiler ghc927 --option trusted-public-keys "mpickering.cachix.org-1:COxPsDJqqrggZgvKG6JeH9baHPue8/pcpYkmcBPUbeg= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ= iohk.cachix.org-1:DpRUyj7h7V830dp/i6Nti+NEO2/nhblbov/8MW7Rqoo= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" --option substituters "https://cache.iog.io https://hydra.iohk.io https://iohk.cachix.org https://cache.nixos.org/ https://mpickering.cachix.org"
   deploy:
     runs-on: ubuntu-latest
     steps:
