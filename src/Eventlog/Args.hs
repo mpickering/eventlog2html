@@ -18,7 +18,7 @@ import Data.Semigroup ((<>))
 import Control.Applicative (optional)
 
 data Option
-  = ShowVersion 
+  = ShowVersion
   | Run Args
 
 data Sort = Size | StdDev | Name | Gradient

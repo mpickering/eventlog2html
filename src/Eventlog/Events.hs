@@ -277,8 +277,8 @@ addBlocksSize :: Timestamp -> Word64 -> EL -> EL
 addBlocksSize t s el = el { blocksSize = HeapSample (fromNano t) s : blocksSize el}
 
 addTickyDef :: Word64 -> Word16 -> Text -> Word64 -> Text -> EL -> EL
-addTickyDef a b d e json el =
-  case decode (TE.encodeUtf8 (TL.fromStrict json)) of
+addTickyDef a b d e ticky_json el =
+  case decode (TE.encodeUtf8 (TL.fromStrict ticky_json)) of
     Just argInfo -> el { ticky_counter = TickyCounter a b argInfo d (InfoTablePtr e) : ticky_counter el }
     Nothing   -> el
 
