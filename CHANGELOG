@@ -1,3 +1,7 @@
+Unreleased:
+
+* Compatibility with GHC 9.2.* 9.4.* and 9.6.*
+
 0.10.0 release 2023-03-31
 
 * Add support for rendering ticky profiles
@@ -6,7 +10,7 @@
 
 * Add "--version" flag for eventlog2html which prints the version,
   git commit and git branch used to build eventlog2html.
-* Compatability with 9.4.* and 9.2.* compilers.
+* Compatibility with 9.4.* and 9.2.* compilers.
 
 0.9.2 release 2021-11-24
 
