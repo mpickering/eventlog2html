@@ -78,10 +78,6 @@ examples/ghc.eventlog --bands 10 --include-trace-events
 
 The eventlog will start supporting these two profiling modes in GHC 8.10.
 
-`eventlog2html` can still read the old `.hp` file format. Pass the
-`--heap-profile` flag to interpret the argument as as `.hp` file rather than
-an eventlog.
-
 ### What if I want to do my own analysis on the heap profile?
 
 `eventlog2html` can output JSON if you pass the `--json` flag. The information

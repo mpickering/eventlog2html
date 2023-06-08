@@ -35,7 +35,6 @@ Tested-With:         GHC ==9.2.5, GHC ==9.4.3
 Library
   Build-depends:
     aeson                >= 1.4.3 && < 1.6 || >= 2.0 && < 2.2,
-    attoparsec           >= 0.13.2 && < 0.15,
     array                >= 0.5.3 && < 0.6,
     base                 >= 4 && < 5,
     blaze-html           >= 0.9.1 && < 0.10,
@@ -71,7 +70,6 @@ Library
                        Eventlog.Prune
                        Eventlog.Bands
                        Eventlog.Events
-                       Eventlog.HeapProf
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
                        Eventlog.VegaTemplate

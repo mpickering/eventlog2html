@@ -9,7 +9,6 @@ import qualified Data.Map as Map
 import Eventlog.Args (Args(..))
 import Eventlog.Bands (bands)
 import qualified Eventlog.Events as E
-import qualified Eventlog.HeapProf as H
 import Eventlog.Prune
 import Eventlog.Vega
 import Eventlog.Types (Header(..), ProfData(..), HeapProfBreakdown(..))
@@ -58,7 +57,7 @@ generateJson = generateJsonValidate (const (return ()))
 generateJsonValidate :: (ProfData -> IO ()) -> FilePath
                      -> Args -> IO EventlogType
 generateJsonValidate validate file a = do
-  let chunk = if heapProfile a then H.chunk else E.chunk a
+  let chunk = E.chunk a
   dat <- chunk file
   validate dat
   case profTickySamples dat of

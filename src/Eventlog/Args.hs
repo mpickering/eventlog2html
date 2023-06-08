@@ -29,7 +29,6 @@ data Args = Args
   , reversing    :: Bool
   , nBands       :: Int
   , detailedLimit :: Maybe Int
-  , heapProfile  :: Bool
   , noIncludejs    :: Bool
   , json         :: Bool
   , noTraces     :: Bool
@@ -63,10 +62,6 @@ argParser = Run <$> (Args
           (long "limit-detailed"
           <> help "The maximum number of bands to show in the detailed view."
           <> metavar "N"))
-      <*> switch
-          ( long "heap-profile"
-          <> short 'p'
-          <> help "Input files are .hp heap profiles.")
       <*> switch
           (long "no-include-js"
           <> help "Fetch the javascript from a CDN rather than bundling it into the file.")
