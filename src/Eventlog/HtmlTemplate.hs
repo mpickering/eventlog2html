@@ -118,40 +118,16 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
-        button ! class_ "tablink button-black" ! onclick "changeTab('heapchart', this)" ! A.id "defaultOpen" $ "Heap"
-        when has_heap_profile $ do
-          button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" $ "Area Chart"
-          button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
-          button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
-          button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
-        when (isJust cc_descs) $ do
-          button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
-        when (isJust closure_descs) $ do
-          button ! class_ "tablink button-black" ! onclick "changeTab('closures', this)" $ "Detailed"
+        forM_ tabs $ \(n, tab) ->
+          button ! class_ "tablink button-black"
+                 ! onclick ("changeTab('" <> toValue (tabId tab) <> "', this)")
+                 !? (n == 1, A.id "defaultOpen")
+                 $ toHtml (tabName tab)
+
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
-        let itd = if (noTraces as) then NoTraceData else TraceData
-        mapM_ (\(vid, chartname, conf) ->
-                  H.div ! A.id chartname ! class_ "tabviz" $ do
-                    renderChart itd conf True vid
-                      (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
-          $
-           (1, "heapchart", HeapChart) :
-           if has_heap_profile
-           then
-            [(2, "areachart",  AreaChart Stacked)
-            ,(3, "normalizedchart", AreaChart Normalized)
-            ,(4, "streamgraph", AreaChart StreamGraph)
-            ,(5, "linechart", LineChart)
-            ]
-           else []
-
-        when (isJust cc_descs) $ do
-          H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
-            renderChart itd LineChart False 6 treevega
-        forM_ closure_descs $ \v -> do
-          H.div ! A.id "closures" ! class_ "tabviz" $ do
-            v
+        forM_ tabs $ \(n, tab) ->
+          H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ tabContent tab n
 
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
@@ -177,6 +153,33 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
 
   where
     has_heap_profile = isJust (hHeapProfileType header')
+
+    tabs :: [(Int, Tab (VizID -> Html))]
+    tabs = zip [1..] $
+           [ Tab "Heap" "heapchart" $ mk HeapChart ] ++
+           (if has_heap_profile
+           then [ Tab "Area Chart" "areachart" $ mk (AreaChart Stacked)
+                , Tab "Normalized" "normalizedchart" $ mk (AreaChart Normalized)
+                , Tab "Streamgraph" "streamgraph" $ mk (AreaChart StreamGraph)
+                , Tab "Linechart" "linechart" $ mk LineChart
+                ]
+           else []) ++
+           [ Tab "Cost Centres" "cost-centres" (const (renderChart itd LineChart False 6 treevega)) | isJust cc_descs ] ++
+           [ Tab "Detailed" "closures" (const v) | Just v <- [closure_descs] ]
+
+    itd = if noTraces as then NoTraceData else TraceData
+
+    mk conf vid = renderChart itd conf True vid
+                      (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
+
+
+
+data Tab a = Tab { tabName :: String
+                 , tabId :: String
+                 , tabContent :: a
+                 }
+
+
 
 select_data :: IncludeTraceData -> ChartType -> [Text]
 select_data itd c =
