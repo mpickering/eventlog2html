@@ -11,6 +11,7 @@
 }
 .container { width: 90%;
            ; max-width: 90%;
+           ; padding: 1em 0;
            }
 
 /* Reset milligram table styling so tooltips render correctly */
@@ -51,4 +52,8 @@ width: 100%;
 
 .cheader{
   margin-left:10px;
+}
+
+h1 {
+  font-size: 1em;
 }

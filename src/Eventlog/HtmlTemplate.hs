@@ -118,36 +118,12 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
   body $ H.div ! class_ "container" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
-        h1 $ a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Options: "
-        code $ toHtml $ hJob header'
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Created at: "
-        code $ toHtml $ hDate header'
-
-    forM_ (hHeapProfileType header') $ \prof_type -> do
-      H.div ! class_ "row" $ do
-        H.div ! class_ "column" $ do
-          "Type of profile: "
-          code $ toHtml $ ppHeapProfileType prof_type
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Sampling rate in seconds: "
-        code $ toHtml $ hSamplingRate header'
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" ! A.id "defaultOpen" $ "Area Chart"
-        button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
-        button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
-        button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
-        button ! class_ "tablink button-black" ! onclick "changeTab('heapchart', this)" $ "Heap"
+        button ! class_ "tablink button-black" ! onclick "changeTab('heapchart', this)" ! A.id "defaultOpen" $ "Heap"
+        when has_heap_profile $ do
+          button ! class_ "tablink button-black" ! onclick "changeTab('areachart', this)" $ "Area Chart"
+          button ! class_ "tablink button-black" ! onclick "changeTab('normalizedchart', this)" $ "Normalized"
+          button ! class_ "tablink button-black" ! onclick "changeTab('streamgraph', this)" $ "Streamgraph"
+          button ! class_ "tablink button-black" ! onclick "changeTab('linechart', this)" $ "Linechart"
         when (isJust cc_descs) $ do
           button ! class_ "tablink button-black" ! onclick "changeTab('cost-centres', this)" $ "Cost Centres"
         when (isJust closure_descs) $ do
@@ -159,11 +135,16 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
                   H.div ! A.id chartname ! class_ "tabviz" $ do
                     renderChart itd conf True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf)))))
-          [(1, "areachart",  AreaChart Stacked)
-          ,(2, "normalizedchart", AreaChart Normalized)
-          ,(3, "streamgraph", AreaChart StreamGraph)
-          ,(4, "linechart", LineChart)
-          ,(5, "heapchart", HeapChart) ]
+          $
+           (1, "heapchart", HeapChart) :
+           if has_heap_profile
+           then
+            [(2, "areachart",  AreaChart Stacked)
+            ,(3, "normalizedchart", AreaChart Normalized)
+            ,(4, "streamgraph", AreaChart StreamGraph)
+            ,(5, "linechart", LineChart)
+            ]
+           else []
 
         when (isJust cc_descs) $ do
           H.div ! A.id "cost-centres" ! class_ "tabviz" $ do
@@ -171,8 +152,31 @@ template header' dat cc_descs closure_descs as = docTypeHtml $ do
         forM_ closure_descs $ \v -> do
           H.div ! A.id "closures" ! class_ "tabviz" $ do
             v
+
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        toHtml $ maybe "No heap profile" ppHeapProfileType (hHeapProfileType header')
+        ", created at "
+        code $ toHtml $ hDate header'
+        ", rendered by "
+        a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html " <> toHtml (showVersion version)
+
+    H.div ! class_ "row" $ do
+      H.div ! class_ "column" $ do
+        code $ toHtml $ hJob header'
+
+    when has_heap_profile $
+      H.div ! class_ "row" $ do
+        H.div ! class_ "column" $ do
+          "Sampling rate: "
+          code $ toHtml $ hSamplingRate header'
+          " seconds between heap samples"
+
+
     script $ preEscapedToHtml tablogic
 
+  where
+    has_heap_profile = isJust (hHeapProfileType header')
 
 select_data :: IncludeTraceData -> ChartType -> [Text]
 select_data itd c =
