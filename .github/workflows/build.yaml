@@ -51,6 +51,11 @@ jobs:
     - run: cp -r site/* build-folder
     - run: find build-folder -type d -exec chmod 755 {} \;
     - run: find build-folder -type f -exec chmod 644 {} \;
+    - name: Upload GH Pages site
+      uses: actions/upload-artifact@v1
+      with:
+        name: gh-pages-site
+        path: build-folder
     - name: Deploy to GitHub Pages
       if: github.event_name == 'release'
       uses: JamesIves/github-pages-deploy-action@releases/v3

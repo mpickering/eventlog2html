@@ -17,7 +17,6 @@ import Eventlog.HtmlTemplate
 import Eventlog.Data
 import Eventlog.Types
 import Paths_eventlog2html (version)
-import Eventlog.Ticky
 
 main :: IO ()
 main = do
@@ -58,17 +57,13 @@ argsToOutput _ =
 
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
-  HeapProfile (_, val, _, _) <- generateJson fin a
+  Just (HeapProfileData val _ _) <- eventlogHeapProfile <$> generateJson fin a
   encodeFile fout val
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   prof_type <- generateJsonValidate checkTraces fin a
-  let html = case prof_type of
-                HeapProfile (header, data_json, descs, closure_descs) ->
-                 templateString header data_json descs closure_descs a
-                TickyProfile (header, tallocs, ticked_per, dat) ->
-                  tickyTemplateString header tallocs ticked_per dat a
+  let html = templateString prof_type a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()

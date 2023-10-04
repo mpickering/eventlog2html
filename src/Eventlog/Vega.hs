@@ -19,14 +19,15 @@ import Data.Word
 data VegaEntry = VegaEntry { x :: Double, y :: Double, k :: Int, c :: Text }
   deriving (Show, ToJSON, Generic)
 
-bandsToVega :: Map Bucket (Int, BucketInfo)
+bandsToVega :: (BucketInfo -> Text)
+            -> Map Bucket (Int, BucketInfo)
             -> (UArray Int Double, UArray (Int, Int) Double)
             -> [VegaEntry]
-bandsToVega ks (ts, vs) =
+bandsToVega bucket_name ks (ts, vs) =
   let (t1, tn) = bounds ts
       go (i, binfo) rs = go_1 ++ rs
         where
-          txt = shortDescription binfo
+          txt = bucket_name binfo
 
           go_1 :: [VegaEntry]
           go_1 = flip map [t1 .. tn] $ \t -> VegaEntry (ts ! t) (vs ! (i, t)) i txt

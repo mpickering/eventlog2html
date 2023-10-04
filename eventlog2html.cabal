@@ -28,6 +28,8 @@ Extra-source-files:
   javascript/generated/vega-embed@6.14.0
   javascript/generated/vega@5.17.0
   javascript/generated/vega-lite@4.17.0
+  javascript/generated/popper.js@1.14.3
+  inline-docs/*.html
 extra-doc-files: README.md
                  CHANGELOG
 Tested-With:         GHC ==9.0.2, GHC ==9.2.7, GHC ==9.4.7, GHC ==9.6.2
@@ -74,6 +76,8 @@ Library
                        Eventlog.HeapProf
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
+                       Eventlog.Rendering.Bootstrap
+                       Eventlog.Rendering.Types
                        Eventlog.VegaTemplate
                        Eventlog.AssetVersions
                        Eventlog.Detailed

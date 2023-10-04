@@ -9,9 +9,7 @@
   background-color: transparent;
   color: black;
 }
-.container { width: 90%;
-           ; max-width: 90%;
-           }
+.container-fluid { padding: 1em 2em; }
 
 /* Reset milligram table styling so tooltips render correctly */
 table, caption, tbody, tfoot, thead, tr, th, td {
@@ -51,4 +49,16 @@ width: 100%;
 
 .cheader{
   margin-left:10px;
+}
+
+h1 {
+  font-size: 1em;
+}
+
+.not-available {
+  color: grey;
+}
+
+.custom-tab {
+  margin-top: 1em;
 }
