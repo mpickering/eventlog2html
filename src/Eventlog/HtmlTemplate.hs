@@ -13,6 +13,7 @@ import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.String
 
+import Eventlog.Data
 import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..), HeapProfBreakdown(..))
@@ -111,8 +112,8 @@ htmlHeader dat desc as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: Header -> Value -> Maybe Value -> Maybe Html -> Args -> Html
-template header' dat cc_descs closure_descs as = docTypeHtml $ do
+template :: HeapProfileData -> Args -> Html
+template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat cc_descs as
   body $ H.div ! class_ "container" $ do
@@ -210,9 +211,9 @@ renderChartWithJson itd ct k dat vegaSpec = do
     renderChart itd ct True k vegaSpec
 
 
-templateString :: Header -> Value -> Maybe Value -> Maybe Html -> Args -> String
-templateString header' dat cc_descs closure_descs as =
-  renderHtml $ template header' dat cc_descs closure_descs as
+templateString :: HeapProfileData -> Args -> String
+templateString x as =
+  renderHtml $ template x as
 
 ppHeapProfileType :: HeapProfBreakdown -> Text
 ppHeapProfileType (HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"

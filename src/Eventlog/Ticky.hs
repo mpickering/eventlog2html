@@ -5,7 +5,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 module Eventlog.Ticky where
 
-import Eventlog.Types
 import qualified Data.Map as Map
 import Data.Word
 
@@ -44,6 +43,7 @@ import Text.Blaze.Html5.Attributes as A
 import Text.Blaze (customAttribute)
 import Text.Blaze.Html.Renderer.String
 
+import Eventlog.Types
 import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.AssetVersions
@@ -128,8 +128,8 @@ htmlHeader as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: Header -> Word64 -> Double ->  Html -> Args -> Html
-template header' total ticked_percen v as = docTypeHtml $ do
+template :: TickyProfileData -> Args -> Html
+template (TickyProfileData header' total ticked_percen v) as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader as
   body $ H.div ! class_ "container" $ do
@@ -163,9 +163,9 @@ template header' total ticked_percen v as = docTypeHtml $ do
     script $ preEscapedToHtml tablogic
 
 
-tickyTemplateString :: Header -> Word64 -> Double -> Html -> Args -> String
-tickyTemplateString header' tot_allocs ticked_per ticky_table as =
-  renderHtml $ template header' tot_allocs ticked_per ticky_table as
+tickyTemplateString :: TickyProfileData -> Args -> String
+tickyTemplateString x as =
+  renderHtml $ template x as
 
 -- Table rendering
 trunc :: Double -> Fixed E2

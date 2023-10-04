@@ -13,6 +13,7 @@ import GHC.Exts.Heap.ClosureTypes
 import Numeric
 import qualified Data.Text as T
 import qualified Data.Map as Map
+import Text.Blaze.Html
 
 data Header =
   Header
@@ -124,3 +125,11 @@ mkClosureInfo :: (k -> a -> InfoTablePtr)
               -> Map.Map k (InfoTableLocStatus, a)
 mkClosureInfo f b ipes =
   Map.mapWithKey (\k v -> (mkMissing $ Map.lookup (f k v) ipes, v)) b
+
+
+data EventlogType = HeapProfile  HeapProfileData
+                  | TickyProfile TickyProfileData
+
+data HeapProfileData = HeapProfileData Header Value (Maybe Value) (Maybe Html)
+
+data TickyProfileData = TickyProfileData Header Word64 Double Html

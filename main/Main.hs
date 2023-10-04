@@ -58,17 +58,15 @@ argsToOutput _ =
 
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
-  HeapProfile (_, val, _, _) <- generateJson fin a
+  HeapProfile (HeapProfileData _ val _ _) <- generateJson fin a
   encodeFile fout val
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   prof_type <- generateJsonValidate checkTraces fin a
   let html = case prof_type of
-                HeapProfile (header, data_json, descs, closure_descs) ->
-                 templateString header data_json descs closure_descs a
-                TickyProfile (header, tallocs, ticked_per, dat) ->
-                  tickyTemplateString header tallocs ticked_per dat a
+                HeapProfile x -> templateString x a
+                TickyProfile x -> tickyTemplateString x a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()
