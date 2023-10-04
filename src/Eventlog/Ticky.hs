@@ -3,13 +3,11 @@
 -- Functions for rendering ticky sample information
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes #-}
-module Eventlog.Ticky where
+module Eventlog.Ticky (tickyTab, renderTicky) where
 
-import Eventlog.Types
 import qualified Data.Map as Map
 import Data.Word
 
-import Data.String
 import qualified Data.Text as T
 --import Text.Blaze.Html
 import qualified Text.Blaze.Html5            as H
@@ -17,38 +15,20 @@ import Text.Blaze.Html5 as H
     ( preEscapedToHtml,
       toHtml,
       dataAttribute,
-      preEscapedStringValue,
-      stringComment,
       Html,
       (!),
-      AttributeValue,
-      body,
-      button,
       code,
       div,
-      docTypeHtml,
-      h1,
-      head,
-      link,
-      meta,
       script,
-      style,
       table,
       td,
       th,
       thead,
-      title,
       tr )
 import Text.Blaze.Html5.Attributes as A
-    ( charset, class_, hidden, href, id, onclick, rel, src)
-import Text.Blaze (customAttribute)
-import Text.Blaze.Html.Renderer.String
+    ( class_, id )
 
-import Eventlog.Javascript
-import Eventlog.Args
-import Eventlog.AssetVersions
-import Paths_eventlog2html
-import Data.Version ( showVersion )
+import Eventlog.Types
 import Text.RawString.QQ
 import Data.Fixed
 import Control.Monad
@@ -86,67 +66,8 @@ accumulateSamples samples =
   (sortBy (comparing tickySampleTime) samples)
 
 
-jsScript :: String -> Html
-jsScript url = script ! src (fromString $ url) $ ""
-css :: AttributeValue -> Html
-css url = link ! rel "stylesheet" ! href url
-
-htmlHeader :: Args -> Html
-htmlHeader as =
-    H.head $ do
-    H.title "eventlog2html - Ticky Profile"
-    meta ! charset "utf-8"
-    if not (noIncludejs as)
-      then do
-        script $ preEscapedToHtml jquery
-        H.style  $ preEscapedToHtml bootstrapCSS
-        script $ preEscapedToHtml bootstrap
-        H.style  $ preEscapedToHtml datatablesCSS
-        H.style  $ preEscapedToHtml datatablesButtonsCSS
-        script $ preEscapedToHtml datatables
-        script $ preEscapedToHtml datatablesButtons
-        script $ preEscapedToHtml datatablesHtml5
-        H.style $ preEscapedToHtml imagesCSS
-        script $ preEscapedToHtml sparkline
-      else do
-        jsScript vegaURL
-        jsScript vegaLiteURL
-        jsScript vegaEmbedURL
-        jsScript jqueryURL
-        css (preEscapedStringValue bootstrapCSSURL)
-        jsScript bootstrapURL
-        css "https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
-        jsScript fancyTableURL
-        css (preEscapedStringValue datatablesCSSURL)
-        css (preEscapedStringValue datatablesButtonsCSSURL)
-        jsScript datatablesURL
-        jsScript datatablesButtonsURL
-        jsScript datatablesButtonsHTML5URL
-        jsScript sparklinesURL
-    script $ preEscapedToHtml datatablesEllipsis
-    -- Include this last to overwrite other styling
-    H.style $ preEscapedToHtml stylesheet
-
-
-template :: Header -> Word64 -> Double ->  Html -> Args -> Html
-template header' total ticked_percen v as = docTypeHtml $ do
-  H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader as
-  body $ H.div ! class_ "container" $ do
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        h1 $ H.a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Options: "
-        code $ toHtml $ hJob header'
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Created at: "
-        code $ toHtml $ hDate header'
-
+tickyTab :: TickyProfileData -> Html
+tickyTab (TickyProfileData total ticked_percen v) = do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
         "Total Allocations: "
@@ -154,18 +75,8 @@ template header' total ticked_percen v as = docTypeHtml $ do
       H.div ! class_ "column cheader" $ do
         "Allocations Ticked (%): "
         code $ toHtml $ toHtml (render  $ trunc (ticked_percen * 100))
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        button ! class_ "tablink button-black" ! onclick "changeTab('table', this)" ! A.id "defaultOpen" $ "Table"
     H.div ! class_ "row" $ do
           H.div ! A.id "table" ! class_ "tabviz" $ v
-    script $ preEscapedToHtml tablogic
-
-
-tickyTemplateString :: Header -> Word64 -> Double -> Html -> Args -> String
-tickyTemplateString header' tot_allocs ticked_per ticky_table as =
-  renderHtml $ template header' tot_allocs ticked_per ticky_table as
 
 -- Table rendering
 trunc :: Double -> Fixed E2
@@ -178,7 +89,7 @@ renderTickyInfo :: Bool
                   -> Map.Map TickyCounterId (InfoTableLocStatus, (TickyCounter, AccumStats, Double))
                   -> Html
 renderTickyInfo with_ipe ticky_samples = do
-  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" ! A.hidden "true" $ do
+  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" $ do
     H.thead $ H.tr $ headFoot
 --      H.th "Profile"
 --      numTh "n"
@@ -266,21 +177,6 @@ closureSize fvs cl_args
   | cl_args == 0 = (2 + fvs) * 8
   | otherwise  = (1 + fvs) * 8
 
-
-
-renderSpark :: Int -> [(Double, Word64, Word64)] -> Html
-renderSpark size vs = H.span ! A.class_ "linechart"
-  ! customAttribute "data-allocd" (H.preEscapedTextValue $ T.intercalate "," (map renderLine vs))
-  ! customAttribute "data-entries" (H.preEscapedTextValue $ T.intercalate "," (map renderLineEntries vs))
-  ! customAttribute "sparkChartRangeMax" (H.toValue max_alloc_n)
-  $ mempty
-  where
-    rdouble = T.pack . showFixed True . realToFrac @Double @(Fixed E2)
-    renderLine (x,w, _) = rdouble x <> ":" <> T.pack (show (w `Prelude.div` fromIntegral size))
-    renderLineEntries (x,_, e) = rdouble x <> ":" <> T.pack (show e)
-
-    max_alloc_n = last_allocd `Prelude.div` (fromIntegral size)
-    (_, last_allocd, _) = Prelude.head vs
 
 initTable :: Bool -> T.Text
 initTable ipe =

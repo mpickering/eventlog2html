@@ -13,6 +13,7 @@ import GHC.Exts.Heap.ClosureTypes
 import Numeric
 import qualified Data.Text as T
 import qualified Data.Map as Map
+import Text.Blaze.Html
 
 data Header =
   Header
@@ -103,12 +104,18 @@ instance Show InfoTablePtr where
   show (InfoTablePtr p) =  "0x" ++ showHex p ""
 
 toItblPointer :: Bucket -> InfoTablePtr
-toItblPointer (Bucket t) =
+toItblPointer = either error id . toItblPointer_either
+
+toItblPointer_maybe :: Bucket -> Maybe InfoTablePtr
+toItblPointer_maybe = either (const Nothing) Just . toItblPointer_either
+
+toItblPointer_either :: Bucket -> Either String InfoTablePtr
+toItblPointer_either (Bucket t) =
     let s = drop 2 (T.unpack t)
         w64 = case readHex s of
-                ((n, ""):_) -> n
-                _ -> error (show t)
-    in InfoTablePtr w64
+                ((n, ""):_) -> pure (InfoTablePtr n)
+                _ -> Left (show t)
+    in w64
 
 data InfoTableLocStatus = None -- None of the entries have InfoTableLoc
                         | Missing -- This one is just missing
@@ -124,3 +131,15 @@ mkClosureInfo :: (k -> a -> InfoTablePtr)
               -> Map.Map k (InfoTableLocStatus, a)
 mkClosureInfo f b ipes =
   Map.mapWithKey (\k v -> (mkMissing $ Map.lookup (f k v) ipes, v)) b
+
+
+data EventlogType =
+    EventlogType
+        { eventlogHeader       :: Header
+        , eventlogHeapProfile  :: Maybe HeapProfileData
+        , eventlogTickyProfile :: Maybe TickyProfileData
+        }
+
+data HeapProfileData = HeapProfileData Value (Maybe Value) (Maybe Html)
+
+data TickyProfileData = TickyProfileData Word64 Double Html

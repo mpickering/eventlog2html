@@ -199,7 +199,7 @@ encodingHeapSelection :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingHeapSelection c =
   encoding
     . tooltip []
-    . color [MName "c", MmType Nominal, MScale [lineColourProperty c], MLegend [LValues (LStrings ["Heap Size", "Blocks Size", "Live Bytes"])]]
+    . color [MName "c", MmType Nominal, MScale [lineColourProperty c, SDomain (DStrings ["Heap Size", "Blocks Size", "Live Bytes"]) ]]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [], PSort [ByFieldOp "k" Max]]
 
@@ -260,10 +260,7 @@ encodingBandsLayer ct c =
     . position Y ([PName "y"
                  , PmType Quantitative
                  , PAxis $ case ct of
-                             Stacked -> [AxTitle "Allocation"
-                                        , AxFormat "s"
-                                        , AxTitlePadding 15.0
-                                        , AxMaxExtent 15.0]
+                             Stacked -> [AxTitle "Allocation", AxFormat "s" ]
                              Normalized -> [AxTitle "Allocation (Normalized)", AxFormat "p"]
                              StreamGraph -> [AxTitle "Allocation (Streamgraph)", AxLabels False, AxTicks False, AxTitlePadding 10.0]
                  , PAggregate Sum
