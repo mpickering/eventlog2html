@@ -51,7 +51,7 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes _ticky_count
         case detailedLimit a of
           Just 0 ->  Nothing
           _ -> Just (renderClosureInfo bs' use_ipes desc_buckets)
-  in HeapProfileData h combinedJson cc_descs closure_table
+  in HeapProfileData combinedJson cc_descs closure_table
 
 generateJson :: FilePath -> Args -> IO EventlogType
 generateJson = generateJsonValidate (const (return ()))
@@ -62,12 +62,12 @@ generateJsonValidate validate file a = do
   let chunk = if heapProfile a then H.chunk else E.chunk a
   dat <- chunk file
   validate dat
-  pure $ case profTickySamples dat of
-    [] -> HeapProfile $ generateJsonData a dat
-    -- If there are any ticky samples then generate a ticky profile
-    _  -> TickyProfile $ generateTickyData dat
+  pure $ EventlogType (profHeader dat)
+                      (Just (generateJsonData a dat))
+                      (if not (null (profTickySamples dat)) then Just (generateTickyData dat) else Nothing)
+                      -- If there are any ticky samples then generate a ticky profile
 
 generateTickyData :: ProfData -> TickyProfileData
 generateTickyData dat =
       let (percen, html) = renderTicky (profTotalAllocations dat) (profTickyCounters dat) (profItl dat) (profTickySamples dat)
-      in TickyProfileData (profHeader dat) (profTotalAllocations dat) percen html
+      in TickyProfileData (profTotalAllocations dat) percen html

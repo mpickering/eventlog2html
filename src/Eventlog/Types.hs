@@ -127,9 +127,13 @@ mkClosureInfo f b ipes =
   Map.mapWithKey (\k v -> (mkMissing $ Map.lookup (f k v) ipes, v)) b
 
 
-data EventlogType = HeapProfile  HeapProfileData
-                  | TickyProfile TickyProfileData
+data EventlogType =
+    EventlogType
+        { eventlogHeader       :: Header
+        , eventlogHeapProfile  :: Maybe HeapProfileData
+        , eventlogTickyProfile :: Maybe TickyProfileData
+        }
 
-data HeapProfileData = HeapProfileData Header Value (Maybe Value) (Maybe Html)
+data HeapProfileData = HeapProfileData Value (Maybe Value) (Maybe Html)
 
-data TickyProfileData = TickyProfileData Header Word64 Double Html
+data TickyProfileData = TickyProfileData Word64 Double Html

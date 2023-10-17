@@ -128,8 +128,8 @@ htmlHeader as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: TickyProfileData -> Args -> Html
-template (TickyProfileData header' total ticked_percen v) as = docTypeHtml $ do
+template :: Header -> TickyProfileData -> Args -> Html
+template header' (TickyProfileData total ticked_percen v) as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader as
   body $ H.div ! class_ "container" $ do
@@ -163,9 +163,9 @@ template (TickyProfileData header' total ticked_percen v) as = docTypeHtml $ do
     script $ preEscapedToHtml tablogic
 
 
-tickyTemplateString :: TickyProfileData -> Args -> String
-tickyTemplateString x as =
-  renderHtml $ template x as
+tickyTemplateString :: Header -> TickyProfileData -> Args -> String
+tickyTemplateString h x as =
+  renderHtml $ template h x as
 
 -- Table rendering
 trunc :: Double -> Fixed E2

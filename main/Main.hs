@@ -58,15 +58,17 @@ argsToOutput _ =
 
 doOneJson :: Args -> FilePath -> FilePath -> IO ()
 doOneJson a fin fout = do
-  HeapProfile (HeapProfileData _ val _ _) <- generateJson fin a
+  Just (HeapProfileData val _ _) <- eventlogHeapProfile <$> generateJson fin a
   encodeFile fout val
 
 doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   prof_type <- generateJsonValidate checkTraces fin a
-  let html = case prof_type of
-                HeapProfile x -> templateString x a
-                TickyProfile x -> tickyTemplateString x a
+  let h = eventlogHeader prof_type
+  -- TODO: push data down into template so it supports both
+  let html = case (eventlogHeapProfile prof_type, eventlogTickyProfile prof_type) of
+                (Just x, Nothing) -> templateString h x a
+                (_, Just x) -> tickyTemplateString h x a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()
