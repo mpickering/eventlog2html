@@ -260,10 +260,7 @@ encodingBandsLayer ct c =
     . position Y ([PName "y"
                  , PmType Quantitative
                  , PAxis $ case ct of
-                             Stacked -> [AxTitle "Allocation"
-                                        , AxFormat "s"
-                                        , AxTitlePadding 15.0
-                                        , AxMaxExtent 15.0]
+                             Stacked -> [AxTitle "Allocation", AxFormat "s" ]
                              Normalized -> [AxTitle "Allocation (Normalized)", AxFormat "p"]
                              StreamGraph -> [AxTitle "Allocation (Streamgraph)", AxLabels False, AxTicks False, AxTitlePadding 10.0]
                  , PAggregate Sum
