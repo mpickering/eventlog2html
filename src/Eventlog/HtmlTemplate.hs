@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 module Eventlog.HtmlTemplate where
 
 import Data.Aeson (Value, encode)
@@ -6,13 +7,15 @@ import Data.Aeson.Text (encodeToLazyText)
 import Data.String
 import Data.Text (Text, append)
 import qualified Data.Text as T
-import qualified Data.Text.Lazy.Encoding as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Lazy.Encoding as TL
 import qualified Data.Text.Lazy as TL
 --import Text.Blaze.Html
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Html.Renderer.String
 
+import Data.FileEmbed
 import Eventlog.Data
 import Eventlog.Javascript
 import Eventlog.Args
@@ -31,14 +34,14 @@ insertJsonData dat = preEscapedToHtml $ T.unlines [
     "data_json= " `append` dat' `append` ";"
   , "console.log(data_json);" ]
   where
-    dat' = TL.toStrict (T.decodeUtf8 (encode dat))
+    dat' = TL.toStrict (TL.decodeUtf8 (encode dat))
 
 insertJsonDesc :: Value -> Html
 insertJsonDesc dat = preEscapedToHtml $ T.unlines [
     "desc_json= " `append` dat' `append` ";"
   , "console.log(desc_json);" ]
   where
-    dat' = TL.toStrict (T.decodeUtf8 (encode dat))
+    dat' = TL.toStrict (TL.decodeUtf8 (encode dat))
 
 -- Dynamically bound in ccs tree
 insertColourScheme :: Text -> Html
@@ -130,7 +133,7 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
         forM_ tabs $ \(n, tab) ->
           H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ H.div ! class_ "row" $ do
             H.div ! class_ "col" $ tabContent tab n
-            H.div ! class_ "col" $ tabDocs tab
+            forM_ (tabDocs tab) $ \docs -> H.div ! class_ "col" $ docs
 
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
@@ -159,29 +162,31 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
 
     tabs :: [(Int, Tab (VizID -> Html))]
     tabs = zip [1..] $
-           [ Tab "Heap" "heapchart" $ mk HeapChart ] ++
+           [ Tab "Heap" "heapchart" (Just heapDocs) $ mk HeapChart ] ++
            (if has_heap_profile
-           then [ Tab "Area Chart" "areachart" $ mk (AreaChart Stacked)
-                , Tab "Normalized" "normalizedchart" $ mk (AreaChart Normalized)
-                , Tab "Streamgraph" "streamgraph" $ mk (AreaChart StreamGraph)
-                , Tab "Linechart" "linechart" $ mk LineChart
+           then [ Tab "Area Chart" "areachart" mempty $ mk (AreaChart Stacked)
+                , Tab "Normalized" "normalizedchart" mempty $ mk (AreaChart Normalized)
+                , Tab "Streamgraph" "streamgraph" mempty $ mk (AreaChart StreamGraph)
+                , Tab "Linechart" "linechart" mempty $ mk LineChart
                 ]
            else []) ++
-           [ Tab "Cost Centres" "cost-centres" (const (renderChart itd LineChart False 6 treevega)) | isJust cc_descs ] ++
-           [ Tab "Detailed" "closures" (const v) | Just v <- [closure_descs] ]
+           [ Tab "Cost Centres" "cost-centres" mempty (const (renderChart itd LineChart False 6 treevega)) | isJust cc_descs ] ++
+           [ Tab "Detailed" "closures" mempty (const v) | Just v <- [closure_descs] ]
 
     itd = if noTraces as then NoTraceData else TraceData
 
     mk conf vid = renderChart itd conf True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
 
-
-
 data Tab a = Tab { tabName :: String
                  , tabId :: String
+                 , tabDocs :: Maybe Html
                  , tabContent :: a
                  }
 
+
+heapDocs :: Html
+heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
 
 
 select_data :: IncludeTraceData -> ChartType -> [Text]

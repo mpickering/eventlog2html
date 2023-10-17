@@ -28,6 +28,7 @@ Extra-source-files:
   javascript/generated/vega-embed@6.14.0
   javascript/generated/vega@5.17.0
   javascript/generated/vega-lite@4.17.0
+  inline-docs/*.html
 extra-doc-files: README.md
                  CHANGELOG
 Tested-With:         GHC ==9.2.5, GHC ==9.4.3

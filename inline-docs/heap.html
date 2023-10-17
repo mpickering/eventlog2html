@@ -1,0 +1,33 @@
+<dl>
+  <dt style="color: blue">Heap Size</dt>
+  <dd>Total size of megablocks allocated by the RTS</dd>
+  <dt style="color: red">Blocks Size</dt>
+  <dd>Red line: Total size of allocated blocks</dd>
+  <dt style="color: green">Live bytes</dt>
+  <dd>Green line: Amount of live data (should match top of area pane)</dd>
+</dl>
+
+<p>Process memory usage (as reported by the OS) should correspond roughly to the <span style="color: blue">heap size</span>,
+except for data allocated through the FFI (and the RTS also calls <tt>malloc()</tt> itself in a few places).
+</p>
+
+<p>
+The size of the nursery
+nursery is approximately the difference between the red and blue lines.
+(TODO: really?)
+</p>
+
+<p>For understanding the relationship between <span style="color: red">blocks
+size</span> and <span style="color: green">live bytes</span>,
+this <a href="https://www.well-typed.com/blog/2021/03/memory-return/">blog
+post</a> contains more information.</p>
+
+<p>
+This view can also be useful in identifying
+fragmentation. A very badly fragmented heap will have low <span style="color: green">live bytes</span> but
+much higher <span style="color: red">blocks size</span>.
+</p>
+
+<p>
+When heap profiling is not enabled, <span style="color: green">live bytes</span> will be updated only on a major GC, but <span style="color: blue">heap size</span> and <span style="color: red">blocks size</span> are updated more frequently. (Enabling heap profiling causes more frequent major GCs to collect heap samples.)
+</p>
