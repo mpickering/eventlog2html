@@ -199,7 +199,7 @@ encodingHeapSelection :: ChartConfig -> [EncodingSpec] -> (VLProperty, VLSpec)
 encodingHeapSelection c =
   encoding
     . tooltip []
-    . color [MName "c", MmType Nominal, MScale [lineColourProperty c], MLegend [LValues (LStrings ["Heap Size", "Blocks Size", "Live Bytes"])]]
+    . color [MName "c", MmType Nominal, MScale [lineColourProperty c, SDomain (DStrings ["Heap Size", "Blocks Size", "Live Bytes"]) ]]
     . position X [PName "x", PmType Quantitative, PAxis [AxTitle "Time (s)"]]
     . position Y [PName "y", PmType Quantitative, PAxis [], PSort [ByFieldOp "k" Max]]
 
