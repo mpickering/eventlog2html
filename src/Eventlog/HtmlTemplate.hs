@@ -191,7 +191,16 @@ select_data itd c =
 
 
 htmlConf :: Args -> ChartType -> ChartConfig
-htmlConf as ct = ChartConfig 1200 1000 (not (noTraces as)) (userColourScheme as) "set1" ct (fromIntegral <$> (fixedYAxis as))
+htmlConf as ct =
+  ChartConfig
+    { cwidth = 1200
+    , cheight = 1000
+    , traces = not (noTraces as)
+    , colourScheme = userColourScheme as
+    , lineColourScheme = "set1"
+    , chartType = ct
+    , fixedYAxisExtent = fromIntegral <$> fixedYAxis as
+    }
 
 renderChart :: IncludeTraceData -> ChartType -> Bool -> VizID -> Text -> Html
 renderChart itd ct vega_lite vid vegaSpec = do
