@@ -3,53 +3,41 @@ module Eventlog.Rendering.Bootstrap where
 
 import Eventlog.Rendering.Types
 
+import Control.Monad
+import Data.String
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Internal (Attribute, AttributeValue, attribute)
+
+dataToggle :: AttributeValue -> Attribute
+dataToggle = attribute "data-toggle" " data-toggle=\""
+{-# INLINE dataToggle #-}
+
+dataTarget :: AttributeValue -> Attribute
+dataTarget = attribute "data-target" " data-target=\""
+{-# INLINE dataTarget #-}
+
+ariaControls :: AttributeValue -> Attribute
+ariaControls = attribute "aria-controls" " aria-controls=\""
+{-# INLINE ariaControls #-}
+
+ariaExpanded :: AttributeValue -> Attribute
+ariaExpanded = attribute "aria-expanded" " aria-expanded=\""
+{-# INLINE ariaExpanded #-}
+
+ariaLabel :: AttributeValue -> Attribute
+ariaLabel = attribute "aria-label" " aria-label=\""
+{-# INLINE ariaLabel #-}
 
 navbar :: [(Int, Tab VizTab)] -> Html
 navbar tabs = do
-  H.nav ! class_ "navbar navbar-expand-lg navbar-light bg-light" $ do
-    H.a ! class_ "navbar-brand" ! href "#" $ "Navbar"
-    H.button ! class_ "navbar-toggler"
-             ! type_ "button"
-             ! dataToggle "collapse"
-             ! dataTarget "#navbarSupportedContent"
-             ! ariaControls "navbarSupportedContent"
-             ! ariaExpanded "false"
-             ! ariaLabel "Toggle navigation"
-{-
-  <a class="navbar-brand" href="#">Navbar</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">Link</a>
-      </li>
-      <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown" aria-expanded="false">
-          Dropdown
-        </a>
-        <div class="dropdown-menu">
-          <a class="dropdown-item" href="#">Action</a>
-          <a class="dropdown-item" href="#">Another action</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" href="#">Something else here</a>
-        </div>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link disabled">Disabled</a>
-      </li>
-    </ul>
-    <form class="form-inline my-2 my-lg-0">
-      <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-      <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-    </form>
-  </div>
-</nav>
--}
+  H.ul ! A.id "vizTabs" ! class_ "nav nav-tabs" $ do
+    forM_ tabs $ \(n, tab) -> do
+      let status = if n == 1 then "active" else mempty
+      H.li ! class_ "nav-item" $
+        H.a ! A.id (fromString $ (tabId tab) <> "-tab")
+            ! class_ ("nav-link " <> status)
+            ! href ("#" <> fromString (tabId tab))
+            ! dataToggle "tab"
+            ! dataTarget (toValue $ "#" <> (tabId tab))
+            $ fromString (tabName tab)

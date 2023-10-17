@@ -118,19 +118,12 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat cc_descs as
   body $ H.div ! class_ "container-fluid" $ do
+    H.div ! class_ "row" $ navbar tabs
     H.div ! class_ "row" $ do
-      H.div ! class_ "col" $ do
-        navbar tabs
-        --forM_ tabs $ \(n, tab) -> do
-        --  button ! class_ "tablink button-black"
-        --         ! onclick ("changeTab('" <> toValue (tabId tab) <> "', this)")
-        --         !? (n == 1, A.id "defaultOpen")
-        --         $ toHtml (tabName tab)
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "col" $ do
-        forM_ tabs $ \(n, tab) ->
-          H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ H.div ! class_ "row" $ do
+      H.div ! class_ "col tab-content" $ do
+        forM_ tabs $ \(n, tab) -> do
+          let status = if n == 1 then "show active" else mempty
+          H.div ! A.id (toValue (tabId tab)) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
             H.div ! class_ "col" $ vizIdToHtml (tabContent tab) n
             forM_ (tabDocs . tabContent $ tab) $ \docs -> H.div ! class_ "col" $ docs
 
