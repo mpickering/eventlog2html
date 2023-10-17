@@ -20,14 +20,13 @@ import Eventlog.Data
 import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..), HeapProfBreakdown(..))
+import Eventlog.Rendering.Types
 import Eventlog.VegaTemplate
 import Eventlog.AssetVersions
 import Paths_eventlog2html
 import Data.Version
 import Control.Monad
 import Data.Maybe
-
-type VizID = Int
 
 insertJsonData :: Value -> Html
 insertJsonData dat = preEscapedToHtml $ T.unlines [
@@ -54,8 +53,6 @@ data_sets :: [Text] -> [Text]
 data_sets itd = Prelude.map line itd
  where
   line t = "res.view.insert(\"data_json_" <> t <>"\", data_json."<> t <>");"
-
-data IncludeTraceData = TraceData | NoTraceData
 
 encloseScript :: [Text] -> VizID -> Text -> Html
 encloseScript = encloseScriptX
@@ -132,8 +129,8 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
       H.div ! class_ "col" $ do
         forM_ tabs $ \(n, tab) ->
           H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ H.div ! class_ "row" $ do
-            H.div ! class_ "col" $ tabContent tab n
-            forM_ (tabDocs tab) $ \docs -> H.div ! class_ "col" $ docs
+            H.div ! class_ "col" $ vizIdToHtml (tabContent tab) n
+            forM_ (tabDocs . tabContent $ tab) $ \docs -> H.div ! class_ "col" $ docs
 
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
@@ -160,30 +157,23 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
   where
     has_heap_profile = isJust (hHeapProfileType header')
 
-    tabs :: [(Int, Tab (VizID -> Html))]
+    tabs :: [(Int, Tab VizTab)]
     tabs = zip [1..] $
-           [ Tab "Heap" "heapchart" (Just heapDocs) $ mk HeapChart ] ++
+           [ Tab "Heap" "heapchart" $ VizTab (mk HeapChart) (Just heapDocs)] ++
            (if has_heap_profile
-           then [ Tab "Area Chart" "areachart" mempty $ mk (AreaChart Stacked)
-                , Tab "Normalized" "normalizedchart" mempty $ mk (AreaChart Normalized)
-                , Tab "Streamgraph" "streamgraph" mempty $ mk (AreaChart StreamGraph)
-                , Tab "Linechart" "linechart" mempty $ mk LineChart
+           then [ Tab "Area Chart" "areachart" $ VizTab (mk (AreaChart Stacked)) noDocs
+                , Tab "Normalized" "normalizedchart" $ VizTab (mk (AreaChart Normalized)) noDocs
+                , Tab "Streamgraph" "streamgraph" $ VizTab (mk (AreaChart StreamGraph)) noDocs
+                , Tab "Linechart" "linechart" $ VizTab (mk LineChart) noDocs
                 ]
            else []) ++
-           [ Tab "Cost Centres" "cost-centres" mempty (const (renderChart itd LineChart False 6 treevega)) | isJust cc_descs ] ++
-           [ Tab "Detailed" "closures" mempty (const v) | Just v <- [closure_descs] ]
+           [ Tab "Cost Centres" "cost-centres" (VizTab (const (renderChart itd LineChart False 6 treevega)) noDocs) | isJust cc_descs ] ++
+           [ Tab "Detailed" "closures" (VizTab (const v) noDocs) | Just v <- [closure_descs] ]
 
     itd = if noTraces as then NoTraceData else TraceData
 
     mk conf vid = renderChart itd conf True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
-
-data Tab a = Tab { tabName :: String
-                 , tabId :: String
-                 , tabDocs :: Maybe Html
-                 , tabContent :: a
-                 }
-
 
 heapDocs :: Html
 heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")

@@ -75,6 +75,7 @@ Library
                        Eventlog.HeapProf
                        Eventlog.Vega
                        Eventlog.HtmlTemplate
+                       Eventlog.Rendering.Types
                        Eventlog.VegaTemplate
                        Eventlog.AssetVersions
                        Eventlog.Detailed
