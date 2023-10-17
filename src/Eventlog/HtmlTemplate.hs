@@ -116,9 +116,9 @@ template :: HeapProfileData -> Args -> Html
 template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader dat cc_descs as
-  body $ H.div ! class_ "container" $ do
+  body $ H.div ! class_ "container-fluid" $ do
     H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
+      H.div ! class_ "col" $ do
         forM_ tabs $ \(n, tab) ->
           button ! class_ "tablink button-black"
                  ! onclick ("changeTab('" <> toValue (tabId tab) <> "', this)")
@@ -126,12 +126,14 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
                  $ toHtml (tabName tab)
 
     H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
+      H.div ! class_ "col" $ do
         forM_ tabs $ \(n, tab) ->
-          H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ tabContent tab n
+          H.div ! A.id (toValue (tabId tab)) ! class_ "tabviz" $ H.div ! class_ "row" $ do
+            H.div ! class_ "col" $ tabContent tab n
+            H.div ! class_ "col" $ tabDocs tab
 
     H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
+      H.div ! class_ "col" $ do
         toHtml $ maybe "No heap profile" ppHeapProfileType (hHeapProfileType header')
         ", created at "
         code $ toHtml $ hDate header'
@@ -139,12 +141,12 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
         a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html " <> toHtml (showVersion version)
 
     H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
+      H.div ! class_ "col" $ do
         code $ toHtml $ hJob header'
 
     when has_heap_profile $
       H.div ! class_ "row" $ do
-        H.div ! class_ "column" $ do
+        H.div ! class_ "col" $ do
           "Sampling rate: "
           code $ toHtml $ hSamplingRate header'
           " seconds between heap samples"
