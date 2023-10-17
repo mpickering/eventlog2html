@@ -20,6 +20,7 @@ import Eventlog.Data
 import Eventlog.Javascript
 import Eventlog.Args
 import Eventlog.Types (Header(..), HeapProfBreakdown(..))
+import Eventlog.Rendering.Bootstrap
 import Eventlog.Rendering.Types
 import Eventlog.VegaTemplate
 import Eventlog.AssetVersions
@@ -119,11 +120,12 @@ template (HeapProfileData header' dat cc_descs closure_descs) as = docTypeHtml $
   body $ H.div ! class_ "container-fluid" $ do
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
-        forM_ tabs $ \(n, tab) ->
-          button ! class_ "tablink button-black"
-                 ! onclick ("changeTab('" <> toValue (tabId tab) <> "', this)")
-                 !? (n == 1, A.id "defaultOpen")
-                 $ toHtml (tabName tab)
+        navbar tabs
+        --forM_ tabs $ \(n, tab) -> do
+        --  button ! class_ "tablink button-black"
+        --         ! onclick ("changeTab('" <> toValue (tabId tab) <> "', this)")
+        --         !? (n == 1, A.id "defaultOpen")
+        --         $ toHtml (tabName tab)
 
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
