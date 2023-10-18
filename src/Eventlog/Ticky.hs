@@ -102,7 +102,7 @@ renderTickyInfo :: Bool
                   -> Map.Map TickyCounterId (InfoTableLocStatus, (TickyCounter, AccumStats, Double))
                   -> Html
 renderTickyInfo with_ipe ticky_samples = do
-  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" ! A.hidden "true" $ do
+  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" $ do
     H.thead $ H.tr $ headFoot
 --      H.th "Profile"
 --      numTh "n"
