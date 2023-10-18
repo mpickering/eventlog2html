@@ -7,7 +7,7 @@ import Control.Monad
 import Data.String
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
-import Text.Blaze.Internal (Attribute, AttributeValue, attribute)
+import Text.Blaze.Internal (attribute)
 
 dataToggle :: AttributeValue -> Attribute
 dataToggle = attribute "data-toggle" " data-toggle=\""
@@ -35,9 +35,9 @@ navbar tabs = do
     forM_ tabs $ \(n, tab) -> do
       let status = if n == 1 then "active" else mempty
       H.li ! class_ "nav-item" $
-        H.a ! A.id (fromString $ (tabId tab) <> "-tab")
+        H.a ! A.id (fromString $ tabId tab <> "-tab")
             ! class_ ("nav-link " <> status)
             ! href ("#" <> fromString (tabId tab))
             ! dataToggle "tab"
-            ! dataTarget (toValue $ "#" <> (tabId tab))
+            ! dataTarget (toValue $ "#" <> tabId tab)
             $ fromString (tabName tab)

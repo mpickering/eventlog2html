@@ -29,7 +29,7 @@ renderClosureInfo (ts, bs) mipes raw_bs = do
              Just ipes -> mkClosureInfo (\k _ -> toItblPointer k) raw_bs ipes
              Nothing   -> Map.map (\v -> (None, v)) raw_bs
 
-  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" ! A.hidden "true" $ do
+  H.table ! A.id "closure_table" ! A.class_ "table table-striped closureTable" $ do
     H.thead $ H.tr $ do
       H.th "Profile"
       numTh "n"
@@ -114,7 +114,6 @@ initTable = "$(document).ready(function() {\
         \$.fn.sparkline.defaults.common.chartRangeMin = 0;\
         \$.fn.sparkline.defaults.common.width = 200;\
         \$('.linechart').sparkline();\
-        \$(\".closureTable\").removeAttr(\"hidden\")\
 \});"
 
 getBandValues :: Int
