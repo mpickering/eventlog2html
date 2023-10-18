@@ -215,7 +215,7 @@ allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> 
 allTabs h x y as =
     [SingleTab (metaTab h as)] ++
     maybe [] (allHeapTabs h as) x ++
-    maybe [] (pure . tickyProfileTabs) y
+    [tickyProfileTabs y]
 
 metaTab :: Header -> Args -> Tab
 metaTab header' _as =
@@ -275,7 +275,11 @@ mk as conf vid = renderChart itd conf True vid
 detailedTab :: HeapProfileData -> TabGroup
 detailedTab (HeapProfileData _dat _cc_descs closure_descs) = case closure_descs of
     Just v -> SingleTab $ Tab "Detailed" "closures" (Just (const v)) noDocs False False
-    Nothing -> ManyTabs "Detailed" []
+    Nothing -> SingleTab $ Tab "Detailed" "closures" Nothing (Just noDetailedDocs) False True
+
+noDetailedDocs :: Html
+noDetailedDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-detailed.html")
+
 
 costCentresTab :: Args -> HeapProfileData -> TabGroup
 costCentresTab as (HeapProfileData _dat cc_descs _) = case cc_descs of
@@ -291,5 +295,9 @@ noCostCentresDocs :: Html
 noCostCentresDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-cost-centres.html")
 
 
-tickyProfileTabs :: TickyProfileData -> TabGroup
-tickyProfileTabs y = SingleTab $ Tab "Ticky" "ticky" (Just (const (tickyTab y))) Nothing False False
+tickyProfileTabs :: Maybe TickyProfileData -> TabGroup
+tickyProfileTabs (Just y) = SingleTab $ Tab "Ticky" "ticky" (Just (const (tickyTab y))) Nothing False False
+tickyProfileTabs Nothing  = SingleTab $ Tab "Ticky" "ticky" Nothing (Just noTickyDocs) False True
+
+noTickyDocs :: Html
+noTickyDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-ticky.html")

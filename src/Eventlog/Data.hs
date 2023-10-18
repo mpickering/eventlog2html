@@ -61,6 +61,7 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes _ticky_count
       closure_table =
         case detailedLimit a of
           Just 0 ->  Nothing
+          _ | null desc_buckets -> Nothing
           _ -> Just (renderClosureInfo bs' use_ipes desc_buckets)
   in HeapProfileData combinedJson cc_descs closure_table
 
