@@ -145,44 +145,6 @@ template header' x as tabs = docTypeHtml $ do
     indexed_tabs :: [(Int, Tab VizTab)]
     indexed_tabs = zip [1..] tabs
 
-heapProfileTabs :: Header -> Args -> HeapProfileData -> [Tab VizTab]
-heapProfileTabs header' as (HeapProfileData _dat cc_descs closure_descs) =
-           [ Tab "Heap" "heapchart" $ VizTab (mk HeapChart) (Just heapDocs)] ++
-           (if has_heap_profile
-           then [ Tab "Area Chart" "areachart" $ VizTab (mk (AreaChart Stacked)) noDocs
-                , Tab "Normalized" "normalizedchart" $ VizTab (mk (AreaChart Normalized)) noDocs
-                , Tab "Streamgraph" "streamgraph" $ VizTab (mk (AreaChart StreamGraph)) noDocs
-                , Tab "Linechart" "linechart" $ VizTab (mk LineChart) noDocs
-                ]
-           else []) ++
-           [ Tab "Cost Centres" "cost-centres" (VizTab (\tabIx -> renderChart itd LineChart False tabIx treevega) noDocs) | isJust cc_descs ] ++
-           [ Tab "Detailed" "closures" (VizTab (const v) noDocs) | Just v <- [closure_descs] ]
-  where
-    has_heap_profile = isJust (hHeapProfileType header')
-
-    itd = if noTraces as then NoTraceData else TraceData
-
-    mk conf vid = renderChart itd conf True vid
-                      (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
-
-metaTab :: Header -> Args -> Tab VizTab
-metaTab header' _as =
-    Tab "Meta" "meta" $ VizTab (const metadata) Nothing
-  where
-    has_heap_profile = isJust (hHeapProfileType header')
-
-    metadata = do
-      "Rendered by "
-      a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html " <> toHtml (showVersion version)
-      when has_heap_profile $
-        H.div ! class_ "row" $ do
-          H.div ! class_ "col" $ do
-            "Sampling rate: "
-            code $ toHtml $ hSamplingRate header'
-            " seconds between heap samples"
-
-heapDocs :: Html
-heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
 
 
 select_data :: IncludeTraceData -> ChartType -> [Text]
@@ -227,15 +189,6 @@ templateString :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> A
 templateString h x y as =
   renderHtml $ template h x as $ allTabs h x y as
 
-allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [Tab VizTab]
-allTabs h x y as =
-    [metaTab h as] ++
-    maybe [] (heapProfileTabs h as) x ++
-    maybe [] tickyProfileTabs y
-
-
-tickyProfileTabs :: TickyProfileData -> [Tab VizTab]
-tickyProfileTabs y = [Tab "Ticky" "ticky" $ VizTab (const (tickyTab y)) Nothing]
 
 ppHeapProfileType :: HeapProfBreakdown -> Text
 ppHeapProfileType (HeapProfBreakdownCostCentre) = "Cost centre profiling (implied by -hc)"
@@ -246,3 +199,69 @@ ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by 
 ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
 ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
+
+
+allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [Tab VizTab]
+allTabs h x y as =
+    [metaTab h as] ++
+    maybe [] (allHeapTabs h as) x ++
+    maybe [] tickyProfileTabs y
+
+metaTab :: Header -> Args -> Tab VizTab
+metaTab header' _as =
+    Tab "Meta" "meta" $ VizTab (const metadata) Nothing
+  where
+    metadata = do
+      "Rendered by "
+      a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html " <> toHtml (showVersion version)
+      when (has_heap_profile header') $
+        H.div ! class_ "row" $ do
+          H.div ! class_ "col" $ do
+            "Sampling rate: "
+            code $ toHtml $ hSamplingRate header'
+            " seconds between heap samples"
+
+has_heap_profile :: Header -> Bool
+has_heap_profile h = isJust (hHeapProfileType h)
+
+allHeapTabs :: Header -> Args -> HeapProfileData -> [Tab VizTab]
+allHeapTabs header' as x =
+    heapTab as ++
+    heapProfileTabs header' as x ++
+    costCentresTab as x ++
+    detailedTab x
+
+heapTab :: Args -> [Tab VizTab]
+heapTab as = [ Tab "Heap" "heapchart" $ VizTab (mk as HeapChart) (Just heapDocs)]
+
+heapDocs :: Html
+heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
+
+heapProfileTabs :: Header -> Args -> HeapProfileData -> [Tab VizTab]
+heapProfileTabs header' as _
+  | has_heap_profile header' =
+    [ Tab "Area Chart" "areachart"       $ VizTab (mk as (AreaChart Stacked))     noDocs
+    , Tab "Normalized" "normalizedchart" $ VizTab (mk as (AreaChart Normalized))  noDocs
+    , Tab "Streamgraph" "streamgraph"    $ VizTab (mk as (AreaChart StreamGraph)) noDocs
+    , Tab "Linechart" "linechart"        $ VizTab (mk as LineChart)               noDocs
+    ]
+  | otherwise = []
+
+mk :: Args -> ChartType -> VizID -> Html
+mk as conf vid = renderChart itd conf True vid
+                      (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
+  where
+    itd = if noTraces as then NoTraceData else TraceData
+
+detailedTab :: HeapProfileData -> [Tab VizTab]
+detailedTab (HeapProfileData _dat _cc_descs closure_descs) =
+    [ Tab "Detailed" "closures" (VizTab (const v) noDocs) | Just v <- [closure_descs] ]
+
+costCentresTab :: Args -> HeapProfileData -> [Tab VizTab]
+costCentresTab as (HeapProfileData _dat cc_descs _) =
+    [ Tab "Cost Centres" "cost-centres" (VizTab (\tabIx -> renderChart itd LineChart False tabIx treevega) noDocs) | isJust cc_descs ]
+  where
+    itd = if noTraces as then NoTraceData else TraceData
+
+tickyProfileTabs :: TickyProfileData -> [Tab VizTab]
+tickyProfileTabs y = [Tab "Ticky" "ticky" $ VizTab (const (tickyTab y)) Nothing]
