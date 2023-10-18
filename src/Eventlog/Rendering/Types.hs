@@ -7,17 +7,20 @@ data IncludeTraceData
   = TraceData
   | NoTraceData
 
-type VizID = Int
+type VizID = String
 
-data Tab a = Tab { tabName    :: String
-                 , tabId      :: String
-                 , tabContent :: a
-                 }
+type Tabs = [TabGroup]
 
-data VizTab =
-  VizTab { vizIdToHtml :: VizID -> Html
-         , tabDocs     :: Maybe Html
-         }
+data TabGroup = ManyTabs String [Tab]
+              | SingleTab Tab
+
+data Tab = Tab { tabName     :: String
+               , tabId       :: VizID
+               , tabContent  :: Maybe (VizID -> Html)
+               , tabDocs     :: Maybe Html
+               , tabActive   :: Bool -- ^ Active by default?
+               , tabDisabled :: Bool
+               }
 
 noDocs :: Maybe Html
 noDocs = Nothing

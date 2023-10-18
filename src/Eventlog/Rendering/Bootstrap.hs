@@ -29,15 +29,31 @@ ariaLabel :: AttributeValue -> Attribute
 ariaLabel = attribute "aria-label" " aria-label=\""
 {-# INLINE ariaLabel #-}
 
-navbar :: [(Int, Tab VizTab)] -> Html
+navbar :: [(Int, TabGroup)] -> Html
 navbar tabs = do
   H.ul ! A.id "vizTabs" ! class_ "nav nav-tabs" $ do
-    forM_ tabs $ \(n, tab) -> do
+    forM_ tabs $ \(n, group) -> do
       let status = if n == 1 then "active" else mempty
-      H.li ! class_ "nav-item" $
-        H.a ! A.id (fromString $ tabId tab <> "-tab")
-            ! class_ ("nav-link " <> status)
-            ! href ("#" <> fromString (tabId tab))
-            ! dataToggle "tab"
-            ! dataTarget (toValue $ "#" <> tabId tab)
-            $ fromString (tabName tab)
+      case group of
+        SingleTab tab ->
+          H.li ! class_ "nav-item" $
+            H.a ! A.id (fromString $ tabId tab <> "-tab")
+                ! class_ ("nav-link " <> status)
+                ! href ("#" <> fromString (tabId tab))
+                ! dataToggle "tab"
+                ! dataTarget (toValue $ "#" <> tabId tab)
+                $ fromString (tabName tab)
+        ManyTabs group_name tabs ->
+          H.li ! class_ "nav-item dropdown" $ do
+            H.a ! class_ ("nav-link dropdown-toggle " <> status)
+                ! href "#"
+                ! dataToggle "dropdown"
+                $ fromString group_name
+            H.div ! class_ "dropdown-menu" $
+              forM_ tabs $ \tab ->
+                H.a ! A.id (fromString $ tabId tab <> "-tab")
+                    ! class_ "dropdown-item"
+                    ! href ("#" <> fromString (tabId tab))
+                    ! dataToggle "tab"
+                    ! dataTarget (toValue $ "#" <> tabId tab)
+                    $ fromString (tabName tab)

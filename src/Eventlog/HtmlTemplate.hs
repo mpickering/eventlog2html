@@ -75,7 +75,7 @@ encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
   , "; res.view.runAsync()"
   , "})" ])
   where
-    vidt = T.pack $ show vid
+    vidt = T.pack vid
 
 jsScript :: String -> Html
 jsScript url = script ! src (fromString $ url) $ ""
@@ -103,6 +103,7 @@ htmlHeader mb_hpd as =
         script $ preEscapedToHtml sparkline
         script $ preEscapedToHtml tablogic
       else do
+        jsScript "https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js"
         jsScript vegaURL
         jsScript vegaLiteURL
         jsScript vegaEmbedURL
@@ -116,7 +117,7 @@ htmlHeader mb_hpd as =
     H.style $ preEscapedToHtml stylesheet
 
 
-template :: Header -> Maybe HeapProfileData -> Args -> [Tab VizTab] -> Html
+template :: Header -> Maybe HeapProfileData -> Args -> [TabGroup] -> Html
 template header' x as tabs = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader x as
@@ -124,11 +125,10 @@ template header' x as tabs = docTypeHtml $ do
     H.div ! class_ "row" $ navbar indexed_tabs
     H.div ! class_ "row" $ do
       H.div ! class_ "col tab-content" $ do
-        forM_ indexed_tabs $ \(n, tab) -> do
-          let status = if n == 1 then "show active" else mempty
-          H.div ! A.id (toValue (tabId tab)) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
-            H.div ! class_ "col" $ vizIdToHtml (tabContent tab) n
-            forM_ (tabDocs . tabContent $ tab) $ \docs -> H.div ! class_ "col" $ docs
+        forM_ indexed_tabs $ \(_, group) -> do
+          case group of
+            SingleTab tab -> renderTab tab
+            ManyTabs _ tabs -> mapM_ renderTab tabs
 
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
@@ -143,8 +143,17 @@ template header' x as tabs = docTypeHtml $ do
     script $ preEscapedToHtml tablogic
 
   where
-    indexed_tabs :: [(Int, Tab VizTab)]
+    indexed_tabs :: [(Int, TabGroup)]
     indexed_tabs = zip [1..] tabs
+
+renderTab :: Tab -> Html
+renderTab tab =
+  H.div ! A.id (toValue (tabId tab)) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
+    forM_ (tabContent tab) $ \stuff -> H.div ! class_ "col" $ stuff (tabId tab)
+    forM_ (tabDocs tab) $ \docs -> H.div ! class_ "col" $ docs
+  where
+    status = if tabActive tab then "show active" else ""
+
 
 
 
@@ -174,13 +183,13 @@ htmlConf as ct =
 renderChart :: IncludeTraceData -> ChartType -> Bool -> VizID -> Text -> Html
 renderChart itd ct vega_lite vid vegaSpec = do
     let fields = select_data itd ct
-    H.div ! A.id (fromString $ "vis" ++ show vid) ! class_ "chart" $ ""
+    H.div ! A.id (fromString $ "vis" ++ vid) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
       if vega_lite
         then encloseScript fields vid vegaSpec
         else encloseRawVegaScript vid vegaSpec
 
-renderChartWithJson :: IncludeTraceData -> ChartType -> Int -> Value -> Text -> Html
+renderChartWithJson :: IncludeTraceData -> ChartType -> VizID -> Value -> Text -> Html
 renderChartWithJson itd ct k dat vegaSpec = do
     script $ insertJsonData dat
     renderChart itd ct True k vegaSpec
@@ -202,15 +211,15 @@ ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied 
 ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
 
 
-allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [Tab VizTab]
+allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [TabGroup]
 allTabs h x y as =
-    [metaTab h as] ++
+    [SingleTab (metaTab h as)] ++
     maybe [] (allHeapTabs h as) x ++
-    maybe [] tickyProfileTabs y
+    maybe [] (pure . tickyProfileTabs) y
 
-metaTab :: Header -> Args -> Tab VizTab
+metaTab :: Header -> Args -> Tab
 metaTab header' _as =
-    Tab "Meta" "meta" $ VizTab (const metadata) Nothing
+    Tab "Meta" "meta" (Just (const metadata)) Nothing True False
   where
     metadata = do
       "Rendered by "
@@ -225,28 +234,29 @@ metaTab header' _as =
 has_heap_profile :: Header -> Bool
 has_heap_profile h = isJust (hHeapProfileType h)
 
-allHeapTabs :: Header -> Args -> HeapProfileData -> [Tab VizTab]
+allHeapTabs :: Header -> Args -> HeapProfileData -> [TabGroup]
 allHeapTabs header' as x =
-    heapTab as ++
-    heapProfileTabs header' as x ++
-    costCentresTab as x ++
-    detailedTab x
+    [ heapTab as
+    , heapProfileTabs header' as x
+    , costCentresTab as x
+    , detailedTab x
+    ]
 
-heapTab :: Args -> [Tab VizTab]
-heapTab as = [ Tab "Heap" "heapchart" $ VizTab (mk as HeapChart) (Just heapDocs)]
+heapTab :: Args -> TabGroup
+heapTab as = SingleTab $ Tab "Heap" "heapchart" (Just (mk as HeapChart)) (Just heapDocs) False False
 
 heapDocs :: Html
 heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
 
-heapProfileTabs :: Header -> Args -> HeapProfileData -> [Tab VizTab]
+heapProfileTabs :: Header -> Args -> HeapProfileData -> TabGroup
 heapProfileTabs header' as _
-  | has_heap_profile header' =
-    [ Tab "Area Chart" "areachart"       $ VizTab (mk as (AreaChart Stacked))     noDocs
-    , Tab "Normalized" "normalizedchart" $ VizTab (mk as (AreaChart Normalized))  noDocs
-    , Tab "Streamgraph" "streamgraph"    $ VizTab (mk as (AreaChart StreamGraph)) noDocs
-    , Tab "Linechart" "linechart"        $ VizTab (mk as LineChart)               noDocs
+  | has_heap_profile header' = ManyTabs "Heap Profile" $
+    [ Tab "Area Chart" "areachart"       (Just (mk as (AreaChart Stacked)))     noDocs False False
+    , Tab "Normalized" "normalizedchart" (Just (mk as (AreaChart Normalized)))  noDocs False False
+    , Tab "Streamgraph" "streamgraph"    (Just (mk as (AreaChart StreamGraph))) noDocs False False
+    , Tab "Linechart" "linechart"        (Just (mk as LineChart))               noDocs False False
     ]
-  | otherwise = []
+  | otherwise = ManyTabs "No Heap Profile" []
 
 mk :: Args -> ChartType -> VizID -> Html
 mk as conf vid = renderChart itd conf True vid
@@ -254,15 +264,17 @@ mk as conf vid = renderChart itd conf True vid
   where
     itd = if noTraces as then NoTraceData else TraceData
 
-detailedTab :: HeapProfileData -> [Tab VizTab]
-detailedTab (HeapProfileData _dat _cc_descs closure_descs) =
-    [ Tab "Detailed" "closures" (VizTab (const v) noDocs) | Just v <- [closure_descs] ]
+detailedTab :: HeapProfileData -> TabGroup
+detailedTab (HeapProfileData _dat _cc_descs closure_descs) = case closure_descs of
+    Just v -> SingleTab $ Tab "Detailed" "closures" (Just (const v)) noDocs False False
+    Nothing -> ManyTabs "Detailed" []
 
-costCentresTab :: Args -> HeapProfileData -> [Tab VizTab]
-costCentresTab as (HeapProfileData _dat cc_descs _) =
-    [ Tab "Cost Centres" "cost-centres" (VizTab (\tabIx -> renderChart itd LineChart False tabIx treevega) noDocs) | isJust cc_descs ]
+costCentresTab :: Args -> HeapProfileData -> TabGroup
+costCentresTab as (HeapProfileData _dat cc_descs _) = case cc_descs of
+    Just _ -> SingleTab $ Tab "Cost Centres" "costcentres" (Just (\tabIx -> renderChart itd LineChart False tabIx treevega)) noDocs False False
+    Nothing -> ManyTabs "Cost Centres" []
   where
     itd = if noTraces as then NoTraceData else TraceData
 
-tickyProfileTabs :: TickyProfileData -> [Tab VizTab]
-tickyProfileTabs y = [Tab "Ticky" "ticky" $ VizTab (const (tickyTab y)) Nothing]
+tickyProfileTabs :: TickyProfileData -> TabGroup
+tickyProfileTabs y = SingleTab $ Tab "Ticky" "ticky" (Just (const (tickyTab y))) Nothing False False
