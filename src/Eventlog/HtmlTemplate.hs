@@ -102,7 +102,6 @@ htmlHeader mb_hpd as =
         script $ preEscapedToHtml bootstrap
         script $ preEscapedToHtml fancytable
         script $ preEscapedToHtml sparkline
-        script $ preEscapedToHtml tablogic
       else do
         jsScript popperURL
         jsScript vegaURL
