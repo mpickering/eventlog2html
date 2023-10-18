@@ -155,7 +155,7 @@ heapProfileTabs header' as (HeapProfileData _dat cc_descs closure_descs) =
                 , Tab "Linechart" "linechart" $ VizTab (mk LineChart) noDocs
                 ]
            else []) ++
-           [ Tab "Cost Centres" "cost-centres" (VizTab (const (renderChart itd LineChart False 6 treevega)) noDocs) | isJust cc_descs ] ++
+           [ Tab "Cost Centres" "cost-centres" (VizTab (\tabIx -> renderChart itd LineChart False tabIx treevega) noDocs) | isJust cc_descs ] ++
            [ Tab "Detailed" "closures" (VizTab (const v) noDocs) | Just v <- [closure_descs] ]
   where
     has_heap_profile = isJust (hHeapProfileType header')
