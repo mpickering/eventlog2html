@@ -39,3 +39,6 @@ datatablesButtonsCSSURL = "https://cdn.datatables.net/buttons/2.0.1/css/buttons.
 datatablesButtonsHTML5Version,datatablesButtonsHTML5URL :: String
 datatablesButtonsHTML5Version = "2.0.1"
 datatablesButtonsHTML5URL = "https://cdn.datatables.net/buttons/2.0.1/js/buttons.html5.min.js"
+popperVersion,popperURL :: String
+popperVersion = "1.14.3"
+popperURL = "https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js"

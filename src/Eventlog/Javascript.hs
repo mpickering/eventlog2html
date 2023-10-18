@@ -21,6 +21,8 @@ module Eventlog.Javascript
   , stylesheet
   , tablogic
   , treevega
+
+  , popper
   ) where
 
 import Data.Text
@@ -81,3 +83,6 @@ tablogic = decodeUtf8 $(embedFile "javascript/tablogic.js")
 
 treevega :: Text
 treevega = decodeUtf8 $(embedFile "javascript/ccmap.vg")
+
+popper :: Text
+popper = decodeUtf8 $(embedFile "javascript/generated/popper.min.js")

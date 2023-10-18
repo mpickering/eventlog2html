@@ -93,6 +93,7 @@ htmlHeader mb_hpd as =
     script $ insertColourScheme (userColourScheme as)
     if not (noIncludejs as)
       then do
+        script $ preEscapedToHtml popper
         script $ preEscapedToHtml vegaLite
         script $ preEscapedToHtml vega
         script $ preEscapedToHtml vegaEmbed
@@ -103,7 +104,7 @@ htmlHeader mb_hpd as =
         script $ preEscapedToHtml sparkline
         script $ preEscapedToHtml tablogic
       else do
-        jsScript "https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js"
+        jsScript popperURL
         jsScript vegaURL
         jsScript vegaLiteURL
         jsScript vegaEmbedURL
