@@ -127,18 +127,8 @@ template header' x as tabs = docTypeHtml $ do
       H.div ! class_ "col tab-content custom-tab" $ do
         forM_ indexed_tabs $ \(_, group) -> do
           case group of
-            SingleTab tab -> renderTab tab
-            ManyTabs _ tabs -> mapM_ renderTab tabs
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "col" $ do
-        toHtml $ maybe "No heap profile" ppHeapProfileType (hHeapProfileType header')
-        ", created at "
-        code $ toHtml $ hDate header'
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "col" $ do
-        code $ toHtml $ hJob header'
+            SingleTab tab -> renderTab header' tab
+            ManyTabs _ tabs -> mapM_ (renderTab header') tabs
 
     script $ preEscapedToHtml tablogic
 
@@ -146,15 +136,25 @@ template header' x as tabs = docTypeHtml $ do
     indexed_tabs :: [(Int, TabGroup)]
     indexed_tabs = zip [1..] tabs
 
-renderTab :: Tab -> Html
-renderTab tab =
+renderTab :: Header -> Tab -> Html
+renderTab header' tab =
   H.div ! A.id (toValue (tabId tab)) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
-    forM_ (tabContent tab) $ \stuff -> H.div ! class_ "col" $ stuff (tabId tab)
+    forM_ (tabContent tab) $ \stuff -> H.div ! class_ "col" $ do
+      stuff (tabId tab)
+      perTabFooter header'
     forM_ (tabDocs tab) $ \docs -> H.div ! class_ "col" $ docs
   where
     status = if tabActive tab then "show active" else ""
 
-
+perTabFooter :: Header -> Html
+perTabFooter header' = do
+    H.div ! class_ "row" $ do
+      H.div ! class_ "col" $ do
+          toHtml $ maybe "No heap profile" ppHeapProfileType (hHeapProfileType header')
+          ", created at "
+          code $ toHtml $ hDate header'
+          " by "
+          code $ toHtml $ hJob header'
 
 
 select_data :: IncludeTraceData -> ChartType -> [Text]
