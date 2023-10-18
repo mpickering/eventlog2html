@@ -17,7 +17,6 @@ import Eventlog.HtmlTemplate
 import Eventlog.Data
 import Eventlog.Types
 import Paths_eventlog2html (version)
-import Eventlog.Ticky
 
 main :: IO ()
 main = do
@@ -65,10 +64,7 @@ doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   prof_type <- generateJsonValidate checkTraces fin a
   let h = eventlogHeader prof_type
-  -- TODO: push data down into template so it supports both
-  let html = case (eventlogHeapProfile prof_type, eventlogTickyProfile prof_type) of
-                (Just x, Nothing) -> templateString h x a
-                (_, Just x) -> tickyTemplateString h x a
+  let html = templateString h (eventlogHeapProfile prof_type) (eventlogTickyProfile prof_type) a
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()

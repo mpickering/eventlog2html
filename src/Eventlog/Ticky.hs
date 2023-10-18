@@ -3,12 +3,11 @@
 -- Functions for rendering ticky sample information
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE QuasiQuotes #-}
-module Eventlog.Ticky where
+module Eventlog.Ticky (tickyTab, renderTicky) where
 
 import qualified Data.Map as Map
 import Data.Word
 
-import Data.String
 import qualified Data.Text as T
 --import Text.Blaze.Html
 import qualified Text.Blaze.Html5            as H
@@ -41,14 +40,8 @@ import Text.Blaze.Html5 as H
 import Text.Blaze.Html5.Attributes as A
     ( charset, class_, hidden, href, id, onclick, rel, src)
 import Text.Blaze (customAttribute)
-import Text.Blaze.Html.Renderer.String
 
 import Eventlog.Types
-import Eventlog.Javascript
-import Eventlog.Args
-import Eventlog.AssetVersions
-import Paths_eventlog2html
-import Data.Version ( showVersion )
 import Text.RawString.QQ
 import Data.Fixed
 import Control.Monad
@@ -86,67 +79,8 @@ accumulateSamples samples =
   (sortBy (comparing tickySampleTime) samples)
 
 
-jsScript :: String -> Html
-jsScript url = script ! src (fromString $ url) $ ""
-css :: AttributeValue -> Html
-css url = link ! rel "stylesheet" ! href url
-
-htmlHeader :: Args -> Html
-htmlHeader as =
-    H.head $ do
-    H.title "eventlog2html - Ticky Profile"
-    meta ! charset "utf-8"
-    if not (noIncludejs as)
-      then do
-        script $ preEscapedToHtml jquery
-        H.style  $ preEscapedToHtml bootstrapCSS
-        script $ preEscapedToHtml bootstrap
-        H.style  $ preEscapedToHtml datatablesCSS
-        H.style  $ preEscapedToHtml datatablesButtonsCSS
-        script $ preEscapedToHtml datatables
-        script $ preEscapedToHtml datatablesButtons
-        script $ preEscapedToHtml datatablesHtml5
-        H.style $ preEscapedToHtml imagesCSS
-        script $ preEscapedToHtml sparkline
-      else do
-        jsScript vegaURL
-        jsScript vegaLiteURL
-        jsScript vegaEmbedURL
-        jsScript jqueryURL
-        css (preEscapedStringValue bootstrapCSSURL)
-        jsScript bootstrapURL
-        css "https://fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
-        jsScript fancyTableURL
-        css (preEscapedStringValue datatablesCSSURL)
-        css (preEscapedStringValue datatablesButtonsCSSURL)
-        jsScript datatablesURL
-        jsScript datatablesButtonsURL
-        jsScript datatablesButtonsHTML5URL
-        jsScript sparklinesURL
-    script $ preEscapedToHtml datatablesEllipsis
-    -- Include this last to overwrite other styling
-    H.style $ preEscapedToHtml stylesheet
-
-
-template :: Header -> TickyProfileData -> Args -> Html
-template header' (TickyProfileData total ticked_percen v) as = docTypeHtml $ do
-  H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader as
-  body $ H.div ! class_ "container" $ do
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        h1 $ H.a ! href "https://mpickering.github.io/eventlog2html" $ "eventlog2html"
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Options: "
-        code $ toHtml $ hJob header'
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        "Created at: "
-        code $ toHtml $ hDate header'
-
+tickyTab :: TickyProfileData -> Html
+tickyTab (TickyProfileData total ticked_percen v) = do
     H.div ! class_ "row" $ do
       H.div ! class_ "column" $ do
         "Total Allocations: "
@@ -154,18 +88,8 @@ template header' (TickyProfileData total ticked_percen v) as = docTypeHtml $ do
       H.div ! class_ "column cheader" $ do
         "Allocations Ticked (%): "
         code $ toHtml $ toHtml (render  $ trunc (ticked_percen * 100))
-
-    H.div ! class_ "row" $ do
-      H.div ! class_ "column" $ do
-        button ! class_ "tablink button-black" ! onclick "changeTab('table', this)" ! A.id "defaultOpen" $ "Table"
     H.div ! class_ "row" $ do
           H.div ! A.id "table" ! class_ "tabviz" $ v
-    script $ preEscapedToHtml tablogic
-
-
-tickyTemplateString :: Header -> TickyProfileData -> Args -> String
-tickyTemplateString h x as =
-  renderHtml $ template h x as
 
 -- Table rendering
 trunc :: Double -> Fixed E2
