@@ -124,7 +124,7 @@ template header' x as tabs = docTypeHtml $ do
   body $ H.div ! class_ "container-fluid" $ do
     H.div ! class_ "row" $ navbar indexed_tabs
     H.div ! class_ "row" $ do
-      H.div ! class_ "col tab-content" $ do
+      H.div ! class_ "col tab-content custom-tab" $ do
         forM_ indexed_tabs $ \(_, group) -> do
           case group of
             SingleTab tab -> renderTab tab
@@ -248,6 +248,7 @@ heapTab as = SingleTab $ Tab "Heap" "heapchart" (Just (mk as HeapChart)) (Just h
 heapDocs :: Html
 heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
 
+
 heapProfileTabs :: Header -> Args -> HeapProfileData -> TabGroup
 heapProfileTabs header' as _
   | has_heap_profile header' = ManyTabs "Heap Profile" $
@@ -256,7 +257,14 @@ heapProfileTabs header' as _
     , Tab "Streamgraph" "streamgraph"    (Just (mk as (AreaChart StreamGraph))) noDocs False False
     , Tab "Linechart" "linechart"        (Just (mk as LineChart))               noDocs False False
     ]
-  | otherwise = ManyTabs "No Heap Profile" []
+  | otherwise = SingleTab noHeapProfileTab
+
+noHeapProfileTab :: Tab
+noHeapProfileTab = Tab "Heap Profile" "heap_profile" Nothing (Just noHeapProfileDocs) False True
+
+noHeapProfileDocs :: Html
+noHeapProfileDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-heap-profile.html")
+
 
 mk :: Args -> ChartType -> VizID -> Html
 mk as conf vid = renderChart itd conf True vid
@@ -272,9 +280,16 @@ detailedTab (HeapProfileData _dat _cc_descs closure_descs) = case closure_descs 
 costCentresTab :: Args -> HeapProfileData -> TabGroup
 costCentresTab as (HeapProfileData _dat cc_descs _) = case cc_descs of
     Just _ -> SingleTab $ Tab "Cost Centres" "costcentres" (Just (\tabIx -> renderChart itd LineChart False tabIx treevega)) noDocs False False
-    Nothing -> ManyTabs "Cost Centres" []
+    Nothing -> SingleTab noCostCentresTab
   where
     itd = if noTraces as then NoTraceData else TraceData
+
+noCostCentresTab :: Tab
+noCostCentresTab = Tab "Cost Centres" "costcentres" Nothing (Just noCostCentresDocs) False True
+
+noCostCentresDocs :: Html
+noCostCentresDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-cost-centres.html")
+
 
 tickyProfileTabs :: TickyProfileData -> TabGroup
 tickyProfileTabs y = SingleTab $ Tab "Ticky" "ticky" (Just (const (tickyTab y))) Nothing False False

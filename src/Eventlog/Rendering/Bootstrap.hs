@@ -5,6 +5,7 @@ import Eventlog.Rendering.Types
 
 import Control.Monad
 import Data.String
+import qualified Data.Text as T
 import Text.Blaze.Html5            as H
 import Text.Blaze.Html5.Attributes as A
 import Text.Blaze.Internal (attribute)
@@ -32,20 +33,19 @@ ariaLabel = attribute "aria-label" " aria-label=\""
 navbar :: [(Int, TabGroup)] -> Html
 navbar tabs = do
   H.ul ! A.id "vizTabs" ! class_ "nav nav-tabs" $ do
-    forM_ tabs $ \(n, group) -> do
-      let status = if n == 1 then "active" else mempty
+    forM_ tabs $ \(_, group) -> do
       case group of
         SingleTab tab ->
           H.li ! class_ "nav-item" $
             H.a ! A.id (fromString $ tabId tab <> "-tab")
-                ! class_ ("nav-link " <> status)
+                ! class_ (tabClasses tab)
                 ! href ("#" <> fromString (tabId tab))
                 ! dataToggle "tab"
                 ! dataTarget (toValue $ "#" <> tabId tab)
                 $ fromString (tabName tab)
         ManyTabs group_name tabs ->
           H.li ! class_ "nav-item dropdown" $ do
-            H.a ! class_ ("nav-link dropdown-toggle " <> status)
+            H.a ! class_ "nav-link dropdown-toggle"
                 ! href "#"
                 ! dataToggle "dropdown"
                 $ fromString group_name
@@ -57,3 +57,9 @@ navbar tabs = do
                     ! dataToggle "tab"
                     ! dataTarget (toValue $ "#" <> tabId tab)
                     $ fromString (tabName tab)
+
+tabClasses :: Tab -> AttributeValue
+tabClasses tab = toValue $ T.intercalate " " $
+  "nav-link" :
+  [ "active" | tabActive tab ] ++
+  [ "not-available" | tabDisabled tab ]

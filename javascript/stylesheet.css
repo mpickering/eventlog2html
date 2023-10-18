@@ -54,3 +54,11 @@ width: 100%;
 h1 {
   font-size: 1em;
 }
+
+.not-available {
+  color: grey;
+}
+
+.custom-tab {
+  margin-top: 1em;
+}
