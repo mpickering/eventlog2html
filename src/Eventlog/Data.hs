@@ -12,6 +12,7 @@ module Eventlog.Data
 import Prelude hiding (readFile)
 import Data.Aeson ((.=), object)
 import qualified Data.Map as Map
+import Data.Maybe
 
 import Eventlog.Args (Args(..))
 import Eventlog.Bands (bands)
@@ -31,7 +32,7 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes _ticky_count
   let keeps = pruneBands a binfo
       bs = bands h (Map.map fst keeps) fs
       combinedJson = object [
-          "samples" .= bandsToVega keeps bs
+          "samples" .= bandsToVega bucket_desc keeps bs
         , "traces"  .= tracesToVega traces
         , "heap"    .= heapToVega heap_info
         ]
@@ -45,6 +46,16 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes _ticky_count
       use_ipes = case hHeapProfileType h of
                    Just HeapProfBreakdownInfoTable -> Just ipes
                    _ -> Nothing
+
+      -- If we have IPE info, try to translate info table pointers to names
+      bucket_desc bucket_info = fromMaybe desc $ do
+          ipe_map <- use_ipes
+          iptr <- toItblPointer_maybe (Bucket desc)
+          itl <- Map.lookup iptr ipe_map
+          pure (itlName itl <> " (" <> desc <> ")")
+        where
+          desc = shortDescription bucket_info
+
       desc_buckets = pruneDetailed a binfo
       bs' = bands h (Map.map fst desc_buckets) fs
       closure_table =

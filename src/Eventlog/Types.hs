@@ -104,12 +104,18 @@ instance Show InfoTablePtr where
   show (InfoTablePtr p) =  "0x" ++ showHex p ""
 
 toItblPointer :: Bucket -> InfoTablePtr
-toItblPointer (Bucket t) =
+toItblPointer = either error id . toItblPointer_either
+
+toItblPointer_maybe :: Bucket -> Maybe InfoTablePtr
+toItblPointer_maybe = either (const Nothing) Just . toItblPointer_either
+
+toItblPointer_either :: Bucket -> Either String InfoTablePtr
+toItblPointer_either (Bucket t) =
     let s = drop 2 (T.unpack t)
         w64 = case readHex s of
-                ((n, ""):_) -> n
-                _ -> error (show t)
-    in InfoTablePtr w64
+                ((n, ""):_) -> pure (InfoTablePtr n)
+                _ -> Left (show t)
+    in w64
 
 data InfoTableLocStatus = None -- None of the entries have InfoTableLoc
                         | Missing -- This one is just missing
