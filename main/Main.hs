@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
 module Main (main) where
 
@@ -14,9 +15,11 @@ import System.IO
 
 import Eventlog.Args (args, Args(..), Option(..))
 import Eventlog.HtmlTemplate
+import Eventlog.Rendering.Types
 import Eventlog.Data
 import Eventlog.Types
 import Paths_eventlog2html (version)
+import qualified Profiteur.Renderer as Profiteur
 
 main :: IO ()
 main = do
@@ -64,7 +67,27 @@ doOneHtml :: Args -> FilePath -> FilePath -> IO ()
 doOneHtml a fin fout = do
   prof_type <- generateJsonValidate checkTraces fin a
   let h = eventlogHeader prof_type
-  let html = templateString h (eventlogHeapProfile prof_type) (eventlogTickyProfile prof_type) a
+
+  -- gather canned profiteur data
+  let jsAssetsFiles = [
+          Profiteur.JQueryFile
+        , "data/js/unicode.js"
+        , "data/js/model.js"
+        , "data/js/resizing-canvas.js"
+        , "data/js/node.js"
+        , "data/js/selection.js"
+        , "data/js/zoom.js"
+        , "data/js/details.js"
+        , "data/js/sorting.js"
+        , "data/js/tree-map.js"
+        , "data/js/tree-browser.js"
+        , "data/js/main.js"
+        ]
+  pdJsAssets    <- Profiteur.JsAssets  <$> forM jsAssetsFiles Profiteur.includeJs
+  pdCssAssets   <- Profiteur.CssAssets <$> forM ["data/css/main.css"] Profiteur.includeCss
+  let profiteurData = ProfiteurData{..}
+
+  let html = templateString h (eventlogHeapProfile prof_type) (eventlogTickyProfile prof_type) a profiteurData
   writeFile fout html
   where
     checkTraces :: ProfData -> IO ()
