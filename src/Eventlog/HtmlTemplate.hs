@@ -117,7 +117,6 @@ htmlHeader mb_hpd mb_ticky as =
         jsScript jqueryURL
         css (preEscapedStringValue bootstrapCSSURL)
         jsScript bootstrapURL
-        css "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
         jsScript fancyTableURL
         jsScript sparklinesURL
         when has_ticky $ do
