@@ -15,30 +15,18 @@ import Text.Blaze.Html5 as H
     ( preEscapedToHtml,
       toHtml,
       dataAttribute,
-      preEscapedStringValue,
-      stringComment,
       Html,
       (!),
-      AttributeValue,
-      body,
-      button,
       code,
       div,
-      docTypeHtml,
-      h1,
-      head,
-      link,
-      meta,
       script,
-      style,
       table,
       td,
       th,
       thead,
-      title,
       tr )
 import Text.Blaze.Html5.Attributes as A
-    ( charset, class_, hidden, href, id, onclick, rel, src)
+    ( class_, id )
 import Text.Blaze (customAttribute)
 
 import Eventlog.Types
@@ -192,8 +180,8 @@ closureSize fvs cl_args
 
 
 
-renderSpark :: Int -> [(Double, Word64, Word64)] -> Html
-renderSpark size vs = H.span ! A.class_ "linechart"
+_renderSpark :: Int -> [(Double, Word64, Word64)] -> Html
+_renderSpark size vs = H.span ! A.class_ "linechart"
   ! customAttribute "data-allocd" (H.preEscapedTextValue $ T.intercalate "," (map renderLine vs))
   ! customAttribute "data-entries" (H.preEscapedTextValue $ T.intercalate "," (map renderLineEntries vs))
   ! customAttribute "sparkChartRangeMax" (H.toValue max_alloc_n)
