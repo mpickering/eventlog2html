@@ -82,8 +82,8 @@ jsScript url = script ! src (fromString $ url) $ ""
 css :: AttributeValue -> Html
 css url = link ! rel "stylesheet" ! href url
 
-htmlHeader :: Maybe HeapProfileData -> Args -> Html
-htmlHeader mb_hpd as =
+htmlHeader :: Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> Html
+htmlHeader mb_hpd mb_ticky as =
     H.head $ do
     H.title "eventlog2html - Heap Profile"
     meta ! charset "UTF-8"
@@ -102,6 +102,13 @@ htmlHeader mb_hpd as =
         script $ preEscapedToHtml bootstrap
         script $ preEscapedToHtml fancytable
         script $ preEscapedToHtml sparkline
+        when has_ticky $ do
+          H.style  $ preEscapedToHtml datatablesCSS
+          H.style  $ preEscapedToHtml datatablesButtonsCSS
+          script $ preEscapedToHtml datatables
+          script $ preEscapedToHtml datatablesButtons
+          script $ preEscapedToHtml datatablesHtml5
+          H.style $ preEscapedToHtml imagesCSS
       else do
         jsScript popperURL
         jsScript vegaURL
@@ -113,14 +120,23 @@ htmlHeader mb_hpd as =
         css "//fonts.googleapis.com/css?family=Roboto:300,300italic,700,700italic"
         jsScript fancyTableURL
         jsScript sparklinesURL
+        when has_ticky $ do
+          css (preEscapedStringValue datatablesCSSURL)
+          css (preEscapedStringValue datatablesButtonsCSSURL)
+          jsScript datatablesURL
+          jsScript datatablesButtonsURL
+          jsScript datatablesButtonsHTML5URL
+    when has_ticky $
+      script $ preEscapedToHtml datatablesEllipsis
     -- Include this last to overwrite some milligram styling
     H.style $ preEscapedToHtml stylesheet
+  where
+    has_ticky = isJust mb_ticky
 
-
-template :: Header -> Maybe HeapProfileData -> Args -> [TabGroup] -> Html
-template header' x as tabs = docTypeHtml $ do
+template :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [TabGroup] -> Html
+template header' x y as tabs = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
-  htmlHeader x as
+  htmlHeader x y as
   body $ H.div ! class_ "container-fluid" $ do
     H.div ! class_ "row" $ navbar indexed_tabs
     H.div ! class_ "row" $ do
@@ -197,7 +213,7 @@ renderChartWithJson itd ct k dat vegaSpec = do
 
 templateString :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> String
 templateString h x y as =
-  renderHtml $ template h x as $ allTabs h x y as
+  renderHtml $ template h x y as $ allTabs h x y as
 
 
 ppHeapProfileType :: HeapProfBreakdown -> Text
