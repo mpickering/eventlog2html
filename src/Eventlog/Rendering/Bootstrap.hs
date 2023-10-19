@@ -30,18 +30,18 @@ ariaLabel :: AttributeValue -> Attribute
 ariaLabel = attribute "aria-label" " aria-label=\""
 {-# INLINE ariaLabel #-}
 
-navbar :: [(Int, TabGroup)] -> Html
-navbar tabs = do
+navbar :: [TabGroup] -> Html
+navbar tab_groups = do
   H.ul ! A.id "vizTabs" ! class_ "nav nav-tabs" $ do
-    forM_ tabs $ \(_, group) -> do
+    forM_ tab_groups $ \group -> do
       case group of
         SingleTab tab ->
           H.li ! class_ "nav-item" $
-            H.a ! A.id (fromString $ tabId tab <> "-tab")
+            H.a ! A.id (toValue (tabIDToNavItemID (tabId tab)))
                 ! class_ (tabClasses tab)
-                ! href ("#" <> fromString (tabId tab))
+                ! href (toValue (tabIDToHref (tabId tab)))
                 ! dataToggle "tab"
-                ! dataTarget (toValue $ "#" <> tabId tab)
+                ! dataTarget (toValue (tabIDToHref (tabId tab)))
                 $ fromString (tabName tab)
         ManyTabs group_name tabs ->
           H.li ! class_ "nav-item dropdown" $ do
@@ -51,11 +51,11 @@ navbar tabs = do
                 $ fromString group_name
             H.div ! class_ "dropdown-menu" $
               forM_ tabs $ \tab ->
-                H.a ! A.id (fromString $ tabId tab <> "-tab")
+                H.a ! A.id (toValue (tabIDToNavItemID (tabId tab)))
                     ! class_ "dropdown-item"
-                    ! href ("#" <> fromString (tabId tab))
+                    ! href (toValue (tabIDToHref (tabId tab)))
                     ! dataToggle "tab"
-                    ! dataTarget (toValue $ "#" <> tabId tab)
+                    ! dataTarget (toValue (tabIDToHref (tabId tab)))
                     $ fromString (tabName tab)
 
 tabClasses :: Tab -> AttributeValue

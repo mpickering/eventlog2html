@@ -56,14 +56,14 @@ data_sets itd = Prelude.map line itd
  where
   line t = "res.view.insert(\"data_json_" <> t <>"\", data_json."<> t <>");"
 
-encloseScript :: [Text] -> VizID -> Text -> Html
+encloseScript :: [Text] -> TabID -> Text -> Html
 encloseScript = encloseScriptX
 
-encloseRawVegaScript :: VizID -> Text -> Html
+encloseRawVegaScript :: TabID -> Text -> Html
 encloseRawVegaScript = encloseScriptX []
 
-encloseScriptX :: [Text] -> VizID -> Text -> Html
-encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
+encloseScriptX :: [Text] -> TabID -> Text -> Html
+encloseScriptX insert_data_sets (TabID vidt) vegaspec = preEscapedToHtml $ T.unlines ([
   "var yourVlSpec" `append` vidt `append`"= " `append` vegaspec  `append` ";"
   , "vegaEmbed('#vis" `append` vidt `append` "', yourVlSpec" `append` vidt `append` ")"
   , ".then((res) => { " ]
@@ -74,8 +74,6 @@ encloseScriptX insert_data_sets vid vegaspec = preEscapedToHtml $ T.unlines ([
   [ "; res.view.resize()"
   , "; res.view.runAsync()"
   , "})" ])
-  where
-    vidt = T.pack vid
 
 jsScript :: String -> Html
 jsScript url = script ! src (fromString $ url) $ ""
@@ -133,29 +131,25 @@ htmlHeader mb_hpd mb_ticky as =
     has_ticky = isJust mb_ticky
 
 template :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [TabGroup] -> Html
-template header' x y as tabs = docTypeHtml $ do
+template header' x y as tab_groups = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader x y as
   body $ H.div ! class_ "container-fluid" $ do
-    H.div ! class_ "row" $ navbar indexed_tabs
+    H.div ! class_ "row" $ navbar tab_groups
     H.div ! class_ "row" $ do
       H.div ! class_ "col tab-content custom-tab" $ do
-        forM_ indexed_tabs $ \(_, group) -> do
+        forM_ tab_groups $ \group -> do
           case group of
             SingleTab tab -> renderTab header' tab
             ManyTabs _ tabs -> mapM_ (renderTab header') tabs
 
     script $ preEscapedToHtml tablogic
 
-  where
-    indexed_tabs :: [(Int, TabGroup)]
-    indexed_tabs = zip [1..] tabs
-
 renderTab :: Header -> Tab -> Html
 renderTab header' tab =
-  H.div ! A.id (toValue (tabId tab)) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
+  H.div ! A.id (toValue (tabIDToTabID (tabId tab))) ! class_ ("tab-pane fade tabviz " <> status) $ H.div ! class_ "row" $ do
     forM_ (tabContent tab) $ \stuff -> H.div ! class_ "col" $ do
-      stuff (tabId tab)
+      stuff
       perTabFooter header'
     forM_ (tabDocs tab) $ \docs -> H.div ! class_ "col" $ docs
   where
@@ -195,16 +189,16 @@ htmlConf as ct =
     , fixedYAxisExtent = fromIntegral <$> fixedYAxis as
     }
 
-renderChart :: IncludeTraceData -> ChartType -> Bool -> VizID -> Text -> Html
+renderChart :: IncludeTraceData -> ChartType -> Bool -> TabID -> Text -> Html
 renderChart itd ct vega_lite vid vegaSpec = do
     let fields = select_data itd ct
-    H.div ! A.id (fromString $ "vis" ++ vid) ! class_ "chart" $ ""
+    H.div ! A.id (toValue (tabIDToVizID vid)) ! class_ "chart" $ ""
     script ! type_ "text/javascript" $ do
       if vega_lite
         then encloseScript fields vid vegaSpec
         else encloseRawVegaScript vid vegaSpec
 
-renderChartWithJson :: IncludeTraceData -> ChartType -> VizID -> Value -> Text -> Html
+renderChartWithJson :: IncludeTraceData -> ChartType -> TabID -> Value -> Text -> Html
 renderChartWithJson itd ct k dat vegaSpec = do
     script $ insertJsonData dat
     renderChart itd ct True k vegaSpec
@@ -234,7 +228,7 @@ allTabs h x y as =
 
 metaTab :: Header -> Args -> Tab
 metaTab header' _as =
-    Tab "Meta" "meta" (Just (const metadata)) Nothing True False
+    (mkTab "Meta" "meta" metadata Nothing) { tabActive = True }
   where
     metadata = do
       "Rendered by "
@@ -258,7 +252,9 @@ allHeapTabs header' as x =
     ]
 
 heapTab :: Args -> TabGroup
-heapTab as = SingleTab $ Tab "Heap" "heapchart" (Just (mk as HeapChart)) (Just heapDocs) False False
+heapTab as = SingleTab $ mkTab "Heap" tabid (mk as HeapChart tabid) (Just heapDocs)
+  where
+    tabid = "heapchart"
 
 heapDocs :: Html
 heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap.html")
@@ -267,52 +263,48 @@ heapDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/heap
 heapProfileTabs :: Header -> Args -> HeapProfileData -> TabGroup
 heapProfileTabs header' as _
   | has_heap_profile header' = ManyTabs "Heap Profile" $
-    [ Tab "Area Chart" "areachart"       (Just (mk as (AreaChart Stacked)))     noDocs False False
-    , Tab "Normalized" "normalizedchart" (Just (mk as (AreaChart Normalized)))  noDocs False False
-    , Tab "Streamgraph" "streamgraph"    (Just (mk as (AreaChart StreamGraph))) noDocs False False
-    , Tab "Linechart" "linechart"        (Just (mk as LineChart))               noDocs False False
+    [ mkTab "Area Chart"  "areachart"       (mk as (AreaChart Stacked)     "areachart")       noDocs
+    , mkTab "Normalized"  "normalizedchart" (mk as (AreaChart Normalized)  "normalizedchart") noDocs
+    , mkTab "Streamgraph" "streamgraph"     (mk as (AreaChart StreamGraph) "streamgraph")     noDocs
+    , mkTab "Linechart"   "linechart"       (mk as LineChart               "linechart")       noDocs
     ]
   | otherwise = SingleTab noHeapProfileTab
 
 noHeapProfileTab :: Tab
-noHeapProfileTab = Tab "Heap Profile" "heap_profile" Nothing (Just noHeapProfileDocs) False True
+noHeapProfileTab = mkUnavailableTab "Heap Profile" "heap_profile"  noHeapProfileDocs
 
 noHeapProfileDocs :: Html
 noHeapProfileDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-heap-profile.html")
 
 
-mk :: Args -> ChartType -> VizID -> Html
+mk :: Args -> ChartType -> TabID -> Html
 mk as conf vid = renderChart itd conf True vid
                       (TL.toStrict (encodeToLazyText (vegaJson (htmlConf as conf))))
   where
     itd = if noTraces as then NoTraceData else TraceData
 
 detailedTab :: HeapProfileData -> TabGroup
-detailedTab (HeapProfileData _dat _cc_descs closure_descs) = case closure_descs of
-    Just v -> SingleTab $ Tab "Detailed" "closures" (Just (const v)) noDocs False False
-    Nothing -> SingleTab $ Tab "Detailed" "closures" Nothing (Just noDetailedDocs) False True
+detailedTab (HeapProfileData _dat _cc_descs closure_descs) =
+    SingleTab $ mkOptionalTab "Detailed" "closures" Prelude.id noDocs noDetailedDocs closure_descs
 
 noDetailedDocs :: Html
 noDetailedDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-detailed.html")
 
 
 costCentresTab :: Args -> HeapProfileData -> TabGroup
-costCentresTab as (HeapProfileData _dat cc_descs _) = case cc_descs of
-    Just _ -> SingleTab $ Tab "Cost Centres" "costcentres" (Just (\tabIx -> renderChart itd LineChart False tabIx treevega)) noDocs False False
-    Nothing -> SingleTab noCostCentresTab
+costCentresTab as (HeapProfileData _dat cc_descs _) =
+    SingleTab $ mkOptionalTab "Cost Centres" "costcentres" (const stuff) noDocs noCostCentresDocs cc_descs
   where
+    tabIx = "costcentres"
     itd = if noTraces as then NoTraceData else TraceData
-
-noCostCentresTab :: Tab
-noCostCentresTab = Tab "Cost Centres" "costcentres" Nothing (Just noCostCentresDocs) False True
+    stuff = renderChart itd LineChart False tabIx treevega
 
 noCostCentresDocs :: Html
 noCostCentresDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-cost-centres.html")
 
 
 tickyProfileTabs :: Maybe TickyProfileData -> TabGroup
-tickyProfileTabs (Just y) = SingleTab $ Tab "Ticky" "ticky" (Just (const (tickyTab y))) Nothing False False
-tickyProfileTabs Nothing  = SingleTab $ Tab "Ticky" "ticky" Nothing (Just noTickyDocs) False True
+tickyProfileTabs = SingleTab . mkOptionalTab "Ticky" "ticky" tickyTab noDocs noTickyDocs
 
 noTickyDocs :: Html
 noTickyDocs = H.div $ preEscapedToHtml $ T.decodeUtf8 $(embedFile "inline-docs/no-ticky.html")
