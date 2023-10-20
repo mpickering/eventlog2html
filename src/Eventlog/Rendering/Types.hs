@@ -12,12 +12,15 @@ data IncludeTraceData
   | NoTraceData
 
 -- | Tab IDs must be usable as HTML and Javascript identifiers, so we allow a
--- limited selection of characters. This is enforced only at runtime by the
--- 'IsString' instance, but that seems good enough for now.
+-- limited selection of characters. This is enforced only at runtime by
+-- 'mkTabID' and the 'IsString' instance, but that seems good enough for now.
 newtype TabID = TabID T.Text
 
 instance IsString TabID where
-  fromString s
+  fromString = mkTabID
+
+mkTabID :: String -> TabID
+mkTabID s
     | all valid s = TabID (T.pack s)
     | otherwise   = error $ "mkTabID: invalid tab ID: " ++ s
     where

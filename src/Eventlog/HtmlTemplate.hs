@@ -130,8 +130,11 @@ htmlHeader mb_hpd mb_ticky as =
   where
     has_ticky = isJust mb_ticky
 
-template :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [TabGroup] -> Html
-template header' x y as tab_groups = docTypeHtml $ do
+template :: EventlogType
+         -> Args
+         -> [TabGroup]
+         -> Html
+template (EventlogType header' x y) as tab_groups = docTypeHtml $ do
   H.stringComment $ "Generated with eventlog2html-" <> showVersion version
   htmlHeader x y as
   body $ H.div ! class_ "container-fluid" $ do
@@ -204,9 +207,11 @@ renderChartWithJson itd ct k dat vegaSpec = do
     renderChart itd ct True k vegaSpec
 
 
-templateString :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> String
-templateString h x y as =
-  renderHtml $ template h x y as $ allTabs h x y as
+templateString :: EventlogType
+               -> Args
+               -> String
+templateString x as =
+  renderHtml $ template x as $ allTabs x as
 
 
 ppHeapProfileType :: HeapProfBreakdown -> Text
@@ -220,8 +225,10 @@ ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied 
 ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
 
 
-allTabs :: Header -> Maybe HeapProfileData -> Maybe TickyProfileData -> Args -> [TabGroup]
-allTabs h x y as =
+allTabs :: EventlogType
+        -> Args
+        -> [TabGroup]
+allTabs (EventlogType h x y) as =
     [SingleTab (metaTab h as)] ++
     maybe [] (allHeapTabs h as) x ++
     [tickyProfileTabs y]
