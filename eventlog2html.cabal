@@ -47,7 +47,7 @@ Library
     ghc-events           >= 0.19.0 && < 0.20,
     hashtables           >= 1.2.3 && < 1.4,
     hvega                >= 0.11.0 && < 0.13,
-    mtl                  >= 2.2.2 && < 2.3,
+    mtl                  >= 2.2.2 && < 2.4,
     optparse-applicative >= 0.14.3 && < 0.18,
     semigroups           >= 0.18 && < 0.21,
     text                 >= 1.2.3 && < 1.3 || >= 2.0 && < 2.1,
