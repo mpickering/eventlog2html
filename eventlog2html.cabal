@@ -30,7 +30,7 @@ Extra-source-files:
   javascript/generated/vega-lite@4.17.0
 extra-doc-files: README.md
                  CHANGELOG
-Tested-With:         GHC ==9.2.5, GHC ==9.4.3
+Tested-With:         GHC ==9.0.2, GHC ==9.2.7, GHC ==9.4.7, GHC ==9.6.2
 
 Library
   Build-depends:
