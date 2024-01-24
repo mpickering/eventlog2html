@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE TypeApplications #-}
 module Eventlog.Prune
   ( pruneBands, pruneDetailed
   ) where
@@ -11,6 +12,9 @@ import Data.Map (Map, fromList, (!), toList)
 
 import Eventlog.Args (Args(..), Sort(..))
 import Data.Maybe
+import Data.Word (Word64)
+import Text.Read (readMaybe)
+import qualified Data.Text as T
 
 type Compare a = a -> a -> Ordering
 
@@ -21,15 +25,20 @@ getComparison Args { sorting = StdDev, reversing = False }  = cmpStdDevDescendin
 getComparison Args { sorting = StdDev, reversing = True } = cmpStdDevAscending
 getComparison Args { sorting = Name,   reversing = True }  = cmpNameDescending
 getComparison Args { sorting = Name,   reversing = False } = cmpNameAscending
+getComparison Args { sorting = Number,   reversing = True }  = cmpNumberDescending
+getComparison Args { sorting = Number,   reversing = False } = cmpNumberAscending
 getComparison Args { sorting = Gradient,   reversing = True }  = cmpGradientAscending
 getComparison Args { sorting = Gradient,   reversing = False } = cmpGradientDescending
 
 cmpNameAscending, cmpNameDescending,
+  cmpNumberAscending, cmpNumberDescending,
   cmpStdDevAscending, cmpStdDevDescending,
   cmpSizeAscending, cmpSizeDescending,
   cmpGradientAscending, cmpGradientDescending :: Compare (Bucket, BucketInfo)
 cmpNameAscending = comparing fst
 cmpNameDescending = flip cmpNameAscending
+cmpNumberAscending (Bucket a, _) (Bucket b, _) = comparing (readMaybe @Word64 . T.unpack) a b <> compare a b
+cmpNumberDescending = flip cmpNumberAscending
 cmpStdDevAscending = comparing (bucketStddev . snd)
 cmpStdDevDescending = flip cmpStdDevAscending
 cmpSizeAscending = comparing (bucketTotal . snd)
