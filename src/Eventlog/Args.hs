@@ -21,7 +21,7 @@ data Option
   = ShowVersion
   | Run Args
 
-data Sort = Size | StdDev | Name | Gradient
+data Sort = Size | StdDev | Name | Gradient | Number
 
 data Args = Args
   {
@@ -47,7 +47,7 @@ argParser :: Parser Option
 argParser = Run <$> (Args
       <$> option parseSort
           ( long "sort"
-         <> help "How to sort the bands.  One of: size (default), stddev, name, gradient."
+         <> help "How to sort the bands.  One of: size (default), stddev, name, number, gradient."
          <> value Size
          <> metavar "FIELD" )
       <*> switch
@@ -118,8 +118,9 @@ parseSort = eitherReader $ \s -> case s of
   "size" -> Right Size
   "stddev" -> Right StdDev
   "name" -> Right Name
+  "number" -> Right Number
   "gradient" -> Right Gradient
-  _ -> Left "expected one of: size, stddev, name"
+  _ -> Left "expected one of: size, stddev, name, number"
 
 args :: IO Option
 args = execParser argsInfo
