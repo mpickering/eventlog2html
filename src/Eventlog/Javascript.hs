@@ -85,4 +85,4 @@ treevega :: Text
 treevega = decodeUtf8 $(embedFile "javascript/ccmap.vg")
 
 popper :: Text
-popper = decodeUtf8 $(embedFile "javascript/generated/popper.min.js")
+popper = decodeUtf8 $(embedFile $ "javascript/generated/popper.js@" <> popperVersion)

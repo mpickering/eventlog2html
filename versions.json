@@ -12,5 +12,5 @@
   , { "hname" : "datatablesButtons", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/js/dataTables.buttons.min.js" }
   , { "hname" : "datatablesButtonsCSS", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/css/buttons.dataTables.min.css" }
   , { "hname" : "datatablesButtonsHTML5", "version" : "2.0.1", "url" : "https://cdn.datatables.net/buttons/<>/js/buttons.html5.min.js" }
-  , { "hname" : "popper", "version" : "1.14.3", "url": "https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" }
+  , { "hname" : "popper", "version" : "1.14.3", "url": "https://cdn.jsdelivr.net/npm/popper.js@<>" }
 ]
