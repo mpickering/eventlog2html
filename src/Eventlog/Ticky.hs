@@ -27,7 +27,6 @@ import Text.Blaze.Html5 as H
       tr )
 import Text.Blaze.Html5.Attributes as A
     ( class_, id )
-import Text.Blaze (customAttribute)
 
 import Eventlog.Types
 import Text.RawString.QQ
