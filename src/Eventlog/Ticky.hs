@@ -179,21 +179,6 @@ closureSize fvs cl_args
   | otherwise  = (1 + fvs) * 8
 
 
-
-_renderSpark :: Int -> [(Double, Word64, Word64)] -> Html
-_renderSpark size vs = H.span ! A.class_ "linechart"
-  ! customAttribute "data-allocd" (H.preEscapedTextValue $ T.intercalate "," (map renderLine vs))
-  ! customAttribute "data-entries" (H.preEscapedTextValue $ T.intercalate "," (map renderLineEntries vs))
-  ! customAttribute "sparkChartRangeMax" (H.toValue max_alloc_n)
-  $ mempty
-  where
-    rdouble = T.pack . showFixed True . realToFrac @Double @(Fixed E2)
-    renderLine (x,w, _) = rdouble x <> ":" <> T.pack (show (w `Prelude.div` fromIntegral size))
-    renderLineEntries (x,_, e) = rdouble x <> ":" <> T.pack (show e)
-
-    max_alloc_n = last_allocd `Prelude.div` (fromIntegral size)
-    (_, last_allocd, _) = Prelude.head vs
-
 initTable :: Bool -> T.Text
 initTable ipe =
 
