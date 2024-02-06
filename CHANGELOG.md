@@ -1,4 +1,5 @@
 Unreleased
+----------
 
 * Fix build error due to new exported function in blaze-html [#186](https://github.com/mpickering/eventlog2html/issues/186)
 
