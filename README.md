@@ -2,7 +2,7 @@
 
 [Interactive Documentation](https://mpickering.github.io/eventlog2html/)
 
-[![Build Status](https://travis-ci.org/mpickering/eventlog2html.svg?branch=master)](https://travis-ci.org/mpickering/eventlog2html)
+[![GHC Matrix CI](https://github.com/mpickering/eventlog2html/actions/workflows/ghc-matrix.yml/badge.svg?branch=master)](https://github.com/mpickering/eventlog2html/actions/workflows/ghc-matrix.yml)
 ![Hackage](https://img.shields.io/hackage/v/eventlog2html.svg)
 
 `eventlog2html` is a tool to visualise eventlogs. In particular, it creates
