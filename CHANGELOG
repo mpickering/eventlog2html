@@ -1,6 +1,9 @@
-Unreleased
+0.11.0 release 2024-02-06
 
-* Compatibility with 9.0, 9.2, 9.4 and 9.6, which are now also checked in CI.
+* Add sorting by numbers [#183](https://github.com/mpickering/eventlog2html/pull/183)
+* Refactoring and modernization of the UI [#178](https://github.com/mpickering/eventlog2html/pull/178)
+* Compatibility with 9.0, 9.2, 9.4, 9.6 and 9.8 which are now also checked in CI.
+  ([#180](https://github.com/mpickering/eventlog2html/pull/180) and [#181](https://github.com/mpickering/eventlog2html/pull/181))
 
 0.10.0 release 2023-03-31
 
