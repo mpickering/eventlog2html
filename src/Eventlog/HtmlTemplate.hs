@@ -211,7 +211,7 @@ templateString :: EventlogType
                -> Args
                -> String
 templateString x as =
-  renderHtml $ template x as $ allTabs x as
+  renderHtml $ Eventlog.HtmlTemplate.template x as $ allTabs x as
 
 
 ppHeapProfileType :: HeapProfBreakdown -> Text

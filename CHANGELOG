@@ -1,3 +1,7 @@
+Unreleased
+
+* Fix build error due to new exported function in blaze-html [#186](https://github.com/mpickering/eventlog2html/issues/186)
+
 0.11.0 release 2024-02-06
 
 * Add sorting by numbers [#183](https://github.com/mpickering/eventlog2html/pull/183)
