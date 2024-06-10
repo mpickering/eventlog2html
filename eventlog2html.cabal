@@ -32,7 +32,7 @@ Extra-source-files:
   inline-docs/*.html
 extra-doc-files: README.md
                  CHANGELOG.md
-Tested-With:         GHC ==9.0.2, GHC ==9.2.7, GHC ==9.4.7, GHC ==9.6.2, GHC ==9.8.1
+Tested-With:         GHC ==9.0.2, GHC ==9.2.7, GHC ==9.4.7, GHC ==9.6.2, GHC ==9.8.1, GHC==9.10.1
 
 Library
   Build-depends:

@@ -2,6 +2,7 @@ Unreleased
 ----------
 
 * Fix build error due to new exported function in blaze-html [#186](https://github.com/mpickering/eventlog2html/issues/186)
+* Add `GHC 9.10.1` to the build matrix.
 
 0.11.0 release 2024-02-06
 -------------------------
