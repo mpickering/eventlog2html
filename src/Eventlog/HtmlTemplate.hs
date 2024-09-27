@@ -19,7 +19,7 @@ import Data.FileEmbed
 import Eventlog.Data
 import Eventlog.Javascript
 import Eventlog.Args
-import Eventlog.Types (Header(..), HeapProfBreakdown(..))
+import Eventlog.Types (Header(..), HeapProfBreakdown(..), ProfileType(..))
 import Eventlog.Rendering.Bootstrap
 import Eventlog.Rendering.Types
 import Eventlog.VegaTemplate
@@ -162,11 +162,15 @@ perTabFooter :: Header -> Html
 perTabFooter header' = do
     H.div ! class_ "row" $ do
       H.div ! class_ "col" $ do
-          toHtml $ maybe "No heap profile" ppHeapProfileType (hHeapProfileType header')
+          toHtml $ render_type (hHeapProfileType header')
           ", created at "
           code $ toHtml $ hDate header'
           " by "
           code $ toHtml $ hJob header'
+  where
+    render_type FromHPFile              = "heap profile"
+    render_type (FromEventlog Nothing)  = "No heap profile"
+    render_type (FromEventlog (Just t)) = ppHeapProfileType t
 
 
 select_data :: IncludeTraceData -> ChartType -> [Text]
@@ -223,6 +227,7 @@ ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by 
 ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
 ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
+ppHeapProfileType (HeapProfBreakdownEra) = "Era profile (implied by -he)"
 
 
 allTabs :: EventlogType
@@ -248,7 +253,11 @@ metaTab header' _as =
             " seconds between heap samples"
 
 has_heap_profile :: Header -> Bool
-has_heap_profile h = isJust (hHeapProfileType h)
+has_heap_profile h =
+  case (hHeapProfileType h) of
+    FromHPFile -> True
+    FromEventlog t -> isJust t
+
 
 allHeapTabs :: Header -> Args -> HeapProfileData -> [TabGroup]
 allHeapTabs header' as x =

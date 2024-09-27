@@ -40,11 +40,11 @@ generateJsonData a (ProfData h binfo ccMap fs traces heap_info ipes _ticky_count
         sortBy (flip (comparing (fst . snd))) $ Map.toList keeps
       -- Only supply the cost centre view in cost centre profiling mode.
       cc_descs = case hHeapProfileType h of
-                Just HeapProfBreakdownCostCentre -> Just (outputTree ccMap mdescs)
+                (FromEventlog (Just HeapProfBreakdownCostCentre)) -> Just (outputTree ccMap mdescs)
                 _ -> Nothing
 
       use_ipes = case hHeapProfileType h of
-                   Just HeapProfBreakdownInfoTable -> Just ipes
+                   (FromEventlog (Just HeapProfBreakdownInfoTable)) -> Just ipes
                    _ -> Nothing
 
       -- If we have IPE info, try to translate info table pointers to names

@@ -19,13 +19,15 @@ data Header =
   Header
   { hJob         :: Text
   , hDate        :: Text
-  , hHeapProfileType :: Maybe HeapProfBreakdown
+  , hHeapProfileType :: ProfileType
   , hSamplingRate :: Text
   , hSampleUnit  :: Text
   , hValueUnit   :: Text
   , hCount       :: Int
   , hProgPath    :: Maybe FilePath
   } deriving Show
+
+data ProfileType = FromHPFile | FromEventlog (Maybe HeapProfBreakdown) deriving Show
 
 
 -- The bucket is a key to uniquely identify a band
