@@ -344,7 +344,7 @@ elHeader EL{..} =
   let title = maybe "" T.unwords pargs
       date = formatDate clocktimeSec
       ppSamplingRate = T.pack . maybe "<Not available>" (show . fromNano) $ samplingRate
-  in \v -> Header title date heapProfileType ppSamplingRate "" "" v (T.unpack . head <$> pargs)
+  in \v -> Header title date (FromEventlog heapProfileType) ppSamplingRate "" "" v (T.unpack . head <$> pargs)
 
 
 elBucketMap :: EL -> BucketMap
