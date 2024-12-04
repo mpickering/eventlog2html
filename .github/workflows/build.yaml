@@ -52,7 +52,7 @@ jobs:
     - run: find build-folder -type d -exec chmod 755 {} \;
     - run: find build-folder -type f -exec chmod 644 {} \;
     - name: Upload GH Pages site
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v4
       with:
         name: gh-pages-site
         path: build-folder
