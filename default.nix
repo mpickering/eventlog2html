@@ -1,4 +1,4 @@
-{ci ? false, haskellCompiler ? "ghc927" }:
+{ci ? false, haskellCompiler ? "ghc9102" }:
 let
   # Import the Haskell.nix library,
   haskell-src = import ((import ./nix/sources.nix)."haskell.nix") {};
@@ -17,7 +17,7 @@ let
     compiler-nix-name = haskellCompiler;
     src = haskell.haskellLib.cleanGit { name = "eventlog2html"; src = ./.; };
     modules = (if ci then ciOptions else []) ++ opts;
-    index-state = "2023-03-25T00:00:00Z";
+    index-state = "2025-06-01T00:00:00Z";
   };
 
 
