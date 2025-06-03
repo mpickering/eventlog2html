@@ -1,3 +1,9 @@
+0.12.0 release 2024-06-03
+-------------------------
+
+* Fix rendering of .hp profiles (#191)
+* Add support for eras profiling
+
 0.11.1 release 2024-08-17
 -------------------------
 
