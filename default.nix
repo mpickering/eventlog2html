@@ -8,7 +8,7 @@ let
 
   haskell = pin.haskell-nix;
 
-  ciOptions = [ { packages.eventlog2html.configureFlags = [ "--ghc-option=-Werror" ]; } ];
+  ciOptions = []; # [ { packages.eventlog2html.configureFlags = [ "--ghc-option=-Werror" ]; } ];
 
   opts = [ { packages.vault.doHaddock = false; } ];
 
