@@ -227,6 +227,7 @@ ppHeapProfileType (HeapProfBreakdownRetainer) = "Retainer profiling (implied by 
 ppHeapProfileType (HeapProfBreakdownBiography) = "Biographical profiling (implied by -hb)"
 ppHeapProfileType (HeapProfBreakdownClosureType) = "Basic heap profile (implied by -hT)"
 ppHeapProfileType (HeapProfBreakdownInfoTable) = "Info table profile (implied by -hi)"
+ppHeapProfileType (HeapProfBreakdownEra) = "Era profile (implied by -he)"
 
 
 allTabs :: EventlogType
